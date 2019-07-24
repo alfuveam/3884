@@ -2841,8 +2841,7 @@ void ProtocolGame::AddMagicEffect(NetworkMessage_ptr msg,const Position& pos, ui
 {
 	msg->put<char>(0x83);
 	msg->putPosition(pos);
-	msg->put<uint16_t>(type + 1);
-	//msg->put<char>(type + 1);
+	msg->put<char>(type + 1);
 }
 
 void ProtocolGame::AddDistanceShoot(NetworkMessage_ptr msg, const Position& from, const Position& to,
@@ -2851,8 +2850,7 @@ void ProtocolGame::AddDistanceShoot(NetworkMessage_ptr msg, const Position& from
 	msg->put<char>(0x85);
 	msg->putPosition(from);
 	msg->putPosition(to);
-	msg->put<uint16_t>(type + 1);
-	//msg->put<char>(type + 1);
+	msg->put<char>(type + 1);
 }
 
 void ProtocolGame::AddCreature(NetworkMessage_ptr msg, const Creature* creature, bool known, uint32_t remove)

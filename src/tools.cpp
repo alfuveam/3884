@@ -38,7 +38,7 @@ std::string transformToMD5(std::string plainText, bool upperCase)
 
 	char output[MD5_DIGEST_LENGTH * 2 + 1] = "";
 	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(output, "%s%.2X", output, md[i]);
+		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
 
 	if(upperCase)
 		return std::string(output);
@@ -57,7 +57,7 @@ std::string transformToSHA1(std::string plainText, bool upperCase)
 
 	char output[SHA_DIGEST_LENGTH * 2 + 1] = "";
 	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(output, "%s%.2X", output, md[i]);
+		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
 
 	if(upperCase)
 		return std::string(output);
@@ -76,7 +76,7 @@ std::string transformToSHA256(std::string plainText, bool upperCase)
 
 	char output[SHA256_DIGEST_LENGTH * 2 + 1] = "";
 	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(output, "%s%.2X", output, md[i]);
+		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
 
 	if(upperCase)
 		return std::string(output);
@@ -94,8 +94,8 @@ std::string transformToSHA512(std::string plainText, bool upperCase)
 	SHA512_Final(md, &c);
 
 	char output[SHA512_DIGEST_LENGTH * 2 + 1] = "";
-	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(output, "%s%.2X", output, md[i]);
+	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)		
+		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
 
 	if(upperCase)
 		return std::string(output);
@@ -116,9 +116,10 @@ std::string transformToVAHash(std::string plainText, bool upperCase)
 	// This holds the HMAC
 	// Use native byte instead of casting chars
 	unsigned char* digest;
+	const unsigned char* thePlainText = reinterpret_cast<const unsigned char*>(plainText.c_str());
 
 	// Do the actual calculation and setup, require a byte value so we need a cast on the key and the input
-	digest = HMAC(EVP_sha1(), key, strlen(key), (unsigned char*)plainText, strlen(plainText), NULL, NULL);  
+	digest = HMAC(EVP_sha1(), key.c_str(), key.length(), thePlainText, plainText.length(), NULL, NULL);  
 
     char output[20];
     for(int i = 0; i < 20; i++)
@@ -2002,19 +2003,26 @@ bool fileExists(const char* filename)
 
 uint32_t adlerChecksum(uint8_t* data, size_t length)
 {
-	// Keep this check, rarely used I think
 	if(length > NETWORK_MAX_SIZE || !length)
 		return 0;
 
-	// Crypto++ object
-	CryptoPP::Adler32 adler;
-	// Digest cash object, cast later
-	byte digest[CryptoPP::Adler32::DIGESTSIZE];
-
-	// Do the calculation now
-	adler.CalculateDigest(digest, (const byte*)data, length);
-	// return uint32_t cast type
-	return (uint32_t)(((uint16_t)digest[0] << 8 | digest[1]) << 16) | ((uint16_t)digest[2] << 8 | digest[3]);
+	const uint16_t adler = 65521;
+	uint32_t a = 1, b = 0;
+	while(length > 0)
+	{
+		size_t tmp = length > 5552 ? 5552 : length;
+		length -= tmp;
+		do
+		{
+			a += *data++;
+			b += a;
+		}
+		while(--tmp);
+		a %= adler;
+		b %= adler;
+	}
+	
+	return (b << 16) | a;
 }
 
 std::string getFilePath(FileType_t type, std::string name/* = ""*/)
