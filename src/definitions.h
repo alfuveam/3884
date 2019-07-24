@@ -173,7 +173,6 @@
 // #endif
 
 #ifdef _WIN32
-	#include <windows.h>
 	#include <sys/timeb.h>
 
 	#ifndef access

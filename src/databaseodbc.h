@@ -33,14 +33,9 @@
 #ifndef __OTSERV_DATABASEODBC_H__
 #define __OTSERV_DATABASEODBC_H__
 
-#ifdef WIN32
-	#include <windows.h>
-#else
-	#include <sqltypes.h>
-#endif
-
 #include <sql.h>
 #include <sqlext.h>
+#include <sqltypes.h>
 
 /**
   @author Bruno R Ferreira <brf_coldf@yahoo.com.br>

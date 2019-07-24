@@ -27,20 +27,25 @@ include(FindLTO)
 # Find packages.
 find_package(GMP REQUIRED)
 find_package(LibXml2 REQUIRED)
-find_package(LuaJIT)
 find_package(Threads)
 
-option(USE_LUAJIT "Use LuaJIT" ${LUAJIT_FOUND})
-
-if(NOT __USE_LUAJIT__)
-	#if(MSVC)
-	#	Only windows have problem. LUA_INCLUDE_DIR lost value
-		#set(LUAJIT_INCLUDE_DIR "${_LUA_DIR}/include/")
-		#set(LUAJIT_LIBRARY "${_LUA_DIR}/lib64/luajit.lib")
-	#endif()
-#else()
-    find_package(Lua)
+# Selects LuaJIT if user defines or auto-detected
+if(DEFINED USE_LUAJIT AND NOT USE_LUAJIT)
+    set(FORCE_LUAJIT ${USE_LUAJIT})
+else()
+    find_package(LuaJIT)
+    set(FORCE_LUAJIT ${LuaJIT_FOUND})
 endif()
+option(USE_LUAJIT "Use LuaJIT" ${FORCE_LUAJIT})
+
+if(FORCE_LUAJIT)
+    if(APPLE)
+      set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+    endif()
+else()
+    find_package(Lua REQUIRED)
+endif()
+
 #	Is necessary to build a correct build file
 find_package(Boost 1.53.0 COMPONENTS system iostreams filesystem regex date_time thread REQUIRED)
 
