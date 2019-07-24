@@ -86,7 +86,7 @@
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
 // Provide compatibility across OpenSSL 1.02 and 1.1.
-static int old_RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
+static int set_rsa_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
   /* If the fields n and e in r are NULL, the corresponding input
    * parameters MUST be non-NULL for n and e.  d may be
    * left NULL (in case only the public key is used).
@@ -111,7 +111,7 @@ static int old_RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
   return 1;
 }
 
- static int old_RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q) {
+ static int set_rsa_factors(RSA *r, BIGNUM *p, BIGNUM *q) {
     /* If the fields p and q in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
      */
