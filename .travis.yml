@@ -5,8 +5,7 @@ compiler:
   - clang
   - gcc
 env:
-  - LUAJIT=OFF
-  - LUAJIT=ON
+  - LUAJIT=OFF  
 cache: apt
 addons:
   apt:
@@ -15,11 +14,16 @@ addons:
       - libboost-system-dev
       - libboost-filesystem-dev
       - libboost-iostreams-dev
+      - libboost-thread-dev
+      - libboost-date-time-dev
       - liblua5.2-dev
       - libluajit-5.1-dev
       - libmysqlclient-dev
-      - libpugixml-dev
+      - libxml2-dev 
+      - libsqlite3-dev
+      - unixodbc-dev
+      - libpq-dev
 before_script:
   - mkdir build && cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release -DUSE_LUAJIT=${LUAJIT} ..
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
 script: make -j2
