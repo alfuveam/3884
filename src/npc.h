@@ -35,7 +35,18 @@ class Npcs
 		void reload();
 };
 
-class NpcState;
+struct NpcState
+{
+	bool isIdle, isQueued, ignoreCap, inBackpacks;
+	int32_t topic, price, sellPrice, buyPrice, amount, itemId, subType, level;
+	uint32_t respondToCreature;
+	uint64_t prevInteraction;
+	std::string spellName, listName, listPluralName, respondToText, prevRespondToText;
+	const NpcResponse* lastResponse;
+	ScriptVars scriptVars;
+	//Do not forget to update pushState/popState if you add more variables
+};
+
 class NpcScript : public LuaInterface
 {
 	public:
@@ -316,18 +327,6 @@ class NpcResponse
 		ResponseProperties prop;
 		ResponseList subResponseList;
 		ScriptVars scriptVars;
-};
-
-struct NpcState
-{
-	bool isIdle, isQueued, ignoreCap, inBackpacks;
-	int32_t topic, price, sellPrice, buyPrice, amount, itemId, subType, level;
-	uint32_t respondToCreature;
-	uint64_t prevInteraction;
-	std::string spellName, listName, listPluralName, respondToText, prevRespondToText;
-	const NpcResponse* lastResponse;
-	ScriptVars scriptVars;
-	//Do not forget to update pushState/popState if you add more variables
 };
 
 struct Voice
