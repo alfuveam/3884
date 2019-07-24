@@ -118,7 +118,7 @@ std::string transformToVAHash(std::string plainText, bool upperCase)
 	unsigned char* digest;
 
 	// Do the actual calculation and setup, require a byte value so we need a cast on the key and the input
-	digest = HMAC(EVP_sha1(), key, strlen(key), (unsigned char*)data, strlen(data), NULL, NULL);  
+	digest = HMAC(EVP_sha1(), key, strlen(key), (unsigned char*)plainText, strlen(plainText), NULL, NULL);  
 
     char output[20];
     for(int i = 0; i < 20; i++)
