@@ -997,21 +997,22 @@ bool ConditionDamage::serialize(PropWriteStream& propWriteStream)
 	return true;
 }
 
-bool ConditionDamage::updateCondition(const ConditionDamage* addCondition)
+bool ConditionDamage::updateCondition(const Condition* addCondition)
 {
-	if(addCondition->doForceUpdate())
+	const ConditionDamage& conditionDamage = static_cast<const ConditionDamage&>(*addCondition);
+	if(conditionDamage.doForceUpdate())
 		return true;
 
-	if(getTicks() == -1 && addCondition->getTicks() > 0)
+	if(getTicks() == -1 && conditionDamage.getTicks() > 0)
 		return false;
 
-	if(addCondition->getTicks() <= getTicks())
+	if(conditionDamage.getTicks() <= getTicks())
 		return false;
 
-	if(addCondition->getTotalDamage() < getTotalDamage())
+	if(conditionDamage.getTotalDamage() < getTotalDamage())
 		return false;
 
-	if(addCondition->periodDamage < periodDamage)
+	if(conditionDamage.periodDamage < periodDamage)
 		return false;
 
 	return true;

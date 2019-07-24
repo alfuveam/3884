@@ -272,7 +272,7 @@ class ConditionDamage: public Condition
 		virtual bool unserializeProp(ConditionAttr_t attr, PropStream& propStream);
 
 	protected:
-		bool updateCondition(const ConditionDamage* addCondition) override;
+		bool updateCondition(const Condition* addCondition);
 
 		bool init();
 		bool getNextDamage(int32_t& damage);
