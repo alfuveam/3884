@@ -11,8 +11,8 @@ include(cotire)
 
 add_compile_options(-Wall -Werror -pipe -fvisibility=hidden)
 #-lz ; to libxml2
-#-lcrypto -lcryptopp ; to openssl
-link_libraries(-lz -lcrypto -lcryptopp -lmysqlclient)
+#-lcrypto ; to openssl
+link_libraries(-lz -lcrypto -lmysqlclient)
 
 set(CMAKE_CXX_FLAGS_PERFORMANCE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
