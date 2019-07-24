@@ -91,7 +91,7 @@ class Spawn
 		uint32_t interval, checkSpawnEvent;
 
 		Position centerPos;
-		int32_t radius, despawnRange, despawnRadius;
+		int32_t radius;
 
 		void checkSpawn();
 		bool spawnMonster(uint32_t spawnId, MonsterType* mType, const Position& pos, Direction dir, bool startup = false);
