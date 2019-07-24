@@ -27,6 +27,7 @@ install:
   - cmd : vcpkg install boost-lockfree:x64-windows
   - cmd : vcpkg install boost-date-time:x64-windows
   - cmd : vcpkg install boost-thread:x64-windows
+  - cmd : vcpkg install boost-any:x64-windows  
   - cmd : vcpkg install openssl:x64-windows
   - cmd : vcpkg install luajit:x64-windows
   - cmd : vcpkg install libmariadb:x64-windows
