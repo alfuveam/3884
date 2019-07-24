@@ -123,7 +123,7 @@ class WeaponMelee : public Weapon
 
 		virtual bool useWeapon(Player* player, Item* item, Creature* target) const;
 		virtual int32_t getWeaponDamage(const Player* player, const Creature* target, const Item* item, bool maxDamage = false) const;
-		int32_t getElementDamage(const Player* player, const Item* item) const override;
+		int32_t getElementDamage(const Player* player, const Item* item) const;
 
 	protected:
 		virtual bool getSkillType(const Player* player, const Item* item, skills_t& skill, uint64_t& skillPoint) const;
@@ -144,7 +144,7 @@ class WeaponDistance : public Weapon
 
 		virtual bool useWeapon(Player* player, Item* item, Creature* target) const;
 		virtual int32_t getWeaponDamage(const Player* player, const Creature* target, const Item* item, bool maxDamage = false) const;
-		int32_t getElementDamage(const Player* player, const Item* item) const  override { return 0; }
+		int32_t getElementDamage(const Player* player, const Item* item) const { return 0; }
 
 	protected:
 		virtual void onUsedAmmo(Player* player, Item* item, Tile* destTile) const;
@@ -163,7 +163,7 @@ class WeaponWand : public Weapon
 		virtual bool configureWeapon(const ItemType& it);
 
 		virtual int32_t getWeaponDamage(const Player* player, const Creature* target, const Item* item, bool maxDamage = false) const;
-		int32_t getElementDamage(const Player* player, const Item* item) const  override { return 0; }
+		int32_t getElementDamage(const Player* player, const Item* item) const { return 0; }
 
 	protected:
 		virtual bool getSkillType(const Player*, const Item*, skills_t&, uint64_t&) const {return false;}
