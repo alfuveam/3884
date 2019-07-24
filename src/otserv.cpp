@@ -534,8 +534,8 @@ void otserv(StringVec, ServiceManager* services)
 	BN_dec2bn(&bn, g_config.getString(ConfigManager::RSA_MODULUS).c_str());
 	BN_dec2bn(&be, g_config.getString(ConfigManager::RSA_PUBLIC).c_str());
 
-    RSA_set0_key(g_RSA, bn, be, bd);
-    RSA_set0_factors(g_RSA, bp, bq);
+    old_RSA_set0_key(g_RSA, bn, be, bd);
+    old_RSA_set0_factors(g_RSA, bp, bq);
 	
 	if(!RSA_check_key(g_RSA))
 	{
