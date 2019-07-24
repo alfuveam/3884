@@ -23,9 +23,6 @@
 #endif
 
 #include <mysql/mysql.h>
-#if defined WINDOWS
-	#include <winsock2.h>
-#endif
 
 class DatabaseMySQL : public _Database
 {
