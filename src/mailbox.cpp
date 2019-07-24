@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "mailbox.h"
 
@@ -62,7 +63,7 @@ bool Mailbox::sendItem(Creature* actor, Item* item)
 {
 	uint32_t depotId = 0;
 	std::string name;
-	if(!getRecipient(item, name, depotId) || name.empty() || !depotId)
+	if(!getRecipient(item, name, depotId) || name.empty() || !depotId || item->getWeight()>5000)
 		return false;
 
 	return IOLoginData::getInstance()->playerMail(actor, name, depotId, item);

@@ -3,5 +3,9 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
+  <ItemDefinitionGroup>
+    <Link>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

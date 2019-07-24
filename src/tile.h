@@ -17,7 +17,6 @@
 
 #ifndef __TILE__
 #define __TILE__
-#include <boost/shared_ptr.hpp>
 
 #include "cylinder.h"
 #include "item.h"
@@ -164,7 +163,6 @@ class Tile : public Cylinder
 		Creature* getTopCreature();
 		Item* getTopTopItem();
 		Item* getTopDownItem();
-		bool isMoveableBlocking() const;
 		Thing* getTopVisibleThing(const Creature* creature);
 		Creature* getTopVisibleCreature(const Creature* creature);
 		const Creature* getTopVisibleCreature(const Creature* creature) const;
@@ -279,7 +277,7 @@ class Tile : public Cylinder
 	private:
 		void onAddTileItem(Item* item);
 		void onUpdateTileItem(Item* oldItem, const ItemType& oldType, Item* newItem, const ItemType& newType);
-		void onRemoveTileItem(const SpectatorVec& list, std::vector<int32_t>& oldStackPosVector, Item* item);
+		void onRemoveTileItem(const SpectatorVec& list, std::vector<uint32_t>& oldStackPosVector, Item* item);
 
 		void updateTileFlags(Item* item, bool remove);
 

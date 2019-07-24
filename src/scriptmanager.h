@@ -17,7 +17,6 @@
 
 #ifndef __SCRIPTMANAGER__
 #define __SCRIPTMANAGER__
-#include "otsystem.h"
 
 struct ModBlock
 {

@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "monsters.h"
 #include "tools.h"
@@ -93,14 +92,19 @@ uint16_t Monsters::getLootRandom()
 
 void MonsterType::dropLoot(Container* corpse)
 {
-	Item* tmpItem = NULL;
+	ItemList items;
 	for(LootItems::const_iterator it = lootItems.begin(); it != lootItems.end() && !corpse->full(); ++it)
 	{
-		if((tmpItem = createLoot(*it)))
+		items = createLoot(*it);
+		if(items.empty())
+			continue;
+
+		for(ItemList::iterator iit = items.begin(); iit != items.end(); ++iit)
 		{
+			Item* tmpItem = *iit;
 			if(Container* container = tmpItem->getContainer())
 			{
-				if(createChildLoot(container, (*it)))
+				if(createChildLoot(container, *it))
 					corpse->__internalAddThing(tmpItem);
 				else
 					delete container;
@@ -134,37 +138,43 @@ void MonsterType::dropLoot(Container* corpse)
 		owner->sendTextMessage((MessageClasses)g_config.getNumber(ConfigManager::LOOT_MESSAGE_TYPE), ss.str());
 }
 
-Item* MonsterType::createLoot(const LootBlock& lootBlock)
+ItemList MonsterType::createLoot(const LootBlock& lootBlock)
 {
-	uint16_t item = lootBlock.ids[0], random = Monsters::getLootRandom();
+	uint16_t item = lootBlock.ids[0], random = Monsters::getLootRandom(), count = 0;
 	if(lootBlock.ids.size() > 1)
 		item = lootBlock.ids[random_range((size_t)0, lootBlock.ids.size() - 1)];
 
+	ItemList items;
+	if(random < lootBlock.chance)
+		count = random % lootBlock.count + 1;
+
 	Item* tmpItem = NULL;
-	if(Item::items[item].stackable)
+	while(count > 0)
 	{
-		if(random < lootBlock.chance)
-			tmpItem = Item::CreateItem(item, (random % lootBlock.count + 1));
+		uint16_t n = 1;
+		if(Item::items[item].stackable)
+			n = std::min(count, (uint16_t)100);
+
+		if(!(tmpItem = Item::CreateItem(item, n)))
+			break;
+
+		count -= n;
+		if(lootBlock.subType != -1)
+			tmpItem->setSubType(lootBlock.subType);
+
+		if(lootBlock.actionId != -1)
+			tmpItem->setActionId(lootBlock.actionId, false);
+
+		if(lootBlock.uniqueId != -1)
+			tmpItem->setUniqueId(lootBlock.uniqueId);
+
+		if(!lootBlock.text.empty())
+			tmpItem->setText(lootBlock.text);
+
+		items.push_back(tmpItem);
 	}
-	else if(random < lootBlock.chance)
-		tmpItem = Item::CreateItem(item, 0);
 
-	if(!tmpItem)
-		return NULL;
-
-	if(lootBlock.subType != -1)
-		tmpItem->setSubType(lootBlock.subType);
-
-	if(lootBlock.actionId != -1)
-		tmpItem->setActionId(lootBlock.actionId, false);
-
-	if(lootBlock.uniqueId != -1)
-		tmpItem->setUniqueId(lootBlock.uniqueId);
-
-	if(!lootBlock.text.empty())
-		tmpItem->setText(lootBlock.text);
-
-	return tmpItem;
+	return items;
 }
 
 bool MonsterType::createChildLoot(Container* parent, const LootBlock& lootBlock)
@@ -173,15 +183,20 @@ bool MonsterType::createChildLoot(Container* parent, const LootBlock& lootBlock)
 	if(it == lootBlock.childLoot.end())
 		return true;
 
-	Item* tmpItem = NULL;
+	ItemList items;
 	for(; it != lootBlock.childLoot.end() && !parent->full(); ++it)
 	{
-		if((tmpItem = createLoot(*it)))
+		items = createLoot(*it);
+		if(items.empty())
+			continue;
+
+		for(ItemList::iterator iit = items.begin(); iit != items.end(); ++iit)
 		{
+			Item* tmpItem = *iit;
 			if(Container* container = tmpItem->getContainer())
 			{
-				if(createChildLoot(container, (*it)))
-					parent->__internalAddThing(container);
+				if(createChildLoot(container, *it))
+					parent->__internalAddThing(tmpItem);
 				else
 					delete container;
 			}
@@ -1497,7 +1512,7 @@ bool Monsters::loadLoot(xmlNodePtr node, LootBlock& lootBlock)
 
 	int32_t intValue;
 	if(readXMLInteger(node, "count", intValue) || readXMLInteger(node, "countmax", intValue))
-		lootBlock.count = std::max(1, std::min(100, intValue));
+		lootBlock.count = intValue;
 	else
 		lootBlock.count = 1;
 

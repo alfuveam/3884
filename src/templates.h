@@ -17,7 +17,6 @@
 
 #ifndef __TEMPLATES__
 #define __TEMPLATES__
-#include "otsystem.h"
 
 template<class T> class AutoList : public std::map<uint32_t, T*>
 {

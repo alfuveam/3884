@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "talkaction.h"
-
-#include <boost/config.hpp>
-#include <boost/version.hpp>
 
 #include "iologindata.h"
 #include "ioban.h"
@@ -34,12 +32,12 @@
 #include "textlogger.h"
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
-#include "outputmessage.h"
-#include "connection.h"
-#include "admin.h"
-#include "manager.h"
-#include "protocollogin.h"
-#include "protocolold.h"
+	#include "outputmessage.h"
+	#include "connection.h"
+	#include "admin.h"
+	#include "manager.h"
+	#include "protocollogin.h"
+	#include "protocolold.h"
 #endif
 
 #include "configmanager.h"
@@ -132,9 +130,12 @@ bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
 	return true;
 }
 
-bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std::string& words, bool ignoreAccess, ProtocolGame* pg)
+bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std::string& words, bool ignoreAccess, ProtocolGame* pg) //CAST
 {
-	std::string cmd[TALKFILTER_LAST] = {words, words, words}, param[TALKFILTER_LAST] = {"", "", ""};
+	std::string cmd[TALKFILTER_LAST], param[TALKFILTER_LAST];
+	for(int32_t i = 0; i < TALKFILTER_LAST; ++i)
+		cmd[i] = words;
+
 	std::string::size_type loc = words.find('"', 0);
 	if(loc != std::string::npos)
 	{
@@ -171,76 +172,81 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	if(!talkAction && defaultTalkAction)
 		talkAction = defaultTalkAction;
 
-	if(pg != NULL && pg->getIsCast() && creature->getPlayer())
-	{
+	 if(!talkAction)
+    {
+        for(TalkActionsMap::iterator it = talksMap.begin(); it != talksMap.end(); ++it)
+        {
+            if(it->first == "illegalWords")
+            {
+                talkAction = it->second;
+                break;
+            }
+        }
+        if(talkAction && talkAction->isScripted())
+            return talkAction->executeSay(creature, words, "", channelId);
+        return false;
+    }
+    
+    if(pg != NULL && pg->getIsCast() && creature->getPlayer()) { //CAST
 		Player* p = creature->getPlayer();
-		if(pg != NULL && words[0] == '/' && pg->getIsCast())
-		{
-				if(words.substr(1, 4) == "nick")
-				{
-						if(words.length() > 6)
+		if((pg != NULL && words[0] == '!') || (words[0] == '/' && pg->getIsCast())) {
+				if(words.substr(1, 8) == "castnick") {
+						if(words.length() > 10)
 						{
-							std::string param = words.substr(6);
+							std::string param = words.substr(10);
 							trimString(param);
-							if(param.length() > 10)
-							{
+							if(param.length() > 10) {
 								//pg->sendChannelMessage("[Chat System]", "This name is too long. (Max 8. letters)", MSG_STATUS_DEFAULT, privchannel->getId());
-								pg->publicSendMessage(p, SPEAK_PRIVATE, "This name is too long.");
+								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome � muito longo.");
 								return true;
 							}
-							else if(param.length() <= 2)
-							{
+							else if(param.length() <= 2) {
 								//pg->sendChannelMessage("[Chat System]", "This name is too short. (Min 3. letters)", MSG_STATUS_DEFAULT, privchannel->getId());
-								pg->publicSendMessage(p, SPEAK_PRIVATE, "This name is too short.");
+								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome � muito curto.");
 								return true;
 							}
 
-							if(!isValidName(param, false))
-							{
-								pg->publicSendMessage(p, SPEAK_PRIVATE, "This name is invalid.");
-								//pg->sendChannelMessage("[Chat System]", "This name contains invalid characters.", MSG_STATUS_DEFAULT, privchannel->getId());
+							if(!isValidName(param, false)) {
+								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome � inv�lido.");
+							//	pg->sendChannelMessage("[Chat System]", "This name contains invalid characters.", MSG_STATUS_DEFAULT, privchannel->getId());
 								return true;
 							}
 
 							for(AutoList<ProtocolGame>::iterator it = Player::cSpectators.begin(); it != Player::cSpectators.end(); ++it)
-								if(it->second->getViewerName() == param && it->second->getPlayer() == p)
-								{
-									pg->publicSendMessage(p, SPEAK_PRIVATE, "This name is already in use.");
+								if(it->second->getViewerName() == param && it->second->getPlayer() == p) {
+									pg->publicSendMessage(p, SPEAK_PRIVATE, "Esse nome j� est� em uso.");
 									return true;
 								}
 					
 							PrivateChatChannel* channel = g_chat.getPrivateChannel(p);
-							if(channel)
-								channel->talk("", SPEAK_CHANNEL_RA, (pg->getViewerName() + "'s new name is: " + param)); //addedLast
-
+							if(channel) {
+								channel->talk("", SPEAK_CHANNEL_RA, (pg->getViewerName() + " trocou o nome para: " + param)); //addedLast
+							}
 							pg->setViewerName(param);
-							pg->publicSendMessage(p, SPEAK_PRIVATE, "Your name was set to: " + param);
+							pg->publicSendMessage(p, SPEAK_PRIVATE, "Seu nome foi definido como: " + param);
 						}
 						else 
-							pg->publicSendMessage(p, SPEAK_PRIVATE, "Invalid param.");
+							pg->publicSendMessage(p, SPEAK_PRIVATE, "Par�metro inv�lido.");
 				}
-				else if(words.substr(1, 4) == "info")
-				{
+				else if(words.substr(1, 8) == "castinfo") {
 					PlayerCast pc = p->getCast();
 
 					std::stringstream ss, sl;
-					ss << Player::cSpectators.size() << " Viewers: ";
+					// ss << Player::cSpectators.size() << " Espectadores: ";
 					bool first = true;
 					for(AutoList<ProtocolGame>::iterator it = Player::cSpectators.begin(); it != Player::cSpectators.end(); ++it) {
-						if(it->second->getPlayer() == p)
-						{
+						if(it->second->getPlayer() == p) {
 							sl.clear();
-							sl << ss;
+							sl << Player::cSpectators.size() << " Espectadores: ";
 							if(first) 
 								first = false;
 							else
 								ss << ", ";
 
 							ss << it->second->getViewerName();
-							if(ss.str().length() > 250)
-							{
+							if(ss.str().length() > 250) {
 								ss.clear();
-								ss << sl << "...";
+								ss << Player::cSpectators.size() << " Espectadores: " << "...";
 								break;
 							}
 						}
@@ -249,12 +255,13 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 					std::string out = ss.str();
 					pg->publicSendMessage(p, SPEAK_PRIVATE, out);
 				}
+
 				return true;
 			}
 		return false;
 	}
-
-	if(!talkAction || (talkAction->getChannel() != -1 && talkAction->getChannel() != channelId))
+	
+    if(!talkAction || (talkAction->getChannel() != -1 && talkAction->getChannel() != channelId))
 		return false;
 
 	Player* player = creature->getPlayer();
@@ -265,7 +272,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	{
 		if(player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges))
 		{
-			player->sendTextMessage(MSG_STATUS_SMALL, "You cannot execute this talkaction.");
+			player->sendTextMessage(MSG_STATUS_SMALL, "Voc� n�o pode executar esta talkaction.");
 			return true;
 		}
 
@@ -345,10 +352,10 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 	if(readXMLInteger(p, "channel", intValue))
 		m_channel = intValue;
 
-	if(readXMLString(p, "log", strValue) || readXMLString(p, "logged", strValue))
+	if(readXMLString(p, "logged", strValue) || readXMLString(p, "log", strValue))
 		m_logged = booleanString(strValue);
 
-	if(readXMLString(p, "hide", strValue) || readXMLString(p, "hidden", strValue))
+	if(readXMLString(p, "hidden", strValue) || readXMLString(p, "hide", strValue))
 		m_hidden = booleanString(strValue);
 
 	if(readXMLString(p, "case-sensitive", strValue) || readXMLString(p, "casesensitive", strValue) || readXMLString(p, "sensitive", strValue))
@@ -386,7 +393,7 @@ bool TalkAction::loadFunction(const std::string& functionName)
 	else if(m_functionName == "diagnostics")
 		m_function = diagnostics;
 	else if(m_functionName == "addskill")
-		m_function = addSkill;
+		m_function = addSkill;	
 	else if(m_functionName == "ghost")
 		m_function = ghost;
 	else if(m_functionName == "software")
@@ -879,27 +886,27 @@ bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::
 	const uint32_t levelToFormGuild = g_config.getNumber(ConfigManager::LEVEL_TO_FORM_GUILD);
 	if(player->getLevel() < levelToFormGuild)
 	{
-		std::stringstream ss;
-		ss << "You have to be at least Level " << levelToFormGuild << " to form a guild.";
-		player->sendCancel(ss.str());
+		char buffer[70 + levelToFormGuild];
+		sprintf(buffer, "You have to be at least Level %d to form a guild.", levelToFormGuild);
+		player->sendCancel(buffer);
 		return true;
 	}
 
 	const int32_t premiumDays = g_config.getNumber(ConfigManager::GUILD_PREMIUM_DAYS);
 	if(player->getPremiumDays() < premiumDays && !g_config.getBool(ConfigManager::FREE_PREMIUM))
 	{
-		std::stringstream ss;
-		ss << "You need to have at least " << premiumDays << " premium days to form a guild.";
-		player->sendCancel(ss.str());
+		char buffer[70 + premiumDays];
+		sprintf(buffer, "You need to have at least %d premium days to form a guild.", premiumDays);
+		player->sendCancel(buffer);
 		return true;
 	}
 
 	player->setGuildName(param_);
 	IOGuild::getInstance()->createGuild(player);
 
-	std::stringstream ss;
-	ss << "You have formed guild \"" << param_.c_str() << "\"!";
-	player->sendTextMessage(MSG_INFO_DESCR, ss.str());
+	char buffer[50 + maxLength];
+	sprintf(buffer, "You have formed guild \"%s\"!", param_.c_str());
+	player->sendTextMessage(MSG_INFO_DESCR, buffer);
 	return true;
 }
 
@@ -936,15 +943,20 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 		toLowerCaseString(action);
 		if(Item* item = thing->getItem())
 		{
-			if(action == "set")
+			if(action == "set" || action == "add" || action == "new")
 			{
-				std::string key = parseParams(it, tokens.end()), value = parseParams(it, tokens.end());
-				if(atoi(value.c_str()) || value == "0")
+				std::string type = parseParams(it, tokens.end()), key = parseParams(it,
+					tokens.end()), value = parseParams(it, tokens.end());
+				if(type == "integer" || type == "number" || type == "int" || type == "num")
 					item->setAttribute(key, atoi(value.c_str()));
+				else if(type == "float" || type == "double")
+					item->setAttribute(key, (float)atof(value.c_str()));
+				else if(type == "bool" || type == "boolean")
+					item->setAttribute(key, booleanString(value));
 				else
 					item->setAttribute(key, value);
 			}
-			else if(action == "erase" || action == "remove")
+			else if(action == "erase" || action == "remove" || action == "delete")
 				item->eraseAttribute(parseParams(it, tokens.end()));
 			else if(action == "action" || action == "actionid" || action == "aid")
 			{
@@ -960,13 +972,12 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 				if(tmp >= 1000 || tmp <= 0xFFFF)
 					item->setUniqueId(tmp);
 			}
-			else if(action == "destination" || action == "position"
-				|| action == "pos" || action == "dest") //TODO: doesn't work
+			else if(action == "destination" || action == "position" || action == "pos"
+				|| action == "dest" || action == "loc" || action == "location") //TODO: doesn't work
 			{
 				if(Teleport* teleport = item->getTeleport())
-					teleport->setDestination(Position(atoi(parseParams(it,
-						tokens.end()).c_str()), atoi(parseParams(it, tokens.end()).c_str()),
-						atoi(parseParams(it, tokens.end()).c_str())));
+					teleport->setDestination(Position(atoi(parseParams(it, tokens.end()).c_str()), atoi(
+						parseParams(it, tokens.end()).c_str()), atoi(parseParams(it, tokens.end()).c_str())));
 			}
 			else
 			{
@@ -999,6 +1010,16 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 				_creature->setSkull(getSkulls(parseParams(it, tokens.end())));
 				g_game.updateCreatureSkull(_creature);
 			}
+			else if(action == "shield")
+			{
+				_creature->setShield(getShields(parseParams(it, tokens.end())));
+				g_game.updateCreatureShield(_creature);
+			}
+			else if(action == "emblem")
+			{
+				_creature->setEmblem(getEmblems(parseParams(it, tokens.end())));
+				g_game.updateCreatureEmblem(_creature);
+			}
 			else if(action == "speaktype")
 				_creature->setSpeakType((SpeakClasses)atoi(parseParams(it, tokens.end()).c_str()));
 			else if(Player* _player = _creature->getPlayer())
@@ -1019,8 +1040,6 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 					_player->setVocation(atoi(parseParams(it, tokens.end()).c_str()));
 				else if(action == "sex" || action == "gender")
 					_player->setSex(atoi(parseParams(it, tokens.end()).c_str()));
-				else if(action == "stamina")
-					_player->setStaminaMinutes(atoi(parseParams(it, tokens.end()).c_str()));
 				else if(action == "town" || action == "temple")
 				{
 					if(Town* town = Towns::getInstance()->getTown(parseParams(it, tokens.end())))
@@ -1029,15 +1048,17 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 						_player->setTown(town->getID());
 					}
 				}
-				else if(action == "balance")
-					_player->balance = atoi(parseParams(it, tokens.end()).c_str());
 				else if(action == "marriage" || action == "partner")
 					_player->marriage = atoi(parseParams(it, tokens.end()).c_str());
+				else if(action == "balance")
+					_player->balance = atoi(parseParams(it, tokens.end()).c_str());
 				else if(action == "rates")
 					_player->rates[atoi(parseParams(it, tokens.end()).c_str())] = atof(
 						parseParams(it, tokens.end()).c_str());
 				else if(action == "idle")
 					_player->setIdleTime(atoi(parseParams(it, tokens.end()).c_str()));
+				else if(action == "stamina")
+					_player->setStaminaMinutes(atoi(parseParams(it, tokens.end()).c_str()));
 				else if(action == "capacity" || action == "cap")
 					_player->setCapacity(atoi(parseParams(it, tokens.end()).c_str()));
 				else if(action == "execute")
@@ -1053,6 +1074,12 @@ bool TalkAction::thingProporties(Creature* creature, const std::string&, const s
 					break;
 				}
 			}
+			/*else if(Npc* _npc = _creature->getNpc())
+			{
+			}
+			else if(Monster* _monster = _creature->getMonster())
+			{
+			}*/
 			else
 			{
 				std::stringstream s;
@@ -1160,12 +1187,12 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 	if(deletion)
 		end = what + (std::string)" won't be undeleted";
 
-	std::stringstream ss;
-	ss << what.c_str() << " has been " << (deletion ? "deleted" : "banished") << " at:\n" << formatDateEx(ban.added).c_str() << " by: "
-		<< admin.c_str() << ",\nfor the following reason:\n" << getReason(ban.reason).c_str() << ".\nThe action taken was:\n" << getAction(ban.action, false).c_str()
-		<< ".\nThe comment given was:\n" << ban.comment.c_str() << ".\n" << end.c_str() << (deletion ? "." : formatDateEx(ban.expires).c_str()) << ".";
+	char buffer[500 + ban.comment.length()];
+	sprintf(buffer, "%s has been %s at:\n%s by: %s,\nfor the following reason:\n%s.\nThe action taken was:\n%s.\nThe comment given was:\n%s.\n%s%s.",
+		what.c_str(), (deletion ? "deleted" : "banished"), formatDateEx(ban.added, "%d %b %Y").c_str(), admin.c_str(), getReason(ban.reason).c_str(),
+		getAction(ban.action, false).c_str(), ban.comment.c_str(), end.c_str(), (deletion ? "." : formatDateEx(ban.expires).c_str()));
 
-	player->sendFYIBox(ss.str());
+	player->sendFYIBox(buffer);
 	return true;
 }
 
@@ -1253,11 +1280,15 @@ bool TalkAction::addSkill(Creature* creature, const std::string&, const std::str
 	if(skill[0] == 'l' || skill[0] == 'e')
 		target->addExperience(uint64_t(Player::getExpForLevel(target->getLevel() + amount) - target->getExperience()));
 	else if(skill[0] == 'm')
-		target->setMagicLevel((uint64_t)target->getMagicLevel() + amount);
+		/*target->addManaSpent((uint64_t)(target->getVocation()->getReqMana(target->getMagicLevel() +
+			amount) - target->getSpentMana()), false);*/
+		target->setMagicLevel((uint64_t)target->getMagicLevel() + amount);	
 	else
 	{
 		skills_t skillId = getSkillId(skill);
-		target->setSkillLevel(skillId, (uint32_t)target->getSkill(skillId, SKILL_LEVEL) + amount);
+		/*target->addSkillAdvance(skillId, (uint32_t)(target->getVocation()->getReqSkillTries(skillId, target->getSkill(skillId,
+			SKILL_LEVEL) + amount) - target->getSkill(skillId, SKILL_TRIES)), false);*/
+		target->setSkillLevel(skillId, (uint32_t)target->getSkill(skillId, SKILL_LEVEL) + amount);	
 	}
 
 	return true;
@@ -1283,7 +1314,7 @@ bool TalkAction::ghost(Creature* creature, const std::string&, const std::string
 	if((condition = player->getCondition(CONDITION_GAMEMASTER, CONDITIONID_DEFAULT, GAMEMASTER_INVISIBLE)))
 	{
 		player->sendTextMessage(MSG_INFO_DESCR, "You are visible again.");
-		player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
+		player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_TELEPORT);
 		IOLoginData::getInstance()->updateOnlineStatus(player->getGUID(), true);
 		for(AutoList<Player>::iterator pit = Player::autoList.begin(); pit != Player::autoList.end(); ++pit)
 		{
@@ -1325,7 +1356,7 @@ bool TalkAction::ghost(Creature* creature, const std::string&, const std::string
 			player->getParty()->leave(player);
 
 		player->sendTextMessage(MSG_INFO_DESCR, "You are now invisible.");
-		player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_YALAHARIGHOST);
+		player->sendMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 	}
 
 	return true;
@@ -1338,7 +1369,7 @@ bool TalkAction::software(Creature* creature, const std::string&, const std::str
 		return false;
 
 	std::stringstream s;
-	s << SOFTWARE_NAME << ", version " << SOFTWARE_VERSION << std::endl;
+	s << SOFTWARE_NAME << ", version " << SOFTWARE_VERSION << " (" << SOFTWARE_CODENAME << ")" << std::endl;
 	player->sendTextMessage(MSG_INFO_DESCR, s.str());
 
 	s.str("");

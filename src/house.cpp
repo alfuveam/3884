@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "house.h"
 
@@ -128,10 +129,7 @@ bool House::setOwnerEx(uint32_t guid, bool transfer)
 	}
 
 	setOwner(guid);
-	if(guid)
-		lastWarning = time(NULL);
-	else
-		lastWarning = 0;
+	lastWarning = guid ? time(NULL) : 0;
 
 	Database* db = Database::getInstance();
 	DBTransaction trans(db);
@@ -589,8 +587,7 @@ bool AccessList::addExpression(const std::string& expression)
 
 Door::~Door()
 {
-	if(accessList)
-		delete accessList;
+	delete accessList;
 }
 
 Attr_ReadValue Door::readAttr(AttrTypes_t attr, PropStream& propStream)

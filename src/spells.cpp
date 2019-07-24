@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "const.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "spells.h"
 #include "tools.h"
@@ -77,9 +76,22 @@ ReturnValue Spells::onPlayerSay(Player* player, const std::string& words)
 	if(g_config.getBool(ConfigManager::EMOTE_SPELLS))
 		type = SPEAK_MONSTER_SAY;
 
+    if(g_config.getBool(ConfigManager::HIDE_SPELL_WORDS)){
+        return RET_NOERROR;
+	}
+        
 	if(!g_config.getBool(ConfigManager::SPELL_NAME_INSTEAD_WORDS))
+	{
+		if(g_config.getBool(ConfigManager::UNIFIED_SPELLS))
+		{
+			reWords = instantSpell->getWords();
+			if(instantSpell->getHasParam())
+				reWords += " \"" + param + "\"";
+		}
+
 		return g_game.internalCreatureSay(player, type, reWords, player->isGhost()) ?
 			RET_NOERROR : RET_NOTPOSSIBLE;
+	}
 
 	std::string ret = instantSpell->getName();
 	if(param.length())
@@ -145,7 +157,7 @@ bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
 			return true;
 		}
 
-		std::clog << "[Warning - Spells::registerEvent] Duplicate registered instant spell with words: " << instant->getWords() << std::endl;
+		std::clog << "[Warning - Spells::registerEvent] Duplicado spell registrado com words: " << instant->getWords() << std::endl;
 		return false;
 	}
 
@@ -165,7 +177,7 @@ bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
 			return true;
 		}
 
-		std::clog << "[Warning - Spells::registerEvent] Duplicate registered rune with id: " << rune->getRuneItemId() << std::endl;
+		std::clog << "[Warning - Spells::registerEvent] Duplicado runa com id: " << rune->getRuneItemId() << std::endl;
 		return false;
 	}
 
@@ -490,14 +502,14 @@ bool Spell::configureSpell(xmlNodePtr p)
 		{
 			if(!strcasecmp(reservedList[i], name.c_str()))
 			{
-				std::clog << "Error: [Spell::configureSpell] Spell is using a reserved name: " << reservedList[i] << std::endl;
+				std::clog << "Error: [Spell::configureSpell] Spell esta usando um nome reservado: " << reservedList[i] << std::endl;
 				return false;
 			}
 		}
 	}
 	else
 	{
-		std::clog << "Error: [Spell::configureSpell] Spell without name." << std::endl;
+		std::clog << "Error: [Spell::configureSpell] Spell sem nome." << std::endl;
 		return false;
 	}
 
@@ -553,7 +565,7 @@ bool Spell::configureSpell(xmlNodePtr p)
 		else if(tmpStrValue == "creature")
 			blockingCreature = true;
 		else
-			std::clog << "[Warning - Spell::configureSpell] Blocktype \"" <<strValue << "\" does not exist." << std::endl;
+			std::clog << "[Warning - Spell::configureSpell] Blocktype \"" <<strValue << "\" nao existe." << std::endl;
 	}
 
 	if(readXMLString(p, "aggressive", strValue))
@@ -932,19 +944,15 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 	return true;
 }
 
-void Spell::postSpell(Player* player, bool finishedCast /*= true*/, bool payCost /*= true*/) const
+void Spell::postSpell(Player* player) const
 {
-	if(finishedCast)
-	{
-		if(!player->hasFlag(PlayerFlag_HasNoExhaustion) && exhaustion > 0)
-			player->addExhaust(exhaustion, isAggressive ? EXHAUST_COMBAT : EXHAUST_HEALING);
+	if(!player->hasFlag(PlayerFlag_HasNoExhaustion) && exhaustion > 0)
+		player->addExhaust(exhaustion, isAggressive ? EXHAUST_COMBAT : EXHAUST_HEALING);
 
-		if(isAggressive && !player->hasFlag(PlayerFlag_NotGainInFight))
-			player->addInFightTicks(false);
-	}
+	if(isAggressive && !player->hasFlag(PlayerFlag_NotGainInFight))
+		player->addInFightTicks(false);
 
-	if(payCost)
-		postSpell(player, (uint32_t)getManaCost(player), (uint32_t)getSoulCost());
+	postSpell(player, (uint32_t)getManaCost(player), (uint32_t)getSoulCost());
 }
 
 void Spell::postSpell(Player* player, uint32_t manaCost, uint32_t soulCost) const
@@ -1068,7 +1076,7 @@ bool InstantSpell::loadFunction(const std::string& functionName)
 	}
 	else
 	{
-		std::clog << "[Warning - InstantSpell::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
+		std::clog << "[Warning - InstantSpell::loadFunction] Function \"" << functionName << "\" nao existe." << std::endl;
 		return false;
 	}
 
@@ -1359,7 +1367,7 @@ bool InstantSpell::SummonMonster(const InstantSpell* spell, Creature* creature, 
 
 		if((int32_t)player->getSummonCount() >= g_config.getNumber(ConfigManager::MAX_PLAYER_SUMMONS))
 		{
-			player->sendCancel("You cannot summon more creatures.");
+			player->sendCancel("Voc� n�o pode convocar mais criaturas.");
 			g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 			return false;
 		}
@@ -1506,7 +1514,7 @@ bool ConjureSpell::loadFunction(const std::string& functionName)
 		function = ConjureItem;
 	else
 	{
-		std::clog << "[Warning - ConjureSpell::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
+		std::clog << "[Warning - ConjureSpell::loadFunction] Function \"" << functionName << "\" nao existe." << std::endl;
 		return false;
 	}
 
@@ -1515,7 +1523,7 @@ bool ConjureSpell::loadFunction(const std::string& functionName)
 }
 
 ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId, uint32_t conjureCount,
-	bool transform/* = false*/, uint32_t reagentId/* = 0*/, slots_t slot/* = SLOT_WHEREVER*/, bool test/* = false*/)
+	bool transform/* = false*/, uint32_t reagentId/* = 0*/)
 {
 	if(!transform)
 	{
@@ -1533,24 +1541,48 @@ ReturnValue ConjureSpell::internalConjureItem(Player* player, uint32_t conjureId
 	if(!reagentId)
 		return RET_NOTPOSSIBLE;
 
-	Item* item = player->getInventoryItem(slot);
-	if(item && item->getID() == reagentId)
+	std::list<Container*> containers;
+	Item *item = NULL, *fromItem = NULL;
+	for(int32_t i = SLOT_FIRST; i < SLOT_LAST; ++i)
 	{
-		if(item->isStackable() && item->getItemCount() != 1)
-			return RET_YOUNEEDTOSPLITYOURSPEARS;
+		if(!(item = player->getInventoryItem((slots_t)i)))
+			continue;
 
-		if(test)
-			return RET_NOERROR;
-
-		Item* newItem = g_game.transformItem(item, conjureId, conjureCount);
-		if(!newItem)
-			return RET_NOTPOSSIBLE;
-
-		g_game.startDecay(newItem);
-		return RET_NOERROR;
+		if(!fromItem && item->getID() == reagentId)
+			fromItem = item;
+		else if(Container* container = item->getContainer())
+			containers.push_back(container);
 	}
 
-	return RET_YOUNEEDAMAGICITEMTOCASTSPELL;
+	if(!fromItem)
+	{
+		for(std::list<Container*>::iterator cit = containers.begin(); cit != containers.end(); ++cit)
+		{
+			for(ItemList::const_reverse_iterator it = (*cit)->getReversedItems(); it != (*cit)->getReversedEnd(); ++it)
+			{
+				if((*it)->getID() == reagentId)
+				{
+					fromItem = (*it);
+					break;
+				}
+
+				if(Container* tmp = (*it)->getContainer())
+					containers.push_back(tmp);
+			}
+		}
+	}
+
+	if(!fromItem)
+		return RET_YOUNEEDAMAGICITEMTOCASTSPELL;
+
+	item = Item::CreateItem(conjureId, conjureCount);
+	ReturnValue ret = g_game.internalPlayerAddItem(NULL, player, item, false);
+	if(ret != RET_NOERROR)
+		return ret;
+
+	g_game.transformItem(fromItem, reagentId, fromItem->getItemCount() - 1);
+	g_game.startDecay(item);
+	return RET_NOERROR;
 }
 
 bool ConjureSpell::ConjureItem(const ConjureSpell* spell, Creature* creature, const std::string&)
@@ -1566,54 +1598,24 @@ bool ConjureSpell::ConjureItem(const ConjureSpell* spell, Creature* creature, co
 		return false;
 	}
 
-	ReturnValue result = RET_NOERROR;
+	ReturnValue result = RET_NOTPOSSIBLE;
 	if(spell->getReagentId() != 0)
 	{
-		ReturnValue resLeft = internalConjureItem(player, spell->getConjureId(), spell->getConjureCount(),
-			true, spell->getReagentId(), SLOT_LEFT, true);
-		if(resLeft == RET_NOERROR)
+		if((result = internalConjureItem(player, spell->getConjureId(), spell->getConjureCount(), true, spell->getReagentId())) == RET_NOERROR)
 		{
-			resLeft = internalConjureItem(player, spell->getConjureId(), spell->getConjureCount(),
-				true, spell->getReagentId(), SLOT_LEFT);
-			if(resLeft == RET_NOERROR)
-				spell->postSpell(player, false);
-		}
-
-		ReturnValue resRight = internalConjureItem(player, spell->getConjureId(), spell->getConjureCount(),
-			true, spell->getReagentId(), SLOT_RIGHT, true);
-		if(resRight == RET_NOERROR)
-		{
-			if(resLeft == RET_NOERROR && !spell->checkSpell(player))
-				return false;
-
-			resRight = internalConjureItem(player, spell->getConjureId(), spell->getConjureCount(),
-				true, spell->getReagentId(), SLOT_RIGHT);
-			if(resRight == RET_NOERROR)
-				spell->postSpell(player, false);
-		}
-
-		if(resLeft == RET_NOERROR || resRight == RET_NOERROR)
-		{
-			spell->postSpell(player, true, false);
+			spell->postSpell(player);
 			g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_RED);
 			return true;
 		}
-
-		result = resLeft;
-		if((result == RET_NOERROR && resRight != RET_NOERROR) ||
-			(result == RET_YOUNEEDAMAGICITEMTOCASTSPELL && resRight == RET_YOUNEEDTOSPLITYOURSPEARS))
-			result = resRight;
 	}
-	else if(internalConjureItem(player, spell->getConjureId(), spell->getConjureCount()) == RET_NOERROR)
+	else if((result = internalConjureItem(player, spell->getConjureId(), spell->getConjureCount())) == RET_NOERROR)
 	{
 		spell->postSpell(player);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_RED);
 		return true;
 	}
 
-	if(result != RET_NOERROR)
-		player->sendCancelMessage(result);
-
+	player->sendCancelMessage(result);
 	g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
 	return false;
 }
@@ -1681,7 +1683,7 @@ bool RuneSpell::loadFunction(const std::string& functionName)
 		function = Convince;
 	else
 	{
-		std::clog << "[Warning - RuneSpell::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
+		std::clog << "[Warning - RuneSpell::loadFunction] Function \"" << functionName << "\" nao existe." << std::endl;
 		return false;
 	}
 
@@ -1704,7 +1706,7 @@ bool RuneSpell::Illusion(const RuneSpell*, Creature* creature, Item*, const Posi
 	}
 
 	Item* illusionItem = thing->getItem();
-	if(!illusionItem || !illusionItem->isMoveable())
+	if(!illusionItem || !illusionItem->isMovable())
 	{
 		player->sendCancelMessage(RET_NOTPOSSIBLE);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);

@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "weapons.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "game.h"
 #include "configmanager.h"
@@ -309,23 +307,41 @@ int32_t Weapon::playerWeaponCheck(Player* player, Creature* target) const
 	if(!vocWeaponMap.empty() && vocWeaponMap.find(player->getVocationId()) == vocWeaponMap.end())
 		return 0;
 
-	int32_t damageModifier = 100;
+	int32_t modifier = 100;
 	if(player->getLevel() < getReqLevel())
-		damageModifier = (isWieldedUnproperly() ? damageModifier / 2 : 0);
+	{
+		if(!isWieldedUnproperly())
+			return 0;
+
+		double penalty = (getReqLevel() - player->getLevel()) * 0.02;
+		if(penalty > 0.5)
+			penalty = 0.5;
+
+		modifier -= (int32_t)(modifier * penalty);
+	}
 
 	if(player->getMagicLevel() < getReqMagLv())
-		damageModifier = (isWieldedUnproperly() ? damageModifier / 2 : 0);
+	{
+		if(isWieldedUnproperly())
+			return 0;
 
-	return damageModifier;
+		double penalty = (getReqMagLv() - player->getMagicLevel()) * 0.02;
+		if(penalty > 0.5)
+			penalty = 0.5;
+
+		modifier -= (int32_t)(modifier * penalty);
+	}
+
+	return modifier;
 }
 
 bool Weapon::useWeapon(Player* player, Item* item, Creature* target) const
 {
-	int32_t damageModifier = playerWeaponCheck(player, target);
-	if(!damageModifier)
+	int32_t modifier = playerWeaponCheck(player, target);
+	if(!modifier)
 		return false;
 
-	return internalUseWeapon(player, item, target, damageModifier);
+	return internalUseWeapon(player, item, target, modifier);
 }
 
 bool Weapon::useFist(Player* player, Creature* target)
@@ -364,7 +380,7 @@ bool Weapon::useFist(Player* player, Creature* target)
 	return true;
 }
 
-bool Weapon::internalUseWeapon(Player* player, Item* item, Creature* target, int32_t damageModifier) const
+bool Weapon::internalUseWeapon(Player* player, Item* item, Creature* target, int32_t modifier) const
 {
 	if(isScripted())
 	{
@@ -375,7 +391,7 @@ bool Weapon::internalUseWeapon(Player* player, Item* item, Creature* target, int
 	}
 	else
 	{
-		int32_t damage = (getWeaponDamage(player, target, item) * damageModifier) / 100;
+		int32_t damage = (getWeaponDamage(player, target, item) * modifier) / 100;
 		Combat::doCombatHealth(player, target, damage, damage, params);
 	}
 
@@ -409,7 +425,7 @@ void Weapon::onUsedWeapon(Player* player, Item* item, Tile*) const
 	if(!player->hasFlag(PlayerFlag_NotGainSkill))
 	{
 		skills_t skillType;
-		uint32_t skillPoint = 0;
+		uint64_t skillPoint = 0;
 		if(getSkillType(player, item, skillType, skillPoint))
 			player->addSkillAdvance(skillType, skillPoint);
 	}
@@ -554,21 +570,20 @@ bool WeaponMelee::useWeapon(Player* player, Item* item, Creature* target) const
 }
 
 bool WeaponMelee::getSkillType(const Player* player, const Item* item,
-	skills_t& skill, uint32_t& skillpoint) const
+	skills_t& skill, uint64_t& skillPoint) const
 {
-	skillpoint = 0;
+	skillPoint = 0;
 	if(player->getAddAttackSkill())
 	{
 		switch(player->getLastAttackBlockType())
 		{
 			case BLOCK_ARMOR:
 			case BLOCK_NONE:
-				skillpoint = 1;
+				skillPoint = 1;
 				break;
 
 			case BLOCK_DEFENSE:
 			default:
-				skillpoint = 0;
 				break;
 		}
 	}
@@ -698,8 +713,8 @@ int32_t WeaponDistance::playerWeaponCheck(Player* player, Creature* target) cons
 
 bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) const
 {
-	int32_t damageModifier = playerWeaponCheck(player, target);
-	if(!damageModifier)
+	int32_t modifier = playerWeaponCheck(player, target);
+	if(!modifier)
 		return false;
 
 	int32_t chance = hitChance;
@@ -849,7 +864,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
 		Weapon::internalUseWeapon(player, item, destTile);
 	}
 	else
-		Weapon::internalUseWeapon(player, item, target, damageModifier);
+		Weapon::internalUseWeapon(player, item, target, modifier);
 
 	return true;
 }
@@ -905,29 +920,28 @@ int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* ta
 }
 
 bool WeaponDistance::getSkillType(const Player* player, const Item*,
-	skills_t& skill, uint32_t& skillpoint) const
+	skills_t& skill, uint64_t& skillPoint) const
 {
 	skill = SKILL_DIST;
-	skillpoint = 0;
-
+	skillPoint = 0;
 	if(player->getAddAttackSkill())
 	{
 		switch(player->getLastAttackBlockType())
 		{
 			case BLOCK_NONE:
-				skillpoint = 2;
+				skillPoint = 2;
 				break;
 
 			case BLOCK_ARMOR:
-				skillpoint = 1;
+				skillPoint = 1;
 				break;
 
 			case BLOCK_DEFENSE:
 			default:
-				skillpoint = 0;
 				break;
 		}
 	}
+
 	return true;
 }
 

@@ -17,7 +17,6 @@
 
 #ifndef __SCHEDULER__
 #define __SCHEDULER__
-#include "otsystem.h"
 
 #include "dispatcher.h"
 #define SCHEDULER_MINTICKS 50

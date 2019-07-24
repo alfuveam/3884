@@ -17,7 +17,6 @@
 
 #ifndef __CONTAINER__
 #define __CONTAINER__
-#include "otsystem.h"
 
 #include "cylinder.h"
 #include "item.h"
@@ -35,8 +34,10 @@ class ContainerIterator
 		ContainerIterator& operator=(const ContainerIterator& rhs);
 		bool operator==(const ContainerIterator& rhs);
 		bool operator!=(const ContainerIterator& rhs);
+
 		ContainerIterator& operator++();
 		ContainerIterator operator++(int32_t);
+
 		Item* operator*();
 		Item* operator->();
 

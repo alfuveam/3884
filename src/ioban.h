@@ -17,7 +17,6 @@
 
 #ifndef __IOBAN__
 #define __IOBAN__
-#include "otsystem.h"
 
 #include "enums.h"
 

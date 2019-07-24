@@ -17,12 +17,10 @@
 
 #ifndef __DATABASE__
 #define __DATABASE__
-#include "otsystem.h"
 
 #include "enums.h"
-#include <sstream>
 
-#ifdef MULTI_SQL_DRIVERS
+#ifdef __MULTI_SQL_DRIVERS__
 #define DATABASE_VIRTUAL virtual
 #define DATABASE_CLASS _Database
 #define RESULT_CLASS _DBResult
@@ -37,17 +35,29 @@ class _DBResult;
 class DatabaseMySQL;
 class MySQLResult;
 
+#elif defined(__USE_ODBC__)
+#define DATABASE_CLASS DatabaseODBC
+#define RESULT_CLASS PgSQLResult
+class DatabaseODBC;
+class PgSQLResult;
+
 #elif defined(__USE_SQLITE__)
 #define DATABASE_CLASS DatabaseSQLite
 #define RESULT_CLASS SQLiteResult
 class DatabaseSQLite;
 class SQLiteResult;
 
+#elif defined(__USE_PGSQL__)
+#define DATABASE_CLASS DatabasePgSQL
+#define RESULT_CLASS PgSQLResult
+class DatabasePgSQL;
+class PgSQLResult;
+
 #endif
 #endif
 
 #ifndef DATABASE_CLASS
-#error "You have to compile with at least one database driver!"
+	#error "You have to compile with at least one database driver!"
 #define DBResult void
 #define DBInsert void*
 #define Database void
@@ -177,7 +187,7 @@ class _Database
 		DATABASE_VIRTUAL DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_NONE;}
 
 	protected:
-		_Database() {}
+		_Database() {m_connected = false;}
 		DATABASE_VIRTUAL ~_Database() {}
 
 		DBResult* verifyResult(DBResult* result);
@@ -296,11 +306,15 @@ class DBInsert
 };
 
 
-#ifndef MULTI_SQL_DRIVERS
+#ifndef __MULTI_SQL_DRIVERS__
 #if defined(__USE_MYSQL__)
 #include "databasemysql.h"
+#elif defined(__USE_ODBC__)
+#include "databaseodbc.h"
 #elif defined(__USE_SQLITE__)
 #include "databasesqlite.h"
+#elif defined(__USE_PGSQL__)
+#include "databasepgsql.h"
 #endif
 #endif
 

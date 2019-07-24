@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#ifdef __USE_MYSQL__
+
 #include "otpch.h"
-#ifdef _MSC_VER
-#include <errmsg.h>
-#else
 #include <mysql/errmsg.h>
-#endif
-#include <iostream>
 
 #include "database.h"
 #include "databasemysql.h"
@@ -51,8 +46,13 @@ DatabaseMySQL::DatabaseMySQL() :
 
 	my_bool reconnect = true;
 	mysql_options(&m_handle, MYSQL_OPT_RECONNECT, &reconnect);
-	if(!sqlConnect(false))
+	if(!mysql_real_connect(&m_handle, g_config.getString(ConfigManager::SQL_HOST).c_str(), g_config.getString(
+		ConfigManager::SQL_USER).c_str(), g_config.getString(ConfigManager::SQL_PASS).c_str(), g_config.getString(
+		ConfigManager::SQL_DB).c_str(), g_config.getNumber(ConfigManager::SQL_PORT), NULL, 0))
+	{
+		std::clog << "Failed connecting to database - MYSQL ERROR: " << mysql_error(&m_handle) << " (" << mysql_errno(&m_handle) << ")" << std::endl;
 		return;
+	}
 
 	m_connected = true;
 	if(mysql_get_client_version() <= 50019)
@@ -86,19 +86,7 @@ DatabaseMySQL::~DatabaseMySQL()
 	if(m_timeoutTask != 0)
 		Scheduler::getInstance().stopEvent(m_timeoutTask);
 }
-bool DatabaseMySQL::sqlConnect(bool _reconnect)
-{
-	if(_reconnect)
-		std::clog << "MYSQL Lost connection, attempting to reconnect..." << std::endl;
-	if(!mysql_real_connect(&m_handle, g_config.getString(ConfigManager::SQL_HOST).c_str(), g_config.getString(
-		ConfigManager::SQL_USER).c_str(), g_config.getString(ConfigManager::SQL_PASS).c_str(), g_config.getString(
-		ConfigManager::SQL_DB).c_str(), g_config.getNumber(ConfigManager::SQL_PORT), NULL, 0))
-	{
-		std::clog << "Failed connecting to database - MYSQL ERROR: " << mysql_error(&m_handle) << " (" << mysql_errno(&m_handle) << ")" << std::endl;
-		return false;
-	}
-	return true;
-}
+
 bool DatabaseMySQL::getParam(DBParam_t param)
 {
 	switch(param)
@@ -142,7 +130,7 @@ bool DatabaseMySQL::commit()
 
 bool DatabaseMySQL::query(const std::string &query)
 {
-	if(!m_connected && !sqlConnect(true))
+	if(!m_connected)
 		return false;
 
 #ifdef __SQL_QUERY_DEBUG__
@@ -169,7 +157,7 @@ bool DatabaseMySQL::query(const std::string &query)
 
 DBResult* DatabaseMySQL::storeQuery(const std::string &query)
 {
-	if(!m_connected && !sqlConnect(true))
+	if(!m_connected)
 		return NULL;
 
 	int32_t error = 0;
@@ -202,7 +190,7 @@ DBResult* DatabaseMySQL::storeQuery(const std::string &query)
 
 std::string DatabaseMySQL::escapeBlob(const char* s, uint32_t length)
 {
-	if(*s == '\0')
+	if(!s || !strlen(s))
 		return "''";
 
 	char* output = new char[length * 2 + 1];
@@ -321,4 +309,3 @@ MySQLResult::MySQLResult(MYSQL_RES* result)
 	while((field = mysql_fetch_field(m_handle)))
 		m_listNames[field->name] = i++;
 }
-#endif

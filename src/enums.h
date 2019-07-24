@@ -18,15 +18,12 @@
 #ifndef __ENUMS__
 #define __ENUMS__
 
-#include <string>
-#include <list>
-#include "definitions.h"
-
 enum DatabaseEngine_t
 {
 	DATABASE_ENGINE_NONE = 0,
 	DATABASE_ENGINE_MYSQL,
-	DATABASE_ENGINE_SQLITE
+	DATABASE_ENGINE_SQLITE,
+	DATABASE_ENGINE_POSTGRESQL
 };
 
 enum Encryption_t
@@ -35,7 +32,8 @@ enum Encryption_t
 	ENCRYPTION_MD5,
 	ENCRYPTION_SHA1,
 	ENCRYPTION_SHA256,
-	ENCRYPTION_SHA512
+	ENCRYPTION_SHA512,
+	ENCRYPTION_VAHASH
 };
 
 enum GuildLevel_t
@@ -48,13 +46,11 @@ enum GuildLevel_t
 
 enum OperatingSystem_t
 {
-	CLIENTOS_LINUX				= 0x01,
-	CLIENTOS_WINDOWS			= 0x02,
-	CLIENTOS_FLASH				= 0x03,
-
-	CLIENTOS_OTCLIENT_LINUX		= 0x0A,
-	CLIENTOS_OTCLIENT_WINDOWS	= 0x0B,
-	CLIENTOS_OTCLIENT_MAC		= 0x0C
+	CLIENTOS_LINUX = 0x01,
+	CLIENTOS_WINDOWS = 0x02,
+	CLIENTOS_OTCLIENT_LINUX = 0x0A,
+    CLIENTOS_OTCLIENT_WINDOWS = 0x0B,
+    CLIENTOS_OTCLIENT_MAC = 0x0C
 };
 
 enum Channels_t
@@ -286,6 +282,7 @@ enum PlayerSex_t
 	// DO NOT ADD HERE! Every higher sex is only for your
 	// own use- each female should be even and male odd.
 };
+#ifdef __WAR_SYSTEM__
 
 enum WarType_t
 {
@@ -305,7 +302,7 @@ struct War_t
 		memset(ids, 0, sizeof(ids));
 		memset(frags, 0, sizeof(frags));
 
-		limit = end = status = payment = 0;
+		limit = payment = 0;
 	}
 
 	uint32_t war;
@@ -316,10 +313,9 @@ struct War_t
 	uint16_t frags[WAR_LAST + 1];
 
 	uint16_t limit;
-	time_t end;
-	int8_t status;
 	uint64_t payment;
 };
+#endif
 
 struct Outfit_t
 {

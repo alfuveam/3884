@@ -17,9 +17,7 @@
 
 #ifndef __CHAT__
 #define __CHAT__
-#include "otsystem.h"
 
-#include <fstream>
 #include "const.h"
 #include "party.h"
 
@@ -43,11 +41,8 @@ class ChatChannel
 			const std::string& conditionMessage = "", VocationMap* vocationMap = NULL);
 		virtual ~ChatChannel()
 		{
-			if(m_condition)
-				delete m_condition;
-
-			if(m_vocationMap)
-				delete m_vocationMap;
+			delete m_condition;
+			delete m_vocationMap;
 		}
 		static uint16_t staticFlags;
 
@@ -57,7 +52,7 @@ class ChatChannel
 
 		int32_t getConditionId() const {return m_conditionId;}
 		const std::string& getConditionMessage() const {return m_conditionMessage;}
-		const UsersMap& getUsers() {return m_users;}
+		const UsersMap& getUsers() const {return m_users;}
 
 		uint32_t getLevel() const {return m_level;}
 		uint32_t getAccess() const {return m_access;}
@@ -71,7 +66,7 @@ class ChatChannel
 		bool addUser(Player* player);
 		bool removeUser(Player* player);
 
-		bool talk(Player* player, SpeakClasses type, const std::string& text, uint32_t _time = 0, ProtocolGame* pg = NULL);
+		bool talk(Player* player, SpeakClasses type, const std::string& text, uint32_t _time = 0, ProtocolGame* pg = NULL); //CAST
 		bool talk(std::string nick, SpeakClasses type, std::string text);
 
 	protected:
@@ -130,8 +125,8 @@ class Chat
 		ChatChannel* addUserToChannel(Player* player, uint16_t channelId);
 		bool removeUserFromChannel(Player* player, uint16_t channelId);
 		void removeUserFromAllChannels(Player* player);
-		
-        bool talkToChannel(Player* player, SpeakClasses type, const std::string& text, uint16_t channelId, ProtocolGame* pg = NULL);
+
+		bool talkToChannel(Player* player, SpeakClasses type, const std::string& text, uint16_t channelId, ProtocolGame* pg = NULL); //CAST
 
 		ChatChannel* getChannel(Player* player, uint16_t channelId);
 		ChatChannel* getChannelById(uint16_t channelId);

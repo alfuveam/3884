@@ -17,9 +17,7 @@
 
 #ifndef __TASKS__
 #define __TASKS__
-#include "otsystem.h"
 
-#include <boost/function.hpp>
 #define DISPATCHER_TASK_EXPIRATION 2000
 
 class Task

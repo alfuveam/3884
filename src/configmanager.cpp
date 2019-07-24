@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
 
 #include "configmanager.h"
 #include "house.h"
@@ -53,8 +53,7 @@ bool ConfigManager::load()
 		return false;
 	}
 
-	//parse config
-	if(!m_loaded) //info that must be loaded one time (unless we reset the modules involved)
+	if(!m_loaded) //info that must be loaded one time- unless we reset the modules involved
 	{
 		if(m_confString[DATA_DIRECTORY] == "")
 			m_confString[DATA_DIRECTORY] = getGlobalString("dataDirectory", "data/");
@@ -87,7 +86,7 @@ bool ConfigManager::load()
 			m_confString[OUTPUT_LOG] = getGlobalString("outputLog", "");
 
 		m_confBool[TRUNCATE_LOG] = getGlobalBool("truncateLogOnStartup", true);
-		#ifdef MULTI_SQL_DRIVERS
+		#ifdef __MULTI_SQL_DRIVERS__
 		m_confString[SQL_TYPE] = getGlobalString("sqlType", "sqlite");
 		#endif
 		m_confString[SQL_HOST] = getGlobalString("sqlHost", "localhost");
@@ -100,7 +99,7 @@ bool ConfigManager::load()
 		m_confNumber[MYSQL_READ_TIMEOUT] = getGlobalNumber("mysqlReadTimeout", 10);
 		m_confNumber[MYSQL_WRITE_TIMEOUT] = getGlobalNumber("mysqlWriteTimeout", 10);
 		m_confBool[OPTIMIZE_DATABASE] = getGlobalBool("startupDatabaseOptimization", true);
-		m_confString[MAP_NAME] = getGlobalString("mapName", "forgotten.otbm");
+		m_confString[MAP_NAME] = getGlobalString("mapName", "forgotten.otbm.gz");
 		m_confBool[GLOBALSAVE_ENABLED] = getGlobalBool("globalSaveEnabled", true);
 		m_confNumber[GLOBALSAVE_H] = getGlobalNumber("globalSaveHour", 8);
 		m_confNumber[GLOBALSAVE_M] = getGlobalNumber("globalSaveMinute", 0);
@@ -115,6 +114,11 @@ bool ConfigManager::load()
 		m_confBool[LOGIN_ONLY_LOGINSERVER] = getGlobalBool("loginOnlyWithLoginServer", false);
 		#endif
 		m_confString[ENCRYPTION_TYPE] = getGlobalString("encryptionType", "sha1");
+		m_confString[RSA_PRIME1] = getGlobalString("rsaPrime1", "14299623962416399520070177382898895550795403345466153217470516082934737582776038882967213386204600674145392845853859217990626450972452084065728686565928113");
+		m_confString[RSA_PRIME2] = getGlobalString("rsaPrime2", "7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
+		m_confString[RSA_PUBLIC] = getGlobalString("rsaPublic", "65537");
+		m_confString[RSA_MODULUS] = getGlobalString("rsaModulus", "109120132967399429278860960508995541528237502902798129123468757937266291492576446330739696001110603907230888610072655818825358503429057592827629436413108566029093628212635953836686562675849720620786279431090218017681061521755056710823876476444260558147179707119674283982419152118103759076030616683978566631413");
+		m_confString[RSA_PRIVATE] = getGlobalString("rsaPrivate", "46730330223584118622160180015036832148732986808519344675210555262940258739805766860224610646919605860206328024326703361630109888417839241959507572247284807035235569619173792292786907845791904955103601652822519121908367187885509270025388641700821735345222087940578381210879116823013776808975766851829020659073");
 		m_confBool[BIND_ONLY_GLOBAL_ADDRESS] = getGlobalBool("bindOnlyGlobalAddress", false);
 	}
 
@@ -124,6 +128,7 @@ bool ConfigManager::load()
 	m_confNumber[LOGIN_TIMEOUT] = getGlobalNumber("loginTimeout", 5 * 1000);
 	m_confNumber[MAX_MESSAGEBUFFER] = getGlobalNumber("maxMessageBuffer", 4);
 	m_confNumber[MAX_PLAYERS] = getGlobalNumber("maxPlayers", 1000);
+	m_confNumber[SPOOF_PLAYERS] = getGlobalNumber("spoofPlayers", 0);
 	m_confNumber[DEFAULT_DESPAWNRANGE] = getGlobalNumber("deSpawnRange", 2);
 	m_confNumber[DEFAULT_DESPAWNRADIUS] = getGlobalNumber("deSpawnRadius", 50);
 	m_confNumber[PZ_LOCKED] = getGlobalNumber("pzLocked", 60 * 1000);
@@ -144,14 +149,16 @@ bool ConfigManager::load()
 	m_confNumber[PARTY_RADIUS_Y] = getGlobalNumber("experienceShareRadiusY", 30);
 	m_confNumber[PARTY_RADIUS_Z] = getGlobalNumber("experienceShareRadiusZ", 1);
 	m_confDouble[PARTY_DIFFERENCE] = getGlobalDouble("experienceShareLevelDifference", (double)2 / 3);
-	m_confNumber[DEFAULT_TOWN_ID]= getGlobalNumber("newPlayerDefaultTownId", 1);
+	m_confNumber[SPAWNPOS_X] = getGlobalNumber("newPlayerSpawnPosX", 100);
+	m_confNumber[SPAWNPOS_Y] = getGlobalNumber("newPlayerSpawnPosY", 100);
+	m_confNumber[SPAWNPOS_Z] = getGlobalNumber("newPlayerSpawnPosZ", 7);
+	m_confNumber[SPAWNTOWN_ID] = getGlobalNumber("newPlayerTownId", 1);
 	m_confString[WORLD_TYPE] = getGlobalString("worldType", "open");
 	m_confBool[ACCOUNT_MANAGER] = getGlobalBool("accountManager", true);
 	m_confBool[NAMELOCK_MANAGER] = getGlobalBool("namelockManager", false);
 	m_confNumber[START_LEVEL] = getGlobalNumber("newPlayerLevel", 1);
 	m_confNumber[START_MAGICLEVEL] = getGlobalNumber("newPlayerMagicLevel", 0);
 	m_confBool[START_CHOOSEVOC] = getGlobalBool("newPlayerChooseVoc", false);
-	m_confBool[START_CHOOSETOWN]= getGlobalBool("newPlayerChooseTown", false);
 	m_confNumber[HOUSE_PRICE] = getGlobalNumber("housePriceEachSquare", 1000);
 	m_confNumber[WHITE_SKULL_TIME] = getGlobalNumber("whiteSkullTime", 15 * 60 * 1000);
 	m_confNumber[HIGHSCORES_TOP] = getGlobalNumber("highscoreDisplayPlayers", 10);
@@ -163,7 +170,7 @@ bool ConfigManager::load()
 	m_confBool[AIMBOT_HOTKEY_ENABLED] = getGlobalBool("hotkeyAimbotEnabled", true);
 	m_confNumber[ACTIONS_DELAY_INTERVAL] = getGlobalNumber("timeBetweenActions", 200);
 	m_confNumber[EX_ACTIONS_DELAY_INTERVAL] = getGlobalNumber("timeBetweenExActions", 1000);
-	m_confNumber[CRITICAL_HIT_CHANCE] = getGlobalNumber("criticalHitChance", 1);
+	m_confNumber[CRITICAL_HIT_CHANCE] = getGlobalNumber("criticalHitChance", 5);
 	m_confBool[REMOVE_WEAPON_AMMO] = getGlobalBool("removeWeaponAmmunition", true);
 	m_confBool[REMOVE_WEAPON_CHARGES] = getGlobalBool("removeWeaponCharges", true);
 	m_confBool[REMOVE_RUNE_CHARGES] = getGlobalBool("removeRuneCharges", true);
@@ -176,7 +183,8 @@ bool ConfigManager::load()
 	m_confNumber[PROTECTION_LEVEL] = getGlobalNumber("protectionLevel", 1);
 	m_confNumber[STATUSQUERY_TIMEOUT] = getGlobalNumber("statusTimeout", 5 * 60 * 1000);
 	m_confBool[BROADCAST_BANISHMENTS] = getGlobalBool("broadcastBanishments", true);
-	m_confBool[GENERATE_ACCOUNT_NUMBER] = getGlobalBool("generateAccountNumber", true);
+	m_confBool[GENERATE_ACCOUNT_NUMBER] = getGlobalBool("generateAccountNumber", false);
+	m_confBool[GENERATE_ACCOUNT_SALT] = getGlobalBool("generateAccountSalt", false);
 	m_confBool[INGAME_GUILD_MANAGEMENT] = getGlobalBool("ingameGuildManagement", true);
 	m_confNumber[LEVEL_TO_FORM_GUILD] = getGlobalNumber("levelToFormGuild", 8);
 	m_confNumber[MIN_GUILDNAME] = getGlobalNumber("guildNameMinLength", 4);
@@ -210,6 +218,7 @@ bool ConfigManager::load()
 	m_confBool[CLEAN_PROTECTED_ZONES] = getGlobalBool("cleanProtectedZones", true);
 	m_confBool[SPELL_NAME_INSTEAD_WORDS] = getGlobalBool("spellNameInsteadOfWords", false);
 	m_confBool[EMOTE_SPELLS] = getGlobalBool("emoteSpells", false);
+	m_confBool[HIDE_SPELL_WORDS] = getGlobalBool("hideSpellWords", false);
 	m_confNumber[MAX_PLAYER_SUMMONS] = getGlobalNumber("maxPlayerSummons", 2);
 	m_confBool[SAVE_GLOBAL_STORAGE] = getGlobalBool("saveGlobalStorage", true);
 	m_confBool[FORCE_CLOSE_SLOW_CONNECTION] = getGlobalBool("forceSlowConnectionsToDisconnect", false);
@@ -222,10 +231,11 @@ bool ConfigManager::load()
 	m_confNumber[EXTRA_PARTY_PERCENT] = getGlobalNumber("extraPartyExperiencePercent", 5);
 	m_confNumber[EXTRA_PARTY_LIMIT] = getGlobalNumber("extraPartyExperienceLimit", 20);
 	m_confBool[DISABLE_OUTFITS_PRIVILEGED] = getGlobalBool("disableOutfitsForPrivilegedPlayers", false);
-	m_confBool[HOUSE_STORAGE] = getGlobalBool("useHouseDataStorage", true);
+	m_confBool[HOUSE_STORAGE] = getGlobalBool("useHouseDataStorage", false);
 	m_confBool[TRACER_BOX] = getGlobalBool("promptExceptionTracerErrorBox", true);
 	m_confNumber[LOGIN_PROTECTION] = getGlobalNumber("loginProtectionPeriod", 10 * 1000);
 	m_confBool[STORE_DIRECTION] = getGlobalBool("storePlayerDirection", false);
+	m_confNumber[PLAYER_DEEPNESS] = getGlobalNumber("playerQueryDeepness", 1);
 	m_confDouble[CRITICAL_HIT_MUL] = getGlobalDouble("criticalHitMultiplier", 1);
 	m_confNumber[STAIRHOP_DELAY] = getGlobalNumber("stairhopDelay", 2 * 1000);
 	m_confNumber[RATE_STAMINA_LOSS] = getGlobalNumber("rateStaminaLoss", 1);
@@ -251,7 +261,7 @@ bool ConfigManager::load()
 	m_confNumber[EXPERIENCE_COLOR] = getGlobalNumber("gainExperienceColor", COLOR_WHITE);
 	m_confBool[SHOW_HEALING_DAMAGE_MONSTER] = getGlobalBool("showHealingDamageForMonsters", false);
 	m_confNumber[HEALTH_HEALING_COLOR] = getGlobalNumber("healthHealingColor", COLOR_GREEN);
-	m_confNumber[MANA_HEALING_COLOR] = getGlobalNumber("manaHealingColor", COLOR_DARKPURPLE);
+    m_confNumber[MANA_HEALING_COLOR] = getGlobalNumber("manaHealingColor", COLOR_DARKPURPLE);
 	m_confBool[CHECK_CORPSE_OWNER] = getGlobalBool("checkCorpseOwner", true);
 	m_confBool[BUFFER_SPELL_FAILURE] = getGlobalBool("bufferMutedOnSpellFailure", false);
 	m_confBool[CONFIRM_OUTDATED_VERSION] = getGlobalBool("confirmOutdatedVersion", true);
@@ -280,6 +290,7 @@ bool ConfigManager::load()
 	m_confNumber[TILE_LIMIT] = getGlobalNumber("tileLimit", 0);
 	m_confNumber[PROTECTION_TILE_LIMIT] = getGlobalNumber("protectionTileLimit", 0);
 	m_confNumber[HOUSE_TILE_LIMIT] = getGlobalNumber("houseTileLimit", 0);
+	m_confNumber[TRADE_LIMIT] = getGlobalNumber("tradeLimit", 100);
 	m_confString[MAILBOX_DISABLED_TOWNS] = getGlobalString("mailboxDisabledTowns", "");
 	m_confNumber[SQUARE_COLOR] = getGlobalNumber("squareColor", 0);
 	m_confBool[USE_BLACK_SKULL] = getGlobalBool("useBlackSkull", false);
@@ -306,13 +317,18 @@ bool ConfigManager::load()
 	m_confString[ADMIN_ENCRYPTION] = getGlobalString("adminEncryption", "");
 	m_confString[ADMIN_ENCRYPTION_DATA] = getGlobalString("adminEncryptionData", "");
 	m_confBool[ADDONS_PREMIUM] = getGlobalBool("addonsOnlyPremium", true);
+	m_confNumber[ACCOUNT_SIZE] = getGlobalNumber("accountSize", 15);
+	m_confBool[UNIFIED_SPELLS] = getGlobalBool("unifiedSpells", true);
+#ifdef __WAR_SYSTEM__
 	m_confBool[OPTIONAL_WAR_ATTACK_ALLY] = getGlobalBool("optionalWarAttackableAlly", false);
+#endif
 	m_confNumber[VIPLIST_DEFAULT_LIMIT] = getGlobalNumber("vipListDefaultLimit", 20);
 	m_confNumber[VIPLIST_DEFAULT_PREMIUM_LIMIT] = getGlobalNumber("vipListDefaultPremiumLimit", 100);
 	m_confNumber[STAMINA_DESTROY_LOOT] = getGlobalNumber("staminaLootLimit", 14 * 60);
 	m_confNumber[FIST_BASE_ATTACK] = getGlobalNumber("fistBaseAttack", 7);
-	m_confBool[ENABLE_CAST]	= getGlobalBool("enableCast", true);
-	m_confBool[SKIP_ITEMS_VERSION] = getGlobalBool("skipItemsVersionCheck", true);
+	m_confBool[LOG_PLAYER] = getGlobalBool("logsPlayers", false);
+	m_confBool[ENABLE_CAST] = getGlobalBool("enableCast", false);
+	m_confNumber[MAX_PACKETS_PER_SECOND] = getGlobalNumber("max_packets_per_second", 50);
 	m_confNumber[EXHAUST_ONBUY] = getGlobalNumber("onBuy", 500);
 	m_confNumber[EXHAUST_ONSELL] = getGlobalNumber("onSell", 500);
 	m_confNumber[EXHAUST_CHANGEOUFIT] = getGlobalNumber("changeOutfit", 500);

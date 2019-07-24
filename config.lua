@@ -1,14 +1,19 @@
 -- The Forgotten Server Config
 
 	-- Account manager
-	accountManager = true
-	namelockManager = true
+	accountManager = false
+	namelockManager = false
 	newPlayerChooseVoc = true
-	newPlayerChooseTown = false
-	newPlayerDefaultTownId = 1
+	newPlayerSpawnPosX = 302
+	newPlayerSpawnPosY = 48
+	newPlayerSpawnPosZ = 5
+	newPlayerTownId = 1
 	newPlayerLevel = 1
 	newPlayerMagicLevel = 0
 	generateAccountNumber = false
+	generateAccountSalt = false
+	accountSize = 10
+	enableCast = true
 
 	-- Unjustified kills
 	-- NOTE: *Banishment and *BlackSkull variables are >summed up<
@@ -17,7 +22,6 @@
 	-- Auto banishing works only if useBlackSkull set to negative.
 	-- advancedFragList is not advised if you use huge frags
 	-- requirements.
-	useFragHandler = true
 	redSkullLength = 30 * 24 * 60 * 60
 	blackSkullLength = 45 * 24 * 60 * 60
 	dailyFragsToRedSkull = 3
@@ -32,6 +36,7 @@
 	blackSkulledDeathHealth = 40
 	blackSkulledDeathMana = 0
 	useBlackSkull = true
+	useFragHandler = true
 	advancedFragList = false
 
 	-- Banishments
@@ -54,7 +59,7 @@
 	-- loginProtectionPeriod is the famous Tibia anti-magebomb system.
 	-- deathLostPercent set to nil enables manual mode.
 	worldType = "open"
-	protectionLevel = 1
+	protectionLevel = 120
 	pvpTileIgnoreLevelAndVocationProtection = true
 	pzLocked = 60 * 1000
 	huntingDuration = 60 * 1000
@@ -68,10 +73,9 @@
 	noDamageToSameLookfeet = false
 	showHealingDamage = false
 	showHealingDamageForMonsters = false
-	healthHealingColor = COLOR_GREEN
-	manaHealingColor = COLOR_DARKPURPLE
 	fieldOwnershipDuration = 5 * 1000
 	stopAttackingAtExit = false
+	oldConditionAccuracy = false
 	loginProtectionPeriod = 10 * 1000
 	deathLostPercent = 10
 	stairhopDelay = 2 * 1000
@@ -83,10 +87,13 @@
 	allowFightback = true
 	fistBaseAttack = 7
 	optionalWarAttackableAlly = false
+	healthHealingColor = COLOR_GREEN
+	manaHealingColor = COLOR_DARKPURPLE
 
 	-- Connection config
 	worldId = 0
 	ip = "127.0.0.1"
+	bindOnlyConfiguredIpAddress = false
 	loginPort = 7171
 	gamePort = 7172
 	loginTries = 10
@@ -104,8 +111,11 @@
 	forceSlowConnectionsToDisconnect = false
 	loginOnlyWithLoginServer = false
 	premiumPlayerSkipWaitList = false
-	enableCast = true
+	max_packets_per_second = 2500
 
+    -- Anti-Divulgação
+	advertisingBlock = ".net;servegame;no-ip;.hopto;.net;.info;.org;.zapto;.me;.ddns;.pl;.biz;,net;,info;,pl;,me;,ddns;,zapto;,hopto"
+	
 	-- Database
 	-- NOTE: sqlFile is used only by sqlite database, and sqlKeepAlive by mysql database.
 	-- To disable sqlKeepAlive such as mysqlReadTimeout use 0 value.
@@ -165,7 +175,7 @@
 	-- Map
 	-- NOTE: storeTrash costs more memory, but will perform alot faster cleaning.
 	mapName = "forgotten.otbm"
-	mapAuthor = "Komic"
+	mapAuthor = "Night"
 	randomizeTiles = true
 	storeTrash = true
 	cleanProtectedZones = true
@@ -184,7 +194,6 @@
 	startupDatabaseOptimization = true
 	updatePremiumStateAtStartup = true
 	confirmOutdatedVersion = false
-	skipItemsVersionCheck = true
 
 	-- Spells
 	formulaLevel = 5.0
@@ -210,6 +219,7 @@
 	promptExceptionTracerErrorBox = true
 	maximumDoorLevel = 500
 	maxMessageBuffer = 4
+	tradeLimit = 100
 
 	-- VIP list
 	separateVipListPerCharacter = false
@@ -236,6 +246,7 @@
 	idleWarningTime = 14 * 60 * 1000
 	idleKickTime = 15 * 60 * 1000
 	reportsExpirationAfterReads = 1
+	playerQueryDeepness = 2
 	tileLimit = 0
 	protectionTileLimit = 0
 	houseTileLimit = 0
@@ -330,9 +341,9 @@
 	-- Status
 	statusPort = 7171
 	ownerName = ""
-	ownerEmail = "@otland.net"
-	url = "http://otland.net/"
-	location = "Europe"
+	ownerEmail = "xtibia@xtibia.com"
+	url = "http://xtibia.com/"
+	location = "Brazil"
 	displayGamemastersWithOnlineCommand = false
 
 	-- Logs
@@ -341,6 +352,7 @@
 	runFile = ""
 	outputLog = ""
 	truncateLogsOnStartup = false
+	logsPlayers = false -- by Yan Liima(Night)
 
 	-- Manager
 	-- NOTE: managerPassword left blank disables manager.

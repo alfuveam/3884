@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "iomapserialize.h"
 
@@ -538,7 +539,7 @@ bool IOMapSerialize::loadItems(Database*, DBResult* result, Cylinder* parent, bo
 		propStream.init(attr, attrSize);
 
 		const ItemType& iType = Item::items[id];
-		if(iType.moveable || iType.forceSerialize || pid)
+		if(iType.movable || iType.forceSerialize || pid)
 		{
 			if(!(item = Item::CreateItem(id, count)))
 				continue;
@@ -647,7 +648,7 @@ bool IOMapSerialize::saveItems(Database* db, uint32_t& tileId, uint32_t houseId,
 	DBQuery query;
 	for(int32_t i = 0; i < thingCount; ++i)
 	{
-		if(!(item = tile->__getThing(i)->getItem()) || (!item->isMoveable() && !item->forceSerialize()))
+		if(!(item = tile->__getThing(i)->getItem()) || (!item->isMovable() && !item->forceSerialize()))
 			continue;
 
 		if(!stored)
@@ -745,7 +746,7 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent, bool dep
 	Item* item = NULL;
 
 	const ItemType& iType = Item::items[id];
-	if(iType.moveable || iType.forceSerialize || (!depotTransfer && !tile))
+	if(iType.movable || iType.forceSerialize || (!depotTransfer && !tile))
 	{
 		if(!(item = Item::CreateItem(id)))
 			return true;
@@ -859,7 +860,7 @@ bool IOMapSerialize::saveTile(PropWriteStream& stream, const Tile* tile)
 	for(; tileCount > 0; --tileCount)
 	{
 		if((item = tile->__getThing(tileCount - 1)->getItem()) &&
-			(item->isMoveable() || item->forceSerialize()))
+			(item->isMovable() || item->forceSerialize()))
 			items.push_back(item);
 	}
 

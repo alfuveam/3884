@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "condition.h"
@@ -726,19 +727,16 @@ bool ConditionRegeneration::executeCondition(Creature* creature, int32_t interva
 {
 	internalHealthTicks += interval;
 	internalManaTicks += interval;
-	if(creature->getZone() != ZONE_PROTECTION)
+	if(internalHealthTicks >= healthTicks)
 	{
-		if(internalHealthTicks >= healthTicks)
-		{
-			internalHealthTicks = 0;
-			creature->changeHealth(healthGain);
-		}
+		internalHealthTicks = 0;
+		creature->changeHealth(healthGain);
+	}
 
-		if(internalManaTicks >= manaTicks)
-		{
-			internalManaTicks = 0;
-			creature->changeMana(manaGain);
-		}
+	if(internalManaTicks >= manaTicks)
+	{
+		internalManaTicks = 0;
+		creature->changeMana(manaGain);
 	}
 
 	return ConditionGeneric::executeCondition(creature, interval);
@@ -1587,7 +1585,7 @@ bool ConditionLight::executeCondition(Creature* creature, int32_t interval)
 
 void ConditionLight::endCondition(Creature* creature, ConditionEnd_t)
 {
-	creature->setNormalCreatureLight();
+	creature->resetLight();
 	g_game.changeLight(creature);
 }
 

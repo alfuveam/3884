@@ -17,7 +17,7 @@
 
 #ifndef __NETWORKMESSAGE__
 #define __NETWORKMESSAGE__
-#include "otsystem.h"
+
 #include "const.h"
 
 enum SocketCode_t
@@ -107,12 +107,12 @@ class NetworkMessage
 			m_position = NETWORK_HEADER_SIZE;
 			return (char*)&m_buffer[NETWORK_HEADER_SIZE];
 		}
+		
 #ifdef __TRACK_NETWORK__
-
 		virtual void Track(std::string file, int32_t line, std::string func) {}
 		virtual void clearTrack() {}
-#endif
 
+#endif
 	protected:
 		// used to check available space while writing
 		inline bool hasSpace(int32_t size) {return (size + m_position < NETWORK_MAX_SIZE - 16);}

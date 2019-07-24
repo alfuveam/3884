@@ -17,10 +17,10 @@
 
 #ifndef __GAME__
 #define __GAME__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "templates.h"
+#include "server.h"
 #include "scheduler.h"
 
 #include "map.h"
@@ -31,7 +31,6 @@
 #include "npc.h"
 #include "monster.h"
 
-class ServiceManager;
 class Creature;
 class Player;
 class Monster;
@@ -137,6 +136,9 @@ typedef std::map<int32_t, float> StageList;
 #define EVENT_DECAYINTERVAL 1000
 #define EVENT_DECAYBUCKETS 16
 #define STATE_DELAY 1000
+#ifdef __WAR_SYSTEM__
+#define EVENT_WARSINTERVAL 900000
+#endif
 
 /**
   * Main Game class.
@@ -172,7 +174,7 @@ class Game
 		  * \param width width of the map
 		  * \param height height of the map
 		  */
-		inline void getMapDimensions(uint32_t& width, uint32_t& height)
+		inline void getMapDimensions(uint32_t& width, uint32_t& height) const 
 		{
 			width = map->mapWidth;
 			height = map->mapHeight;
@@ -332,7 +334,7 @@ class Game
 		uint32_t getNpcsOnline() {return (uint32_t)Npc::autoList.size();}
 		uint32_t getCreaturesOnline() {return (uint32_t)autoList.size();}
 
-		uint32_t getPlayersRecord() {return playersRecord;}
+		uint32_t getPlayersRecord() const {return playersRecord;}
 		void getWorldLightInfo(LightInfo& lightInfo);
 
 		void getSpectators(SpectatorVec& list, const Position& centerPos, bool checkforduplicate = false, bool multifloor = false,
@@ -455,14 +457,14 @@ class Game
 		bool playerMoveThing(uint32_t playerId, const Position& fromPos, uint16_t spriteId,
 			int16_t fromStackpos, const Position& toPos, uint8_t count);
 		bool playerMoveCreature(uint32_t playerId, uint32_t movingCreatureId,
-			const Position& movingCreatureOrigPos, const Position& toPos);
+			const Position& movingCreatureOrigPos, const Position& toPos, bool delay);
 		bool playerMoveItem(uint32_t playerId, const Position& fromPos,
 			uint16_t spriteId, int16_t fromStackpos, const Position& toPos, uint8_t count);
 		bool playerMove(uint32_t playerId, Direction dir);
-		bool playerCreatePrivateChannel(uint32_t playerId, ProtocolGame* pg);
+		bool playerCreatePrivateChannel(uint32_t playerId, ProtocolGame* pg); //CAST
 		bool playerChannelInvite(uint32_t playerId, const std::string& name);
 		bool playerChannelExclude(uint32_t playerId, const std::string& name);
-		bool playerRequestChannels(uint32_t playerId, ProtocolGame* pg);
+		bool playerRequestChannels(uint32_t playerId, ProtocolGame* pg); //CAST
 		bool playerOpenChannel(uint32_t playerId, uint16_t channelId);
 		bool playerCloseChannel(uint32_t playerId, uint16_t channelId);
 		bool playerOpenPrivateChannel(uint32_t playerId, std::string& receiver);
@@ -508,7 +510,7 @@ class Game
 		bool playerTurn(uint32_t playerId, Direction dir);
 		bool playerRequestOutfit(uint32_t playerId);
 		bool playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type,
-			const std::string& receiver, const std::string& text, ProtocolGame* pg = NULL);
+			const std::string& receiver, const std::string& text, ProtocolGame* pg = NULL); //CAST
 		bool playerChangeOutfit(uint32_t playerId, Outfit_t outfit);
 		bool playerInviteToParty(uint32_t playerId, uint32_t invitedId);
 		bool playerJoinParty(uint32_t playerId, uint32_t leaderId);
@@ -516,7 +518,6 @@ class Game
 		bool playerPassPartyLeadership(uint32_t playerId, uint32_t newLeaderId);
 		bool playerLeaveParty(uint32_t playerId, bool forced = false);
 		bool playerSharePartyExperience(uint32_t playerId, bool activate, uint8_t unknown);
-		void playerExtendedOpcode(uint32_t playerId, uint8_t opcode, const std::string& buffer);
 
 		void kickPlayer(uint32_t playerId, bool displayEffect);
 		bool broadcastMessage(const std::string& text, MessageClasses type);
@@ -545,6 +546,8 @@ class Game
 		bool getPathToEx(const Creature* creature, const Position& targetPos, std::list<Direction>& dirList,
 			uint32_t minTargetDist, uint32_t maxTargetDist, bool fullPathSearch = true,
 			bool clearSight = true, int32_t maxSearchDist = -1);
+
+		bool steerCreature(Creature* creature, const Position& position);
 
 		Position getClosestFreeTile(Creature* creature, Position pos, bool extended = false, bool ignoreHouse = true);
 		std::string getSearchString(const Position& fromPos, const Position& toPos, bool fromIsCreature = false, bool toIsCreature = false);
@@ -581,6 +584,9 @@ class Game
 		void checkCreatureAttack(uint32_t creatureId);
 		void checkCreatures();
 		void checkLight();
+#ifdef __WAR_SYSTEM__
+		void checkWars();
+#endif
 
 		bool combatBlockHit(CombatType_t combatType, Creature* attacker, Creature* target,
 			int32_t& healthChange, bool checkDefense, bool checkArmor);
@@ -597,10 +603,10 @@ class Game
 
 		void addAnimatedText(const Position& pos, uint8_t textColor, const std::string& text);
 		void addAnimatedText(const SpectatorVec& list, const Position& pos, uint8_t textColor, const std::string& text);
-		void addMagicEffect(const Position& pos, uint8_t effect, bool ghostMode = false);
-		void addMagicEffect(const SpectatorVec& list, const Position& pos, uint8_t effect, bool ghostMode = false);
-		void addDistanceEffect(const SpectatorVec& list, const Position& fromPos, const Position& toPos, uint8_t effect);
-		void addDistanceEffect(const Position& fromPos, const Position& toPos, uint8_t effect);
+		void addMagicEffect(const Position& pos, uint16_t effect, bool ghostMode = false);
+		void addMagicEffect(const SpectatorVec& list, const Position& pos, uint16_t effect, bool ghostMode = false);
+		void addDistanceEffect(const SpectatorVec& list, const Position& fromPos, const Position& toPos, uint16_t effect);
+		void addDistanceEffect(const Position& fromPos, const Position& toPos, uint16_t effect);
 
 		const RuleViolationsMap& getRuleViolations() const {return ruleViolations;}
 		bool cancelRuleViolation(Player* player);
@@ -619,14 +625,16 @@ class Game
 		Map* getMap() {return map;}
 		const Map* getMap() const {return map;}
 
-		int32_t getLightHour() {return lightHour;}
+		bool isRunning() const {return services && services->isRunning();}
+		int32_t getLightHour() const {return lightHour;}
 		void startDecay(Item* item);
+		void parsePlayerExtendedOpcode(uint32_t playerId, uint8_t opcode, const std::string& buffer);
 
 	protected:
 		bool playerWhisper(Player* player, const std::string& text);
 		bool playerYell(Player* player, const std::string& text);
 		bool playerSpeakTo(Player* player, SpeakClasses type, const std::string& receiver, const std::string& text);
-		bool playerTalkToChannel(Player* player, SpeakClasses type, const std::string& text, uint16_t channelId, ProtocolGame* pg = NULL);
+		bool playerTalkToChannel(Player* player, SpeakClasses type, const std::string& text, uint16_t channelId, ProtocolGame* pg = NULL); //CAST
 		bool playerSpeakToNpc(Player* player, const std::string& text);
 		bool playerReportRuleViolation(Player* player, const std::string& text);
 		bool playerContinueReport(Player* player, const std::string& text);
@@ -672,6 +680,9 @@ class Game
 		int32_t lastMotdId;
 		uint32_t playersRecord;
 		uint32_t checkLightEvent, checkCreatureEvent, checkDecayEvent, saveEvent;
+#ifdef __WAR_SYSTEM__
+		uint32_t checkWarsEvent;
+#endif
 		bool globalSaveMessage[2];
 
 		RefreshTiles refreshTiles;

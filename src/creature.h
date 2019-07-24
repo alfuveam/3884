@@ -17,10 +17,8 @@
 
 #ifndef __CREATURE__
 #define __CREATURE__
-#include "otsystem.h"
 
 #include "templates.h"
-#include <boost/any.hpp>
 
 #include "const.h"
 #include "enums.h"
@@ -88,9 +86,11 @@ struct DeathEntry
 
 		bool isCreatureKill() const {return data.type() == typeid(Creature*);}
 		bool isNameKill() const {return !isCreatureKill();}
+#ifdef __WAR_SYSTEM__
 
 		void setWar(War_t v) {war = v;}
 		War_t getWar() const {return war;}
+#endif
 
 		void setLast() {last = true;}
 		bool isLast() const {return last;}
@@ -112,7 +112,9 @@ struct DeathEntry
 
 		boost::any data;
 		int32_t damage;
+#ifdef __WAR_SYSTEM__
 		War_t war;
+#endif
 
 		bool last;
 		bool justify;
@@ -127,7 +129,7 @@ struct DeathLessThan
 typedef std::vector<DeathEntry> DeathList;
 typedef std::list<CreatureEvent*> CreatureEventList;
 typedef std::list<Condition*> ConditionList;
-typedef std::map<uint32_t, std::string> StorageMap;
+typedef std::map<std::string, std::string> StorageMap;
 
 class Map;
 class Tile;
@@ -333,9 +335,9 @@ class Creature : public AutoId, virtual public Thing
 		virtual void changeMana(int32_t manaChange);
 		void changeMaxMana(uint32_t manaChange) {manaMax = manaChange;}
 
-		virtual bool getStorage(const uint32_t key, std::string& value) const;
-		virtual bool setStorage(const uint32_t key, const std::string& value);
-		virtual void eraseStorage(const uint32_t key) {storageMap.erase(key);}
+		virtual bool getStorage(const std::string& key, std::string& value) const;
+		virtual bool setStorage(const std::string& key, const std::string& value);
+		virtual void eraseStorage(const std::string& key) {storageMap.erase(key);}
 
 		inline StorageMap::const_iterator getStorageBegin() const {return storageMap.begin();}
 		inline StorageMap::const_iterator getStorageEnd() const {return storageMap.end();}
@@ -380,7 +382,7 @@ class Creature : public AutoId, virtual public Thing
 		virtual void onIdleStatus();
 
 		virtual void getCreatureLight(LightInfo& light) const;
-		virtual void setNormalCreatureLight();
+		virtual void resetLight();
 		void setCreatureLight(LightInfo& light) {internalLight = light;}
 
 		virtual void onThink(uint32_t interval);
@@ -395,7 +397,7 @@ class Creature : public AutoId, virtual public Thing
 		virtual void onUpdateTile(const Tile*, const Position&) {}
 
 		virtual void onCreatureAppear(const Creature* creature);
-		virtual void onCreatureDisappear(const Creature* creature, bool isLogout);
+		virtual void onCreatureDisappear(const Creature* creature, bool) {internalCreatureDisappear(creature, true);}
 		virtual void onCreatureMove(const Creature* creature, const Tile* newTile, const Position& newPos,
 			const Tile* oldTile, const Position& oldPos, bool teleport);
 
@@ -544,6 +546,8 @@ class Creature : public AutoId, virtual public Thing
 		void updateTileCache(const Tile* tile, int32_t dx, int32_t dy);
 		void updateTileCache(const Tile* tile, const Position& pos);
 
+		void internalCreatureDisappear(const Creature* creature, bool isLogout);
+
 		virtual bool hasExtraSwing() {return false;}
 
 		virtual uint16_t getLookCorpse() const {return 0;}
@@ -558,7 +562,6 @@ class Creature : public AutoId, virtual public Thing
 		virtual void dropCorpse(DeathList deathList);
 
 		virtual void doAttacking(uint32_t) {}
-		void internalCreatureDisappear(const Creature* creature, bool isLogout);
 
 		friend class Game;
 		friend class Map;

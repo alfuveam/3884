@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "ioban.h"
+
+#include "game.h"
+#include "player.h"
 
 #include "tools.h"
 #include "database.h"
 #include "iologindata.h"
+
+extern Game g_game;
 
 bool IOBan::isIpBanished(uint32_t ip, uint32_t mask/* = 0xFFFFFFFF*/) const
 {
@@ -101,6 +107,10 @@ bool IOBan::addIpBanishment(uint32_t ip, int64_t banTime, uint32_t reasonId,
 {
 	if(isIpBanished(ip))
 		return false;
+
+	PlayerVector players = g_game.getPlayersByIP(ip, mask);
+	for(PlayerVector::iterator it = players.begin(); it != players.end(); ++it)
+		(*it)->kick(true, true);
 
 	Database* db = Database::getInstance();
 	DBQuery query;

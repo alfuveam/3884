@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include <iomanip>
 
-#include <boost/config.hpp>
-#include <boost/bind.hpp>
+#include "otpch.h"
 
 #include "iomap.h"
 #include "map.h"
@@ -47,25 +44,25 @@ bool Map::loadMap(const std::string& identifier)
 	IOMap* loader = new IOMap();
 	if(!loader->loadMap(this, identifier))
 	{
-		std::clog << "> FATAL: OTBM Loader - " << loader->getLastErrorString() << std::endl;
+		std::clog << "> FATAL: OTBM Carregado - " << loader->getLastErrorString() << std::endl;
 		return false;
 	}
 
-	std::clog << "> Map loading time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << "> Mapa carregado em: " << (OTSYS_TIME() - start) / (1000.) << " segundos." << std::endl;
 	start = OTSYS_TIME();
 	if(!loader->loadSpawns(this))
-		std::clog << "> WARNING: Could not load spawn data." << std::endl;
+		std::clog << "> WARNING: Nao foi possivel carregar spawn data." << std::endl;
 
 	if(!loader->loadHouses(this))
-		std::clog << "> WARNING: Could not load house data." << std::endl;
+		std::clog << "> WARNING: Nao foi possivel carregar house data." << std::endl;
 
 	delete loader;
-	std::clog << "> Data parsing time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << "> Data carregada em: " << (OTSYS_TIME() - start) / (1000.) << " segundos." << std::endl;
 	start = OTSYS_TIME();
 
 	IOMapSerialize::getInstance()->updateHouses();
 	IOMapSerialize::getInstance()->updateAuctions();
-	std::clog << "> Houses synchronization time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+	std::clog << "> Houses carregada em: " << (OTSYS_TIME() - start) / (1000.) << " segundos." << std::endl;
 
 	start = OTSYS_TIME();
 	IOMapSerialize::getInstance()->loadHouses();

@@ -35,8 +35,6 @@ enum TargetSearchType_t
 };
 
 typedef std::list<Creature*> CreatureList;
-typedef std::list<std::string> NameList;
-
 class Monster : public Creature
 {
 	private:
@@ -101,7 +99,7 @@ class Monster : public Creature
 		virtual bool challengeCreature(Creature* creature);
 		virtual bool convinceCreature(Creature* creature);
 
-		virtual void setNormalCreatureLight();
+		virtual void resetLight();
 		virtual bool getCombatValues(int32_t& min, int32_t& max);
 
 		virtual void doAttacking(uint32_t interval);
@@ -119,10 +117,6 @@ class Monster : public Creature
 
 		virtual BlockType_t blockHit(Creature* attacker, CombatType_t combatType, int32_t& damage,
 			bool checkDefense = false, bool checkArmor = false, bool reflect = true);
-			
-		//MS
-		void addAttackList(std::string name);
-		void setAttackPlayer(bool state);
 
 	private:
 		CreatureList targetList;
@@ -144,9 +138,6 @@ class Monster : public Creature
 
 		Spawn* spawn;
 		Raid* raid;
-		
-		bool targetPlayers; //MS
-		NameList namelist;
 
 		bool isMasterInRange;
 		bool teleportToMaster;

@@ -17,7 +17,6 @@
 
 #ifndef __SPAWN__
 #define __SPAWN__
-#include "otsystem.h"
 
 #include "templates.h"
 #include "position.h"
@@ -46,8 +45,8 @@ class Spawns
 		void startup();
 		void clear();
 
-		bool isLoaded() {return loaded;}
-		bool isStarted() {return started;}
+		bool isLoaded() const {return loaded;}
+		bool isStarted() const {return started;}
 
 	private:
 		Spawns();

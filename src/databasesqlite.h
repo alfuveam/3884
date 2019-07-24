@@ -23,8 +23,6 @@
 #endif
 
 #include <sqlite3.h>
-#include <sstream>
-#include <map>
 
 class DatabaseSQLite : public _Database
 {

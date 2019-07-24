@@ -15,14 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __OTPCH__
-#error "Precompiled header should be included only once."
-#endif
-
-#define __OTPCH__
-#if defined WINDOWS
-#include <winerror.h>
-#endif
+// Definitions should be global.
+#include "definitions.h"
 
 //libxml
 #include <libxml/xmlmemory.h>
@@ -36,5 +30,54 @@
 #include <boost/regex.hpp>
 #include <boost/tokenizer.hpp>
 
-//otserv
-#include "thing.h"
+#include <string>
+#include <algorithm>
+#include <bitset>
+#include <queue>
+#include <set>
+#include <vector>
+#include <list>
+#include <map>
+#include <limits>
+
+// from src
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <stdlib.h>
+#include <cmath>
+#include <memory>
+#include <unordered_set>
+
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/err.h>
+// from src - end
+
+#include <boost/utility.hpp>
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+#include <boost/foreach.hpp>
+#include <boost/shared_ptr.hpp>
+
+// from src
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/any.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/version.hpp>
+#include <boost/pool/pool.hpp>
+// from src - end
+
+#include <cstddef>
+#include <cstdlib>
+
+#include <ctime>
+#include <cassert>
+
+#if BOOST_VERSION < 104400
+	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()
+#else
+	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
+#endif

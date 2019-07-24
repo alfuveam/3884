@@ -17,13 +17,9 @@
 
 #ifndef __CONDITION__
 #define __CONDITION__
-#include "otsystem.h"
 
 #include "const.h"
 #include "enums.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "fileloader.h"
 

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "enums.h"
-#include <iostream>
 
 #include "databasemanager.h"
 #include "tools.h"
@@ -64,6 +64,15 @@ bool DatabaseManager::optimizeTables()
 			return true;
 		}
 
+		case DATABASE_ENGINE_POSTGRESQL:
+		{
+			if(!db->query("VACUUM FULL;"))
+				break;
+
+			std::clog << "> Optimized database." << std::endl;
+			return true;
+		}
+
 		default:
 			break;
 	}
@@ -84,6 +93,10 @@ bool DatabaseManager::triggerExists(std::string trigger)
 		case DATABASE_ENGINE_MYSQL:
 			query << "SELECT `TRIGGER_NAME` FROM `information_schema`.`triggers` WHERE `TRIGGER_SCHEMA` = " << db->escapeString(g_config.getString(ConfigManager::SQL_DB)) << " AND `TRIGGER_NAME` = " << db->escapeString(trigger) << ";";
 			break;
+
+		case DATABASE_ENGINE_POSTGRESQL:
+			//TODO: PostgreSQL support
+			return true;
 
 		default:
 			return false;
@@ -110,6 +123,10 @@ bool DatabaseManager::tableExists(std::string table)
 		case DATABASE_ENGINE_MYSQL:
 			query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << db->escapeString(g_config.getString(ConfigManager::SQL_DB)) << " AND `TABLE_NAME` = " << db->escapeString(table) << ";";
 			break;
+
+		case DATABASE_ENGINE_POSTGRESQL:
+			//TODO: PostgreSQL support
+			return true;
 
 		default:
 			return false;
@@ -145,6 +162,10 @@ bool DatabaseManager::isDatabaseSetup()
 			//a pre-setup sqlite database is already included
 			return true;
 
+		case DATABASE_ENGINE_POSTGRESQL:
+			//TODO: PostgreSQL support
+			return true;
+
 		default:
 			break;
 	}
@@ -168,6 +189,12 @@ uint32_t DatabaseManager::updateDatabase()
 {
 	Database* db = Database::getInstance();
 	uint32_t version = getDatabaseVersion();
+	if(version < 6 && db->getDatabaseEngine() == DATABASE_ENGINE_POSTGRESQL)
+	{
+		std::clog << "> WARNING: Couldn't update database - PostgreSQL support available since version 6, please use latest pgsql.sql schema." << std::endl;
+		registerDatabaseConfig("db_version", 6);
+		return 6;
+	}
 
 	DBQuery query;
 	switch(version)
@@ -484,6 +511,7 @@ uint32_t DatabaseManager::updateDatabase()
 				}
 
 				case DATABASE_ENGINE_SQLITE:
+				case DATABASE_ENGINE_POSTGRESQL:
 				default:
 				{
 					//TODO
@@ -564,6 +592,7 @@ uint32_t DatabaseManager::updateDatabase()
 				}
 
 				case DATABASE_ENGINE_SQLITE:
+				case DATABASE_ENGINE_POSTGRESQL:
 				default:
 				{
 					//TODO
@@ -622,8 +651,12 @@ uint32_t DatabaseManager::updateDatabase()
 					break;
 				}
 
+				case DATABASE_ENGINE_POSTGRESQL:
 				default:
+				{
+					//TODO
 					break;
+				}
 			}
 
 			registerDatabaseConfig("db_version", 14);
@@ -711,8 +744,12 @@ uint32_t DatabaseManager::updateDatabase()
 					break;
 				}
 
+				case DATABASE_ENGINE_POSTGRESQL:
 				default:
+				{
+					//TODO
 					break;
+				}
 			}
 
 			registerDatabaseConfig("db_version", 15);
@@ -750,9 +787,13 @@ uint32_t DatabaseManager::updateDatabase()
 
 					break;
 				}
-	
+
+				case DATABASE_ENGINE_POSTGRESQL:
 				default:
+				{
+					//TODO
 					break;
+				}
 			}
 
 			registerDatabaseConfig("db_version", 16);
@@ -1064,6 +1105,41 @@ uint32_t DatabaseManager::updateDatabase()
 			return 25;
 		}
 
+		case 25:
+		{
+			std::clog << "> Updating database to version 26..." << std::endl;
+			switch(db->getDatabaseEngine())
+			{
+				case DATABASE_ENGINE_SQLITE:
+				{
+					query << "ALTER TABLE `accounts` ADD `salt` VARCHAR(40) NOT NULL DEFAULT '';";
+					db->query(query.str());
+					break;
+				}
+
+				case DATABASE_ENGINE_MYSQL:
+				{
+					query << "ALTER TABLE `accounts` ADD `salt` VARCHAR(40) NOT NULL DEFAULT '' AFTER `password`;";
+					db->query(query.str());
+					break;
+				}
+
+				default:
+					break;
+			}
+
+			query.str("");
+			registerDatabaseConfig("db_version", 26);
+			return 26;
+		}
+		case 26:
+		{
+			std::clog << "> Updating database to version 27..." << std::endl;
+			db->query(std::string("ALTER TABLE `player_storage` CHANGE `key` `key` VARCHAR(32) NOT NULL DEFAULT '0'"));
+			db->query(std::string("ALTER TABLE `global_storage` CHANGE `key` `key` VARCHAR(32) NOT NULL DEFAULT '0'"));
+			registerDatabaseConfig("db_version", 27);
+			return 27;
+		}
 		default:
 			break;
 	}
@@ -1136,6 +1212,12 @@ void DatabaseManager::registerDatabaseConfig(std::string config, std::string val
 void DatabaseManager::checkEncryption()
 {
 	std::string key;
+	if(!getDatabaseConfig("vahash_key", key))
+	{
+		key = generateRecoveryKey(4, 4);
+		registerDatabaseConfig("vahash_key", key);
+	}
+
 	Encryption_t newValue = (Encryption_t)g_config.getNumber(ConfigManager::ENCRYPTION);
 	int32_t value = (int32_t)ENCRYPTION_PLAIN;
 
@@ -1156,7 +1238,7 @@ void DatabaseManager::checkEncryption()
 
 					Database* db = Database::getInstance();
 					DBQuery query;
-					if(db->getDatabaseEngine() != DATABASE_ENGINE_MYSQL)
+					if(db->getDatabaseEngine() != DATABASE_ENGINE_MYSQL && db->getDatabaseEngine() != DATABASE_ENGINE_POSTGRESQL)
 					{
 						if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 						{
@@ -1187,7 +1269,7 @@ void DatabaseManager::checkEncryption()
 
 					Database* db = Database::getInstance();
 					DBQuery query;
-					if(db->getDatabaseEngine() != DATABASE_ENGINE_MYSQL)
+					if(db->getDatabaseEngine() != DATABASE_ENGINE_MYSQL && db->getDatabaseEngine() != DATABASE_ENGINE_POSTGRESQL)
 					{
 						if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 						{
@@ -1260,6 +1342,32 @@ void DatabaseManager::checkEncryption()
 					break;
 				}
 
+				case ENCRYPTION_VAHASH:
+				{
+					if((Encryption_t)value != ENCRYPTION_PLAIN)
+					{
+						std::clog << "> WARNING: You cannot change the encryption to VAHash, change it back in config.lua." << std::endl;
+						return;
+					}
+
+					Database* db = Database::getInstance();
+					DBQuery query;
+					if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
+					{
+						do
+						{
+							query << "UPDATE `accounts` SET `password` = " << db->escapeString(transformToVAHash(result->getDataString("password"), false)) << ", `key` = " << db->escapeString(transformToVAHash(result->getDataString("key"), false)) << " WHERE `id` = " << result->getDataInt("id") << ";";
+							db->query(query.str());
+						}
+						while(result->next());
+						result->free();
+					}
+
+					registerDatabaseConfig("encryption", (int32_t)newValue);
+					std::clog << "> Encryption set to VAHash." << std::endl;
+					break;
+				}
+
 				default:
 				{
 					std::clog << "> WARNING: You cannot switch from hashed passwords to plain text, change back the passwordType in config.lua to the passwordType you were previously using." << std::endl;
@@ -1307,6 +1415,15 @@ void DatabaseManager::checkEncryption()
 					Database* db = Database::getInstance();
 					DBQuery query;
 					query << "UPDATE `accounts` SET `password` = " << db->escapeString(transformToSHA512("1", false)) << " WHERE `id` = 1 AND `password` = '1';";
+					db->query(query.str());
+					break;
+				}
+
+				case ENCRYPTION_VAHASH:
+				{
+					Database* db = Database::getInstance();
+					DBQuery query;
+					query << "UPDATE `accounts` SET `password` = " << db->escapeString(transformToVAHash("1", false)) << " WHERE `id` = 1 AND `password` = '1';";
 					db->query(query.str());
 					break;
 				}
@@ -1520,6 +1637,10 @@ END;",
 
 			break;
 		}
+
+		case DATABASE_ENGINE_POSTGRESQL:
+			//TODO: PostgreSQL support
+			break;
 
 		default:
 			break;

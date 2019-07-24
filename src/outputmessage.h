@@ -17,16 +17,11 @@
 
 #ifndef __OUTPUT_MESSAGE__
 #define __OUTPUT_MESSAGE__
-#include "otsystem.h"
+
 #include "tools.h"
 
 #include "connection.h"
 #include "networkmessage.h"
-
-#ifdef __TRACK_NETWORK__
-#include <iostream>
-#include <sstream>
-#endif
 
 class Protocol;
 #define OUTPUT_POOL_SIZE 100

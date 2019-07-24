@@ -17,10 +17,6 @@
 
 #ifndef __HOUSE__
 #define __HOUSE__
-#include "otsystem.h"
-
-#include <boost/regex.hpp>
-#include <boost/tr1/unordered_set.hpp>
 
 #include "position.h"
 #include "housetile.h"
@@ -73,7 +69,7 @@ class AccessList
 		void getList(std::string& _list) const;
 
 	private:
-		typedef std::tr1::unordered_set<uint32_t> PlayerList;
+		typedef std::unordered_set<uint32_t> PlayerList;
 		typedef std::list<std::pair<uint32_t, int32_t> > GuildList;
 		typedef std::list<std::string> ExpressionList;
 		typedef std::list<std::pair<boost::regex, bool> > RegexList;
@@ -182,7 +178,7 @@ class House
 		uint32_t getPrice() const {return price;}
 
 		void setLastWarning(time_t _lastWarning) {lastWarning = _lastWarning;}
-		time_t getLastWarning() {return lastWarning;}
+		time_t getLastWarning() const {return lastWarning;}
 
 		void setRentWarnings(uint32_t warnings) {rentWarnings = warnings;}
 		uint32_t getRentWarnings() const {return rentWarnings;}

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iomanip>
 #include "position.h"
 
 std::ostream& operator<<(std::ostream& os, const Position& pos)
@@ -32,28 +32,28 @@ std::ostream& operator<<(std::ostream& os, const Direction& dir)
 	switch(dir)
 	{
 		case NORTH:
-			os << "North";
+			os << "Norte";
 			break;
 		case EAST:
-			os << "East";
+			os << "Leste";
 			break;
 		case WEST:
-			os << "West";
+			os << "Oeste";
 			break;
 		case SOUTH:
-			os << "South";
+			os << "Sul";
 			break;
 		case SOUTHWEST:
-			os << "South-West";
+			os << "Sudoestet";
 			break;
 		case SOUTHEAST:
-			os << "South-East";
+			os << "Sudeste";
 			break;
 		case NORTHWEST:
-			os << "North-West";
+			os << "Noroeste";
 			break;
 		case NORTHEAST:
-			os << "North-East";
+			os << "Nordeste";
 			break;
 	}
 

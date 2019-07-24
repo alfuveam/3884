@@ -17,7 +17,6 @@
 
 #ifndef __IOMAPSERIALIZE__
 #define __IOMAPSERIALIZE__
-#include "otsystem.h"
 
 #include "database.h"
 #include "map.h"

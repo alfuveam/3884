@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
-#include <iomanip>
 
 #include "item.h"
 #include "container.h"
@@ -188,10 +187,8 @@ Item::Item(const uint16_t type, uint16_t amount/* = 0*/):
 		setFluidType(amount);
 	else if(it.stackable)
 	{
-		if(amount)
-			setItemCount(amount);
-		else if(it.charges)
-			setItemCount(it.charges);
+		if(amount || it.charges)
+			setItemCount(amount ? amount : it.charges);
 	}
 	else if(it.charges)
 		setCharges(amount ? amount : it.charges);
@@ -689,8 +686,8 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 
 			break;
 
-		case MOVEABLE:
-			if(it.moveable && (!loadedFromMap || (!getUniqueId()
+		case MOVABLE:
+			if(it.movable && (!loadedFromMap || (!getUniqueId()
 				&& (!getActionId() || !getContainer()))))
 				return true;
 
@@ -727,14 +724,14 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 			break;
 
 		case IMMOVABLEBLOCKSOLID:
-			if(it.blockSolid && (!it.moveable || (loadedFromMap &&
+			if(it.blockSolid && (!it.movable || (loadedFromMap &&
 				(getUniqueId() || (getActionId() && getContainer())))))
 				return true;
 
 			break;
 
 		case IMMOVABLEBLOCKPATH:
-			if(it.blockPathFind && (!it.moveable || (loadedFromMap &&
+			if(it.blockPathFind && (!it.movable || (loadedFromMap &&
 				(getUniqueId() || (getActionId() && getContainer())))))
 				return true;
 
@@ -747,7 +744,7 @@ bool Item::hasProperty(enum ITEMPROPERTY prop) const
 			break;
 
 		case IMMOVABLENOFIELDBLOCKPATH:
-			if(!it.isMagicField() && it.blockPathFind && (!it.moveable || (loadedFromMap &&
+			if(!it.isMagicField() && it.blockPathFind && (!it.movable || (loadedFromMap &&
 				(getUniqueId() || (getActionId() && getContainer())))))
 				return true;
 

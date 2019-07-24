@@ -15,27 +15,4 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __RSA__
-#define __RSA__
-
-#include "otsystem.h"
-#include <gmp.h>
-
-class RSA
-{
-	public:
-		RSA();
-		virtual ~RSA();
-
-		void initialize(const char* p, const char* q, const char* d);
-		bool initialize(const std::string& file);
-
-		void decrypt(char* msg);
-
-		void getPublicKey(char* buffer);
-
-	protected:
-		boost::recursive_mutex rsaLock;
-		mpz_t m_p, m_q, m_u, m_d, m_dp, m_dq, m_mod;
-};
-#endif
+#include "otpch.h"

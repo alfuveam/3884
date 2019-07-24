@@ -17,11 +17,8 @@
 
 #ifndef __RAIDS__
 #define __RAIDS__
-#include "otsystem.h"
-#include "const.h"
 
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
+#include "const.h"
 
 #include "baseevents.h"
 #include "position.h"

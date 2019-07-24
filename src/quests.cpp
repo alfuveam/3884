@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
- 
+
 #include "quests.h"
 #include "tools.h"
- 
+
 bool Mission::isStarted(Player* player)
 {
 	if(!player)
@@ -28,55 +29,59 @@ bool Mission::isStarted(Player* player)
 	player->getStorage(storageId, value);
 	return atoi(value.c_str()) >= startValue;
 }
- 
+
 bool Mission::isCompleted(Player* player)
 {
 	if(!player)
 		return false;
- 
+
 	std::string value;
 	player->getStorage(storageId, value);
 	return atoi(value.c_str()) >= endValue;
 }
- 
+
+std::string Mission::parseStorages(std::string state, std::string value)
+{
+	/*std::string::size_type start, end;
+	while((start = state.find("|STORAGE:")) != std::string::npos)
+	{
+		if((end = state.find("|", start)) = std::string::npos)
+			continue;
+
+		std::string value, storage = state.substr(start, end - start)
+		player->getStorage(storage, value);
+		state.replace(start, end, value);
+	} requires testing and probably fixing, inspired by QuaS code*/
+
+	replaceString(state, "|STATE|", value);
+	return state;
+}
+
 std::string Mission::getDescription(Player* player)
 {
 	std::string value;
 	player->getStorage(storageId, value);
 	if(state.size())
-	{
-		std::string ret = state;
-		replaceString(ret, "|STATE|", value);
-		return ret;
-	}
+		return parseStorages(state, value);
 
 	if(atoi(value.c_str()) >= endValue)
-	{
-		std::string ret = states.rbegin()->second;
-		replaceString(ret, "|STATE|", value);
-		return ret;
-	}
+		return parseStorages(states.rbegin()->second, value);
 
 	for(int32_t i = endValue; i >= startValue; --i)
 	{
 		player->getStorage(storageId, value);
-		if(atoi(value.c_str()) != i)
-			continue;
- 
-		std::string ret = states[i - startValue];
-		replaceString(ret, "|STATE|", value);
-		return ret;
- 
+		if(atoi(value.c_str()) == i)
+			return parseStorages(states[i - startValue], value);
 	}
- 
+
 	return "Couldn't retrieve any mission description, please report to a gamemaster.";
 }
- 
+
 Quest::~Quest()
 {
 	for(MissionList::iterator it = missions.begin(); it != missions.end(); it++)
 		delete (*it);
- 
+
 	missions.clear();
 }
 
@@ -100,7 +105,7 @@ bool Quest::isCompleted(Player* player) const
 
 	return true;
 }
- 
+
 uint16_t Quest::getMissionCount(Player* player)
 {
 	uint16_t count = 0;
@@ -109,7 +114,7 @@ uint16_t Quest::getMissionCount(Player* player)
 		if((*it)->isStarted(player))
 			count++;
 	}
- 
+
 	return count;
 }
 
@@ -120,13 +125,13 @@ void Quests::clear()
 
 	quests.clear();
 }
- 
+
 bool Quests::reload()
 {
 	clear();
 	return loadFromXml();
 }
- 
+
 bool Quests::loadFromXml()
 {
 	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "quests.xml").c_str());
@@ -136,7 +141,7 @@ bool Quests::loadFromXml()
 		std::clog << getLastXMLError() << std::endl;
 		return false;
 	}
- 
+
 	xmlNodePtr p, root = xmlDocGetRootElement(doc);
 	if(xmlStrcmp(root->name,(const xmlChar*)"quests"))
 	{
@@ -155,12 +160,12 @@ bool Quests::loadFromXml()
 	xmlFreeDoc(doc);
 	return true;
 }
- 
+
 bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 {
 	if(xmlStrcmp(p->name, (const xmlChar*)"quest"))
 		return false;
- 
+
 	int32_t intValue;
 	std::string strValue;
 
@@ -175,10 +180,10 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 	std::string name;
 	if(readXMLString(p, "name", strValue))
 		name = strValue;
- 
-	uint32_t startStorageId = 0;
-	if(readXMLInteger(p, "startstorageid", intValue) || readXMLInteger(p, "storageId", intValue))
-		startStorageId = intValue;
+
+	std::string startStorageId;
+	if(readXMLString(p, "startstorageid", strValue) || readXMLString(p, "storageId", strValue))
+		startStorageId = strValue;
 
 	int32_t startStorageValue = 0;
 	if(readXMLInteger(p, "startstoragevalue", intValue) || readXMLInteger(p, "storageValue", intValue))
@@ -193,16 +198,15 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 		if(xmlStrcmp(missionNode->name, (const xmlChar*)"mission"))
 			continue;
 
-		std::string missionName, missionState;
+		std::string missionName, missionState, storageId;
 		if(readXMLString(missionNode, "name", strValue))
 			missionName = strValue;
 
 		if(readXMLString(missionNode, "state", strValue) || readXMLString(missionNode, "description", strValue))
 			missionState = strValue;
 
-		uint32_t storageId = 0;
-		if(readXMLInteger(missionNode, "storageid", intValue) || readXMLInteger(missionNode, "storageId", intValue))
-			storageId = intValue;
+		if(readXMLString(missionNode, "storageid", strValue) || readXMLString(missionNode, "storageId", strValue))
+			storageId = strValue;
 
 		int32_t startValue = 0, endValue = 0;
 		if(readXMLInteger(missionNode, "startvalue", intValue) || readXMLInteger(missionNode, "startValue", intValue))

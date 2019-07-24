@@ -19,13 +19,6 @@
 #ifndef __ALLOCATOR__
 #define __ALLOCATOR__
 
-#include "otsystem.h"
-#include <boost/pool/pool.hpp>
-
-#include <memory>
-#include <cstdlib>
-#include <fstream>
-
 template<typename T>
 class dummyallocator
 {

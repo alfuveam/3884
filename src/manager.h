@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////////////////
 #ifndef __MANAGER__
 #define __MANAGER__
-#include "otsystem.h"
+
 #include "const.h"
 
 #include "textlogger.h"

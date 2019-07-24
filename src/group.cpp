@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include <iostream>
 
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
+#include "otpch.h"
 
 #include "group.h"
 #include "tools.h"
@@ -155,7 +152,7 @@ uint32_t Group::getDepotLimit(bool premium) const
 	if(m_depotLimit > 0)
 		return m_depotLimit;
 
-	return (premium ? 1000 : 500);
+	return (premium ? 2000 : 1000);
 }
 
 uint32_t Group::getMaxVips(bool premium) const

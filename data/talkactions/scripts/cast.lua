@@ -74,6 +74,16 @@ function onSay(cid, words, param, channel)
 			text = text .. "No bans."
 		end
 		doShowTextDialog(cid, 5958, text)
+	elseif tmp[1] == "kick" then
+		if not(tmp[2]) then
+			return doPlayerSendCancel(cid, "Specify a spectator that you want to ban.")
+		end
+		
+		if doPlayerAddCastKick(cid, tmp[2]) then
+			doPlayerSendTextMessage(cid, MESSAGE_INFO_DESCR, "Spectator '" .. tmp[2] .. "' has been kicked.")
+		else
+			doPlayerSendTextMessage(cid, MESSAGE_INFO_DESCR, "Spectator '" .. tmp[2] .. "' could not be kicked.")
+		end		
 	elseif tmp[1] == "mute" then
 		if not(tmp[2]) then
 			return doPlayerSendCancel(cid, "Specify a spectator that you want to mute.")

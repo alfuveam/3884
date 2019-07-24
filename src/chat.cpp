@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "chat.h"
 
@@ -150,7 +151,7 @@ bool ChatChannel::removeUser(Player* player)
 	return true;
 }
 
-bool ChatChannel::talk(Player* player, SpeakClasses type, const std::string& text, uint32_t _time, ProtocolGame* pg)
+bool ChatChannel::talk(Player* player, SpeakClasses type, const std::string& text, uint32_t _time, ProtocolGame* pg) //CAST
 {
 	UsersMap::iterator it = m_users.find(player->getID());
 	if(it == m_users.end())
@@ -496,7 +497,7 @@ void Chat::removeUserFromAllChannels(Player* player)
 	}
 }
 
-bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& text, uint16_t channelId, ProtocolGame* pg)
+bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& text, uint16_t channelId, ProtocolGame* pg) //CAST
 {
 	if(text.empty())
 		return false;
@@ -531,7 +532,8 @@ bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& t
 	if(isPublicChannel(channelId))
 		Manager::getInstance()->talk(player->getID(), channelId, type, text);
 
-	if(channelId != CHANNEL_GUILD || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT) || (text[0] != '!' && text[0] != '/'))
+	if(channelId != CHANNEL_GUILD || !g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT)
+		|| (text[0] != '!' && text[0] != '/'))
 	{
 		if(channelId == CHANNEL_GUILD)
 		{
@@ -546,7 +548,7 @@ bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& t
 			}
 		}
 
-		return channel->talk(player, type, text, 0, pg);
+		return channel->talk(player, type, text, 0, pg); //CAST
 	}
 
 	if(!player->getGuildId())
@@ -566,8 +568,9 @@ bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& t
 	{
 		if(player->getGuildLevel() == GUILDLEVEL_LEADER)
 		{
-			IOGuild::getInstance()->disbandGuild(player->getGuildId());
+			uint32_t guildId = player->getGuildId();
 			channel->talk(player, SPEAK_CHANNEL_W, "The guild has been disbanded.");
+			IOGuild::getInstance()->disbandGuild(guildId);
 		}
 		else
 			player->sendCancel("You are not the leader of your guild.");
@@ -635,14 +638,18 @@ bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& t
 	{
 		if(player->getGuildLevel() < GUILDLEVEL_LEADER)
 		{
+#ifdef __WAR_SYSTEM__
 			if(!player->hasEnemy())
 			{
+#endif
 				sprintf(buffer, "%s has left the guild.", player->getName().c_str());
 				channel->talk(player, SPEAK_CHANNEL_W, buffer);
 				player->leaveGuild();
+#ifdef __WAR_SYSTEM__
 			}
 			else
 				player->sendCancel("Your guild is currently at war, you cannot leave it right now.");
+#endif
 		}
 		else
 			player->sendCancel("You cannot leave your guild because you are the leader of it, you have to pass the leadership to another member of your guild or disband the guild.");
@@ -788,14 +795,18 @@ bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& t
 							{
 								if(player->getGuildLevel() > paramPlayer->getGuildLevel())
 								{
+#ifdef __WAR_SYSTEM__
 									if(!player->hasEnemy())
 									{
+#endif
 										sprintf(buffer, "%s has been kicked from the guild by %s.", paramPlayer->getName().c_str(), player->getName().c_str());
 										channel->talk(player, SPEAK_CHANNEL_W, buffer);
 										paramPlayer->leaveGuild();
+#ifdef __WAR_SYSTEM__
 									}
 									else
 										player->sendCancel("Your guild is currently at war, you cannot kick right now.");
+#endif
 								}
 								else
 									player->sendCancel("You may only kick players with a guild rank below your.");
@@ -1070,7 +1081,7 @@ bool Chat::talkToChannel(Player* player, SpeakClasses type, const std::string& t
 			player->sendCancel("Only the leader of your guild can clean the guild motd.");
 	}
 	else if(text.substr(1, 8) == "commands")
-		player->sendToChannel(player, SPEAK_CHANNEL_W, "Guild commands with parameters: disband, invite[name], leave, kick[name], revoke[name], demote[name], promote[name], passleadership[name], nick[name, nick], setrankname[oldName, newName], setmotd[text] and cleanmotd.", CHANNEL_GUILD);
+		player->sendToChannel(player, SPEAK_CHANNEL_W, "Guild comandos com par�metros: disband, invite[nome], leave, kick[nome], revoke[nome], demote[nome], promote[nome], passleadership[nome], nick[nome, nick], setrankname[velhoNome, novoNome], setmotd[texto], cleanmotd[texto], war e balance.", CHANNEL_GUILD);
 	else
 		return false;
 

@@ -17,7 +17,6 @@
 
 #ifndef __ADMIN__
 #define __ADMIN__
-#include "otsystem.h"
 #ifdef __OTADMIN__
 
 #include "protocol.h"

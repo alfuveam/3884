@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "status.h"
 #include "tools.h"
@@ -134,12 +133,20 @@ std::string Status::getStatusString(bool sendPlayers) const
 	xmlSetProp(p, (const xmlChar*)"email", (const xmlChar*)g_config.getString(ConfigManager::OWNER_EMAIL).c_str());
 	xmlAddChild(root, p);
 
-	p = xmlNewNode(NULL,(const xmlChar*)"players");
+	/*p = xmlNewNode(NULL,(const xmlChar*)"players"); //ORIGINAL
 	sprintf(buffer, "%d", g_game.getPlayersOnline());
 	xmlSetProp(p, (const xmlChar*)"online", (const xmlChar*)buffer);
 	sprintf(buffer, "%d", g_config.getNumber(ConfigManager::MAX_PLAYERS));
 	xmlSetProp(p, (const xmlChar*)"max", (const xmlChar*)buffer);
 	sprintf(buffer, "%d", g_game.getPlayersRecord());
+	xmlSetProp(p, (const xmlChar*)"peak", (const xmlChar*)buffer);*/
+	
+    p = xmlNewNode(NULL,(const xmlChar*)"players");
+	sprintf(buffer, "%d", g_game.getPlayersOnline()+(int32_t)g_config.getNumber(ConfigManager::SPOOF_PLAYERS));
+	xmlSetProp(p, (const xmlChar*)"online", (const xmlChar*)buffer);
+	sprintf(buffer, "%d", (int32_t)g_config.getNumber(ConfigManager::MAX_PLAYERS));//+(int32_t)g_config.getNumber(ConfigManager::SPOOF_PLAYERS));
+	xmlSetProp(p, (const xmlChar*)"max", (const xmlChar*)buffer);
+	sprintf(buffer, "%d", g_game.getPlayersRecord()+(int32_t)g_config.getNumber(ConfigManager::SPOOF_PLAYERS));
 	xmlSetProp(p, (const xmlChar*)"peak", (const xmlChar*)buffer);
 	if(sendPlayers)
 	{

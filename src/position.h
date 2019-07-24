@@ -17,11 +17,6 @@
 
 #ifndef __POSITION__
 #define __POSITION__
-#include <stdlib.h>
-
-#include <cmath>
-#include <iostream>
-#include <vector>
 
 enum Direction
 {

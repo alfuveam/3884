@@ -17,7 +17,6 @@
 
 #ifndef __TEXTLOGGER__
 #define __TEXTLOGGER__
-#include "otsystem.h"
 
 enum LogFile_t
 {
@@ -49,16 +48,19 @@ class Logger
 		void open();
 		void close();
 
+		bool isLoaded() const {return m_loaded;}
+
 		void iFile(LogFile_t file, std::string output, bool newLine);
 		void eFile(std::string file, std::string output, bool newLine);
 
 		void log(const char* func, LogType_t type, std::string message, std::string channel = "", bool newLine = true);
 
 	private:
-		Logger() {}
+		Logger() {m_loaded = false;}
 		void internal(FILE* file, std::string output, bool newLine);
 
 		FILE* m_files[LOGFILE_LAST + 1];
+		bool m_loaded;
 };
 
 #define LOG_MESSAGE(type, message, channel) \

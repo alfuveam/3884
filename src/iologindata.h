@@ -17,7 +17,6 @@
 
 #ifndef __IOLOGINDATA__
 #define __IOLOGINDATA__
-#include "otsystem.h"
 #include "database.h"
 
 #include "creature.h"
@@ -61,7 +60,7 @@ class IOLoginData
 		bool accountIdExists(uint32_t accountId);
 		bool accountNameExists(const std::string& name);
 
-		bool getPassword(uint32_t accountId, std::string& password, std::string name = "");
+		bool getPassword(uint32_t accountId, std::string& password, std::string& salt, std::string name = "");
 		bool setPassword(uint32_t accountId, std::string newPassword);
 		bool validRecoveryKey(uint32_t accountId, std::string recoveryKey);
 		bool setRecoveryKey(uint32_t accountId, std::string newRecoveryKey);
@@ -91,8 +90,8 @@ class IOLoginData
 		bool getGuidByNameEx(uint32_t& guid, bool& specialVip, std::string& name);
 
 		bool changeName(uint32_t guid, std::string newName, std::string oldName);
-		bool createCharacter(uint32_t accountId, std::string characterName, int32_t vocationId, uint16_t sex, uint32_t townId);
-		DeleteCharacter_t deleteCharacter(uint32_t accountId, const std::string characterName);
+		bool createCharacter(uint32_t accountId, std::string characterName, int32_t vocationId, uint16_t sex);
+		DeleteCharacter_t deleteCharacter(uint32_t accountId, const std::string& characterName);
 
 		uint32_t getLevel(uint32_t guid) const;
 		uint32_t getLastIP(uint32_t guid) const;

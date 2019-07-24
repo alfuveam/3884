@@ -17,11 +17,11 @@
 
 #ifndef __CONNECTION_H__
 #define __CONNECTION_H__
-#include "otsystem.h"
 
 #include "networkmessage.h"
-#include <boost/utility.hpp>
-#include <boost/enable_shared_from_this.hpp>
+
+static constexpr int32_t CONNECTION_WRITE_TIMEOUT = 30;
+static constexpr int32_t CONNECTION_READ_TIMEOUT = 30;
 
 class OutputMessage;
 typedef boost::shared_ptr<OutputMessage> OutputMessage_ptr;
@@ -90,8 +90,6 @@ class ConnectionManager
 class Connection : public boost::enable_shared_from_this<Connection>, boost::noncopyable
 {
 	public:
-		enum {writeTimeout = 30};
-		enum {readTimeout = 30};
 
 		enum ConnectionState_t
 		{
@@ -111,6 +109,8 @@ class Connection : public boost::enable_shared_from_this<Connection>, boost::non
 			m_refCount = m_pendingWrite = m_pendingRead = 0;
 			m_connectionState = CONNECTION_STATE_OPEN;
 			m_receivedFirst = m_writeError = m_readError = false;
+			m_packetsSent = 0;
+			m_timeConnected = time(NULL);
 			m_protocol = NULL;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
@@ -176,7 +176,10 @@ class Connection : public boost::enable_shared_from_this<Connection>, boost::non
 		int32_t m_pendingWrite, m_pendingRead;
 		ConnectionState_t m_connectionState;
 		uint32_t m_refCount;
-
+		
+        time_t m_timeConnected;
+		uint32_t m_packetsSent;
+	
 		static bool m_logError;
 		boost::recursive_mutex m_connectionLock;
 };

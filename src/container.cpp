@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "container.h"
@@ -378,8 +379,8 @@ ReturnValue Container::__queryRemove(const Thing* thing, uint32_t count, uint32_
 	if(count == 0 || (item->isStackable() && count > item->getItemCount()))
 		return RET_NOTPOSSIBLE;
 
-	if(!item->isMoveable() && !hasBitSet(FLAG_IGNORENOTMOVEABLE, flags))
-		return RET_NOTMOVEABLE;
+	if(!item->isMovable() && !hasBitSet(FLAG_IGNORENOTMOVABLE, flags))
+		return RET_NOTMOVABLE;
 
 	return RET_NOERROR;
 }

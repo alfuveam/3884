@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "scheduler.h"
+
 #if defined __EXCEPTION_TRACER__
-#include "exception.h"
+	#include "exception.h"
 #endif
 
 Scheduler::SchedulerState Scheduler::m_threadState = Scheduler::STATE_TERMINATED;

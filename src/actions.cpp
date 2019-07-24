@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "const.h"
 
@@ -35,9 +36,6 @@
 
 #include "house.h"
 #include "beds.h"
-
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 extern Game g_game;
 extern Spells* g_spells;
@@ -342,13 +340,6 @@ ReturnValue Actions::canUse(const Player* player, const Position& pos)
 	if(!Position::areInRange<1,1,0>(playerPos, pos))
 		return RET_TOOFARAWAY;
 
-	/* Tile* tile = g_game.getTile(pos);
-	if(tile)
-	{
-		HouseTile* houseTile = tile->getHouseTile();
-		if(houseTile && houseTile->getHouse() && !houseTile->getHouse()->isInvited(player))
-			return RET_PLAYERISNOTINVITED;
-	} */
 	return RET_NOERROR;
 }
 

@@ -50,14 +50,9 @@ class NpcScript : public LuaInterface
 
 		static int32_t luaActionFocus(lua_State* L);
 		static int32_t luaActionSay(lua_State* L);
-
-		static int32_t luaActionTurn(lua_State* L);
-		static int32_t luaActionMove(lua_State* L);
-		static int32_t luaActionMoveTo(lua_State* L);
 		static int32_t luaActionFollow(lua_State* L);
 
 		static int32_t luaGetNpcId(lua_State* L);
-		static int32_t luaGetNpcDistanceTo(lua_State* L);
 		static int32_t luaGetNpcParameter(lua_State* L);
 
 		static int32_t luaGetNpcState(lua_State* L);
@@ -193,14 +188,15 @@ struct ResponseAction
 		ResponseAction()
 		{
 			actionType = ACTION_NONE;
-			key = intValue = 0;
+			intValue = 0;
+			key = "";
 			strValue = "";
 			pos = Position();
 		}
 
 		ReponseActionParam_t actionType;
-		int32_t key, intValue;
-		std::string strValue;
+		int32_t intValue;
+		std::string key, strValue;
 		Position pos;
 };
 
@@ -245,13 +241,10 @@ class NpcResponse
 			ResponseProperties()
 			{
 				topic = amount = focusStatus = -1;
-				output = "";
 				interactType = INTERACT_TEXT;
 				responseType = RESPONSE_DEFAULT;
 				params = 0;
-				storageId = -1;
 				storageComp = STORAGE_EQUAL;
-				knowSpell = "";
 				publicize = true;
 			}
 
@@ -259,9 +252,9 @@ class NpcResponse
 			InteractType_t interactType;
 			ResponseType_t responseType;
 			StorageComparision_t storageComp;
-			int32_t topic, amount, focusStatus, storageId;
+			int32_t topic, amount, focusStatus;
 			uint32_t params;
-			std::string output, knowSpell, storageValue;
+			std::string output, knowSpell, storageId, storageValue;
 			ActionList actionList;
 			std::list<std::string> inputList;
 			std::list<ListItem> itemList;
@@ -299,7 +292,7 @@ class NpcResponse
 		std::string getInputText() const {return (prop.inputList.empty() ? "" : *prop.inputList.begin());}
 		int32_t getTopic() const {return prop.topic;}
 		int32_t getFocusState() const {return prop.focusStatus;}
-		int32_t getStorageId() const {return prop.storageId;}
+		std::string getStorageId() const {return prop.storageId;}
 		std::string getStorage() const {return prop.storageValue;}
 		ResponseType_t getResponseType() const {return prop.responseType;}
 		InteractType_t getInteractType() const {return prop.interactType;}
@@ -379,9 +372,6 @@ class Npc : public Creature
 		virtual const std::string& getNameDescription() const {return nameDescription;}
 
 		void doSay(const std::string& text, SpeakClasses type, Player* player);
-		void doTurn(Direction dir);
-		void doMove(Direction dir);
-		void doMoveTo(Position pos);
 
 		void onPlayerTrade(Player* player, ShopEvent_t type, int32_t callback, uint16_t itemId, uint8_t count,
 			uint8_t amount, bool ignoreCap = false, bool inBackpacks = false);

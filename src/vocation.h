@@ -18,7 +18,6 @@
 #ifndef __OTSERV_VOCATION__
 #define __OTSERV_VOCATION__
 
-#include "otsystem.h"
 #include "enums.h"
 
 enum multiplier_t
@@ -72,6 +71,9 @@ class Vocation
 
 		bool isPremiumNeeded() const {return needPremium;}
 		void setNeedPremium(bool v) {needPremium = v;}
+		
+		bool isManagerOption() const {return manager;}
+		void setAsManagerOption(bool v) {manager = v;}
 
 		uint32_t getAttackSpeed() const {return attackSpeed;}
 		void setAttackSpeed(uint32_t v) {attackSpeed = v;}
@@ -107,15 +109,15 @@ class Vocation
 		void setSkillMultiplier(skills_t s, float v) {skillMultipliers[s] = v;}
 		void setSkillBase(skills_t s, uint32_t v) {skillBase[s] = v;}
 
-		uint32_t getReqSkillTries(int32_t skill, int32_t level);
+		uint64_t getReqSkillTries(int32_t skill, int32_t level);
 		uint64_t getReqMana(uint32_t magLevel);
 
 	private:
-		typedef std::map<uint32_t, uint32_t> cacheMap;
+		typedef std::map<uint32_t, uint64_t> cacheMap;
 		cacheMap cacheSkill[SKILL_LAST + 1];
 		cacheMap cacheMana;
 
-		bool attackable, needPremium;
+		bool attackable, needPremium, manager;
 		int32_t lessLoss, capGain;
 		uint32_t id, fromVocation, baseSpeed, attackSpeed;
 		std::string name, description;

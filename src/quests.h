@@ -17,7 +17,6 @@
 
 #ifndef __QUESTS__
 #define __QUESTS__
-#include "otsystem.h"
 
 #include "networkmessage.h"
 #include "player.h"
@@ -26,7 +25,7 @@ typedef std::map<uint32_t, std::string> StateMap;
 class Mission
 {
 	public:
-		Mission(std::string _name, std::string _state, uint32_t _storageId, int32_t _startValue, int32_t _endValue)
+		Mission(std::string _name, std::string _state, std::string _storageId, int32_t _startValue, int32_t _endValue)
 		{
 			name = _name;
 			state = _state;
@@ -45,18 +44,20 @@ class Mission
 		std::string getDescription(Player* player);
 
 	private:
+		std::string parseStorages(std::string state, std::string value);
+
 		std::string name, state;
 		StateMap states;
 
 		int32_t startValue, endValue;
-		uint32_t storageId;
+		std::string storageId;
 };
 
 typedef std::list<Mission*> MissionList;
 class Quest
 {
 	public:
-		Quest(std::string _name, uint16_t _id, uint32_t _storageId, int32_t _storageValue)
+		Quest(std::string _name, uint16_t _id, std::string _storageId, int32_t _storageValue)
 		{
 			name = _name;
 			id = _id;
@@ -83,7 +84,7 @@ class Quest
 
 		uint16_t id;
 		int32_t storageValue;
-		uint32_t storageId;
+		std::string storageId;
 };
 
 typedef std::list<Quest*> QuestList;

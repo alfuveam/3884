@@ -17,7 +17,6 @@
 
 #ifndef __TALKACTION__
 #define __TALKACTION__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "player.h"
@@ -43,8 +42,8 @@ class TalkActions : public BaseEvents
 		TalkActions();
 		virtual ~TalkActions();
 
-		bool onPlayerSay(Creature* creature, uint16_t channelId, const std::string& words, bool ignoreAccess, ProtocolGame* pg = NULL);
-		
+		bool onPlayerSay(Creature* creature, uint16_t channelId, const std::string& words, bool ignoreAccess, ProtocolGame* pg = NULL); //CAST
+
 		inline TalkActionsMap::const_iterator getFirstTalk() const {return talksMap.begin();}
 		inline TalkActionsMap::const_iterator getLastTalk() const {return talksMap.end();}
 

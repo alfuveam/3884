@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "trashholder.h"
 
@@ -26,7 +27,7 @@ void TrashHolder::__addThing(Creature* actor, int32_t, Thing* thing)
 {
 	if(Item* item = thing->getItem())
 	{
-		if(item == this || !item->isMoveable())
+		if(item == this || !item->isMovable())
 			return;
 
 		if(g_game.isSwimmingPool(this, getTile(), true))

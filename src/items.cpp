@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
-#include <libxml/xmlmemory.h>
 
 #include "items.h"
 #include "condition.h"
@@ -36,9 +35,9 @@ ItemType::ItemType()
 {
 	group = ITEM_GROUP_NONE;
 	type = ITEM_TYPE_NONE;
-	stackable = useable = alwaysOnTop = lookThrough = pickupable = rotable = hasHeight = forceSerialize = false;
+	stackable = usable = alwaysOnTop = lookThrough = pickupable = rotable = hasHeight = forceSerialize = false;
 	blockSolid = blockProjectile = blockPathFind = allowPickupable = false;
-	moveable = walkStack = true;
+	movable = walkStack = true;
 	alwaysOnTopOrder = 0;
 	rotateTo = 0;
 
@@ -74,8 +73,9 @@ ItemType::ItemType()
 	isVertical = isHorizontal = isHangable = false;
 	lightLevel = lightColor = 0;
 
-	maxTextLen = 0;
+	maxTextLength = 0;
 	canReadText = canWriteText = false;
+	date = 0;
 	writeOnceItemId = 0;
 
 	transformEquipTo = transformDeEquipTo = 0;
@@ -87,7 +87,7 @@ ItemType::ItemType()
 	condition = NULL;
 	combatType = COMBAT_NONE;
 
-	replaceable = true;
+	replacable = true;
 	worth = 0;
 
 	bedPartnerDir = NORTH;
@@ -165,7 +165,7 @@ int32_t Items::loadFromOtb(std::string file)
 		}
 	}
 
-	if(Items::dwMajorVersion == 0xFFFFFFFF)
+	/*if(Items::dwMajorVersion == 0xFFFFFFFF)
 		std::clog << "[Warning - Items::loadFromOtb] items.otb using generic client version." << std::endl;
 	else if(Items::dwMajorVersion < 3)
 	{
@@ -177,11 +177,11 @@ int32_t Items::loadFromOtb(std::string file)
 		std::clog << "[Error - Items::loadFromOtb] New version detected, an older version of items.otb is required." << std::endl;
 		return ERROR_INVALID_FORMAT;
 	}
-	else if(!g_config.getBool(ConfigManager::SKIP_ITEMS_VERSION) && Items::dwMinorVersion != CLIENT_VERSION_860)
+	else if(Items::dwMinorVersion != CLIENT_VERSION_861)
 	{
 		std::clog << "[Error - Items::loadFromOtb] Another (client) version of items.otb is required." << std::endl;
 		return ERROR_INVALID_FORMAT;
-	}
+	}*/
 
 	uint16_t lastId = 99;
 	for(node = f.getChildNode(node, type); node != NO_NODE; node = f.getNextNode(node, type))
@@ -230,9 +230,9 @@ int32_t Items::loadFromOtb(std::string file)
 		iType->blockProjectile = hasBitSet(FLAG_BLOCK_PROJECTILE, flags);
 		iType->blockPathFind = hasBitSet(FLAG_BLOCK_PATHFIND, flags);
 		iType->hasHeight = hasBitSet(FLAG_HAS_HEIGHT, flags);
-		iType->useable = hasBitSet(FLAG_USEABLE, flags);
+		iType->usable = hasBitSet(FLAG_USABLE, flags);
 		iType->pickupable = hasBitSet(FLAG_PICKUPABLE, flags);
-		iType->moveable = hasBitSet(FLAG_MOVEABLE, flags);
+		iType->movable = hasBitSet(FLAG_MOVABLE, flags);
 		iType->stackable = hasBitSet(FLAG_STACKABLE, flags);
 
 		iType->alwaysOnTop = hasBitSet(FLAG_ALWAYSONTOP, flags);
@@ -519,13 +519,11 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 	if(readXMLString(itemNode, "plural", strValue))
 		it.pluralName = strValue;
 
-	for(xmlNodePtr itemAttributesNode = itemNode->children; itemAttributesNode; itemAttributesNode = itemAttributesNode->next)
+	xmlNodePtr itemAttributesNode = itemNode->children;
+	while(itemAttributesNode)
 	{
-		if(!readXMLString(itemAttributesNode, "key", strValue))
-			continue;
-#ifdef _MSC_VER
-			bool notLoaded = false;
-#endif
+		if(readXMLString(itemAttributesNode, "key", strValue))
+		{
 			std::string tmpStrValue = asLowerCaseString(strValue);
 			if(tmpStrValue == "type")
 			{
@@ -573,6 +571,40 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 			{
 				if(readXMLString(itemAttributesNode, "value", strValue))
 					it.pluralName = strValue;
+			}
+			else if(tmpStrValue == "clientid")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+				{
+					it.clientId = intValue;
+					if(it.group == ITEM_GROUP_DEPRECATED)
+						it.group = ITEM_GROUP_NONE;
+				}
+			}
+			else if(tmpStrValue == "blocksolid" || tmpStrValue == "blocking")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+					it.blockSolid = (intValue != 0);
+			}
+			else if(tmpStrValue == "blockprojectile")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+					it.blockProjectile = (intValue != 0);
+			}
+			else if(tmpStrValue == "blockpathfind" || tmpStrValue == "blockpathing" || tmpStrValue == "blockpath")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+					it.blockPathFind = (intValue != 0);
+			}
+			else if(tmpStrValue == "lightlevel")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+					it.lightLevel = intValue;
+			}
+			else if(tmpStrValue == "lightcolor")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+					it.lightColor = intValue;
 			}
 			else if(tmpStrValue == "description")
 			{
@@ -629,15 +661,15 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 					it.rotateTo = intValue;
 			}
-			else if(tmpStrValue == "moveable" || tmpStrValue == "movable")
+			else if(tmpStrValue == "movable" || tmpStrValue == "moveable")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
-					it.moveable = (intValue != 0);
+					it.movable = (intValue != 0);
 			}
-			else if(tmpStrValue == "blockprojectile")
+			else if(tmpStrValue == "pickupable")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
-					it.blockProjectile = (intValue != 0);
+					it.pickupable = (intValue != 0);
 			}
 			else if(tmpStrValue == "allowpickupable")
 			{
@@ -722,7 +754,22 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 			else if(tmpStrValue == "maxtextlen" || tmpStrValue == "maxtextlength")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
-					it.maxTextLen = intValue;
+					it.maxTextLength = intValue;
+			}
+			else if(tmpStrValue == "text")
+			{
+				if(readXMLString(itemAttributesNode, "value", strValue))
+					it.text = strValue;
+			}
+			else if(tmpStrValue == "author" || tmpStrValue == "writer")
+			{
+				if(readXMLString(itemAttributesNode, "value", strValue))
+					it.writer = strValue;
+			}
+			else if(tmpStrValue == "date")
+			{
+				if(readXMLInteger(itemAttributesNode, "value", intValue))
+					it.date = intValue;
 			}
 			else if(tmpStrValue == "writeonceitemid")
 			{
@@ -876,12 +923,12 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 					it.decayTo = intValue;
 			}
-			else if(tmpStrValue == "transformequipto")
+			else if(tmpStrValue == "transformequipto" || tmpStrValue == "onequipto")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 					it.transformEquipTo = intValue;
 			}
-			else if(tmpStrValue == "transformdeequipto")
+			else if(tmpStrValue == "transformdeequipto" || tmpStrValue == "ondeequipto")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 					it.transformDeEquipTo = intValue;
@@ -1184,17 +1231,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 					it.abilities.absorb[COMBAT_UNDEFINEDDAMAGE] += intValue;
 			}
-#ifndef _MSC_VER
 			else if(tmpStrValue == "reflectpercentall")
-#else
-			else
-				notLoaded = true;
-
-			if(!notLoaded)
-				continue;
-
-			if(tmpStrValue == "reflectpercentall")
-#endif
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 				{
@@ -1685,10 +1722,10 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 					it.abilities.elementType = COMBAT_UNDEFINEDDAMAGE;
 				}
 			}
-			else if(tmpStrValue == "replaceable" || tmpStrValue == "replacable")
+			else if(tmpStrValue == "replacable" || tmpStrValue == "replaceable")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
-					it.replaceable = (intValue != 0);
+					it.replacable = (intValue != 0);
 			}
 			else if(tmpStrValue == "partnerdirection")
 			{
@@ -1733,6 +1770,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 			}
 			else
 				std::clog << "[Warning - Items::loadFromXml] Unknown key value " << strValue << std::endl;
+		}
 
 		itemAttributesNode = itemAttributesNode->next;
 	}

@@ -8,7 +8,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <ObjectFileName>$(IntDir)\obj_r\</ObjectFileName>
     </ClCompile>
     <Link>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -16,3 +16,4 @@
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>
+

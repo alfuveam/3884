@@ -17,13 +17,10 @@
 
 #ifndef __TOOLS__
 #define __TOOLS__
-#include "otsystem.h"
 
 #include "enums.h"
 #include "const.h"
 
-#include <libxml/parser.h>
-#include <boost/tokenizer.hpp>
 #include "position.h"
 
 typedef std::vector<std::string> StringVec;
@@ -52,6 +49,7 @@ std::string transformToMD5(std::string plainText, bool upperCase);
 std::string transformToSHA1(std::string plainText, bool upperCase);
 std::string transformToSHA256(std::string plainText, bool upperCase);
 std::string transformToSHA512(std::string plainText, bool upperCase);
+std::string transformToVAHash(std::string plainText, bool upperCase);
 
 void _encrypt(std::string& str, bool upperCase);
 bool encryptTest(std::string plain, std::string& hash);
@@ -74,7 +72,7 @@ bool parseXMLContentString(xmlNodePtr node, std::string& value);
 std::string getLastXMLError();
 bool utf8ToLatin1(char* intext, std::string& outtext);
 
-StringVec explodeString(const std::string& string, const std::string& separator);
+StringVec explodeString(const std::string& string, const std::string& separator, bool trim = true);
 IntegerVec vectorAtoi(StringVec stringVector);
 bool hasBitSet(uint32_t flag, uint32_t flags);
 

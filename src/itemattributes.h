@@ -17,8 +17,6 @@
 
 #ifndef __ITEM_ATTRIBUTES__
 #define __ITEM_ATTRIBUTES__
-#include "otsystem.h"
-#include <boost/any.hpp>
 
 class PropWriteStream;
 class PropStream;

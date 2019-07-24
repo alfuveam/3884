@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iomanip>
 
 #include "protocollogin.h"
 #include "tools.h"
-#include "rsa.h"
 
 #include "iologindata.h"
 #include "ioban.h"
@@ -86,19 +85,18 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 
 	std::string name = msg.getString(), password = msg.getString();
 	bool castAccount = false;
-	if(name.empty())
+	if(name.empty()) //CAST
 	{
 		if(g_config.getBool(ConfigManager::ENABLE_CAST))
         	castAccount = true;
- 	    else
+ 	    else {
+		if(!g_config.getBool(ConfigManager::ACCOUNT_MANAGER))
 		{
-			if(!g_config.getBool(ConfigManager::ACCOUNT_MANAGER))
-			{
-				disconnectClient(0x0A, "Invalid account name.");
-				return false;
-			}
+			disconnectClient(0x0A, "Invalid account name.");
+			return false;
+		}
 
-			name = "1";
+		name = "1";
 			password = "1";
 		}
 	}
@@ -134,7 +132,7 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 	}
 
 	uint32_t id = 1;
-	if(!IOLoginData::getInstance()->getAccountId(name, id) && !castAccount)
+	if(!IOLoginData::getInstance()->getAccountId(name, id) && !castAccount) //CAST
 	{
 		ConnectionManager::getInstance()->addAttempt(clientIp, protocolId, false);
 		disconnectClient(0x0A, "Invalid account name.");
@@ -142,10 +140,10 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 	}
 
 	Account account = IOLoginData::getInstance()->loadAccount(id);
-	if(!encryptTest(password, account.password) && !castAccount)
+	if(!encryptTest(account.salt + password, account.password) && !castAccount) //CAST
 	{
 		ConnectionManager::getInstance()->addAttempt(clientIp, protocolId, false);
-		disconnectClient(0x0A, "Invalid password.");
+		disconnectClient(0x0A, "Sua senha est� errada.");
 		return false;
 	}
 
@@ -162,31 +160,32 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 		else
 			IOLoginData::getInstance()->getNameByGuid(ban.adminId, name_, true);
 
-		std::stringstream ss;
-		ss << "Your account has been " << (deletion ? "deleted" : "banished") << " at:\n" << formatDateEx(ban.added).c_str()
-			<< " by: " << name_.c_str() << ",\nfor the following reason:\n" << getReason(ban.reason).c_str() << ".\nThe action taken was:\n"
-			<< getAction(ban.action, false).c_str() << ".\nThe comment given was:\n" << ban.comment.c_str() << ".\nYour "
-			<< (deletion ? "account won't be undeleted" : "banishment will be lifted at:\n") << (deletion ? "." : formatDateEx(ban.expires).c_str()) << ".";
+		char buffer[500 + ban.comment.length()];
+		sprintf(buffer, "Your account has been %s at:\n%s by: %s,\nfor the following reason:\n%s.\nThe action taken was:\n%s.\nThe comment given was:\n%s.\nYour %s%s.",
+			(deletion ? "deleted" : "banished"), formatDateEx(ban.added, "%d %b %Y").c_str(), name_.c_str(),
+			getReason(ban.reason).c_str(), getAction(ban.action, false).c_str(), ban.comment.c_str(),
+			(deletion ? "account won't be undeleted" : "banishment will be lifted at:\n"),
+			(deletion ? "" : formatDateEx(ban.expires).c_str()));
 
-		disconnectClient(0x0A, ss.str().c_str());
+		disconnectClient(0x0A, buffer);
 		return false;
 	}
 
 	// remove premium days
 	IOLoginData::getInstance()->removePremium(account);
-	if(!g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && !account.charList.size() && !castAccount)
+	if(!g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && !account.charList.size() && !castAccount) //CAST
 	{
 		disconnectClient(0x0A, std::string("This account does not contain any character yet.\nCreate a new character on the "
-			+ g_config.getString(ConfigManager::SERVER_NAME) + " website at " + g_config.getString(ConfigManager::URL) + ".").c_str());
+			+ g_config.getString(ConfigManager::SERVER_NAME) + ". site: " + g_config.getString(ConfigManager::URL) + ".").c_str());
 		return false;
 	}
-
-	if(castAccount && !Player::castAutoList.size())
+    
+    if(castAccount && !Player::castAutoList.size()) //CAST
 	{
 		disconnectClient(0x0A, std::string("Currently there are no casts available.").c_str());
 		return false;
 	}
-
+	
 	ConnectionManager::getInstance()->addAttempt(clientIp, protocolId, true);
 	if(OutputMessage_ptr output = OutputMessagePool::getInstance()->getOutputMessage(this, false))
 	{
@@ -209,7 +208,7 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 
 		//Add char list
 		output->put<char>(0x64);
-		if(castAccount)
+		if(castAccount) //CAST
 			output->put<char>(Player::castAutoList.size());
 	    else if(g_config.getBool(ConfigManager::ACCOUNT_MANAGER) && id != 1)
 		{
@@ -222,33 +221,31 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 		else
 			output->put<char>((uint8_t)account.charList.size());
 
-		if(!castAccount)
+     if(!castAccount) { //CAST
+		for(Characters::iterator it = account.charList.begin(); it != account.charList.end(); it++)
 		{
-			for(Characters::iterator it = account.charList.begin(); it != account.charList.end(); ++it)
+			#ifndef __LOGIN_SERVER__
+			output->putString((*it));
+			if(g_config.getBool(ConfigManager::ON_OR_OFF_CHARLIST))
 			{
-				#ifndef __LOGIN_SERVER__
-				output->putString((*it));
-				if(g_config.getBool(ConfigManager::ON_OR_OFF_CHARLIST))
-				{
-					if(g_game.getPlayerByName((*it)))
-						output->putString("Online");
-					else
-						output->putString("Offline");
-				}
+				if(g_game.getPlayerByName((*it)))
+					output->putString("Online");
 				else
-					output->putString(g_config.getString(ConfigManager::SERVER_NAME));
+					output->putString("Offline");
+			}
+			else
+			output->putString(g_config.getString(ConfigManager::SERVER_NAME));
+			output->put<uint32_t>(serverIp);
+			output->put<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
+			#else
+			if(version < it->second->getVersionMin() || version > it->second->getVersionMax())
+				continue;
 
-				output->put<uint32_t>(serverIp);
-				output->put<uint16_t>(g_config.getNumber(ConfigManager::GAME_PORT));
-				#else
-				if(version < it->second->getVersionMin() || version > it->second->getVersionMax())
-					continue;
-
-				output->putString(it->first);
-				output->putString(it->second->getName());
-				output->put<uint32_t>(it->second->getAddress());
-				output->put<uint16_t>(it->second->getPort());
-				#endif
+			output->putString(it->first);
+			output->putString(it->second->getName());
+			output->put<uint32_t>(it->second->getAddress());
+			output->put<uint16_t>(it->second->getPort());
+			#endif
 			}
 		} else {
 			for(AutoList<Player>::iterator it = Player::castAutoList.begin(); it != Player::castAutoList.end(); ++it)

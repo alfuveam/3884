@@ -17,7 +17,6 @@
 
 #ifndef __GROUP__
 #define __GROUP__
-#include "otsystem.h"
 
 class Group
 {

@@ -15,6 +15,7 @@
 // along with this program; if not, write to the Free Software Foundation,
 // Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "connection.h"
 
@@ -320,7 +321,7 @@ void Connection::accept()
 	try
 	{
 		++m_pendingRead;
-		m_readTimer.expires_from_now(boost::posix_time::seconds(Connection::readTimeout));
+		m_readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
 		m_readTimer.async_wait(boost::bind(&Connection::handleReadTimeout,
 			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
 
@@ -356,11 +357,24 @@ void Connection::parseHeader(const boost::system::error_code& error)
 		return;
 	}
 
+    uint32_t timePassed = std::max<uint32_t>(1, (time(NULL) - m_timeConnected) + 1);
+	if ((++m_packetsSent / timePassed) > (uint32_t)g_config.getNumber(ConfigManager::MAX_PACKETS_PER_SECOND)) {
+		std::cout << convertIPAddress(getIP()) << " disconnected for exceeding packet per second limit." << std::endl;
+		closeConnection();
+		m_connectionLock.unlock();
+		return;
+	}
+
+ 	if (timePassed > 2) {
+		m_timeConnected = time(NULL);
+		m_packetsSent = 0;
+	}
+	
 	--m_pendingRead;
 	try
 	{
 		++m_pendingRead;
-		m_readTimer.expires_from_now(boost::posix_time::seconds(Connection::readTimeout));
+		m_readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
 		m_readTimer.async_wait(boost::bind(&Connection::handleReadTimeout,
 			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
 
@@ -436,7 +450,7 @@ void Connection::parsePacket(const boost::system::error_code& error)
 	try
 	{
 		++m_pendingRead;
-		m_readTimer.expires_from_now(boost::posix_time::seconds(Connection::readTimeout));
+		m_readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
 		m_readTimer.async_wait(boost::bind(&Connection::handleReadTimeout,
 			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
 
@@ -504,7 +518,7 @@ void Connection::internalSend(OutputMessage_ptr msg)
 	try
 	{
 		++m_pendingWrite;
-		m_writeTimer.expires_from_now(boost::posix_time::seconds(Connection::writeTimeout));
+		m_writeTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_WRITE_TIMEOUT));
 		m_writeTimer.async_wait(boost::bind(&Connection::handleWriteTimeout,
 			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
 

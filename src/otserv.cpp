@@ -14,32 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include "otsystem.h"
-
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-
-#ifndef WINDOWS
-#include <sys/signal.h>
-#include <unistd.h>
-#include <termios.h>
-#else
-#include <conio.h>
-#endif
-#include <boost/config.hpp>
 
 #include "server.h"
 #ifdef __LOGIN_SERVER__
-#include "gameservers.h"
+	#include "gameservers.h"
 #endif
 #include "networkmessage.h"
 
 #include "game.h"
 #include "chat.h"
 #include "tools.h"
-#include "rsa.h"
 
 #include "protocollogin.h"
 #include "protocolgame.h"
@@ -49,7 +35,7 @@
 #include "status.h"
 #include "manager.h"
 #ifdef __OTADMIN__
-#include "admin.h"
+	#include "admin.h"
 #endif
 
 #include "configmanager.h"
@@ -65,30 +51,30 @@
 
 #include "monsters.h"
 #ifdef __OTSERV_ALLOCATOR__
-#include "allocator.h"
+	#include "allocator.h"
 #endif
 #ifdef __EXCEPTION_TRACER__
-#include "exception.h"
+	#include "exception.h"
 #endif
 #ifndef __OTADMIN__
-#include "textlogger.h"
+	#include "textlogger.h"
 #endif
 
 #ifdef __NO_BOOST_EXCEPTIONS__
-#include <exception>
+	#include <exception>
 
-inline void boost::throw_exception(std::exception const & e)
-{
-	std::clog << "Boost exception: " << e.what() << std::endl;
-}
+	inline void boost::throw_exception(std::exception const & e)
+	{
+		std::clog << "Boost exception: " << e.what() << std::endl;
+	}
 #endif
 
+RSA* g_RSA;
 ConfigManager g_config;
 Game g_game;
+Chat g_chat;
 Monsters g_monsters;
 Npcs g_npcs;
-RSA g_RSA;
-Chat g_chat;
 
 boost::mutex g_loaderLock;
 boost::condition_variable g_loaderSignal;
@@ -104,28 +90,29 @@ bool argumentsHandler(StringVec args)
 		{
 			std::clog << "Usage:\n"
 			"\n"
-			"\t--config=$1\t\tAlternate configuration file path.\n"
-			"\t--data-directory=$1\tAlternate data directory path.\n"
-			"\t--ip=$1\t\t\tIP address of the server.\n"
-			"\t\t\t\tShould be equal to the global IP.\n"
-			"\t--login-port=$1\tPort for login server to listen on.\n"
-			"\t--game-port=$1\tPort for game server to listen on.\n"
-			"\t--admin-port=$1\tPort for admin server to listen on.\n"
-			"\t--manager-port=$1\tPort for manager server to listen on.\n"
-			"\t--status-port=$1\tPort for status server to listen on.\n";
-#ifndef WINDOWS
-			std::clog << "\t--runfile=$1\t\tSpecifies run file. Will contain the pid\n"
-			"\t\t\t\tof the server process as long as run status.\n";
+			"\t--config=$1\t\tCaminho do arquivo de configuracao alternativo.\n"
+			"\t--data-directory=$1\tCaminho do diretorio de dados alternativo.\n"
+			"\t--ip=$1\t\t\tEndereco de IP do servidor.\n"
+			"\t\t\t\tDeve ser igual ao IP global.\n"
+			"\t--login-port=$1\tPorta do servidor de login on.\n"
+			"\t--game-port=$1\tPorta do servidor de jogo on.\n"
+			"\t--admin-port=$1\tPorta do admin on.\n"
+			"\t--manager-port=$1\tPorta do manager server on.\n"
+			"\t--status-port=$1\tPorta de status on.\n";
+#ifndef _WIN32
+			std::clog << "\t--runfile=$1\t\tEspecifica arquivo executado. Ira conter o pid\n"
+			"\t\t\t\tdo processo do servidor enquanto o estado de funcionamento.\n";
 #endif
-			std::clog << "\t--log=$1\t\tWhole standard output will be logged to\n"
+			std::clog << "\t--log=$1\t\tSaida padrao inteiro vai estar logado para\n"
 			"\t\t\t\tthis file.\n"
-			"\t--closed\t\t\tStarts the server as closed.\n";
+			"\t--closed\t\t\tO servidor foi fechado.\n";
 			return false;
 		}
 
-		if((*it) == "--version")
+		if((*it) == "--version" || (*it) == "-V")
 		{
-			std::clog << SOFTWARE_NAME << " " << SOFTWARE_VERSION << std::endl << std::endl;
+			std::clog << SOFTWARE_NAME << ", Versao " << SOFTWARE_VERSION << " (" << SOFTWARE_CODENAME << ")\n"
+			"Compilado com " << BOOST_COMPILER << " em " << __DATE__ << ", " << __TIME__ << ".\n";
 			return false;
 		}
 
@@ -146,7 +133,7 @@ bool argumentsHandler(StringVec args)
 			g_config.setNumber(ConfigManager::MANAGER_PORT, atoi(tmp[1].c_str()));
 		else if(tmp[0] == "--status-port")
 			g_config.setNumber(ConfigManager::STATUS_PORT, atoi(tmp[1].c_str()));
-#ifndef WINDOWS
+#ifndef _WIN32
 		else if(tmp[0] == "--runfile")
 			g_config.setString(ConfigManager::RUNFILE, tmp[1]);
 #endif
@@ -161,19 +148,19 @@ bool argumentsHandler(StringVec args)
 	return true;
 }
 
-#ifndef WINDOWS
+#ifndef _WIN32
 int32_t getch()
 {
 	struct termios oldt;
 	tcgetattr(STDIN_FILENO, &oldt);
 
-	struct termios newt = oldt; 
-	newt.c_lflag &= ~(ICANON | ECHO);  
-	tcsetattr(STDIN_FILENO, TCSANOW, &newt); 
+	struct termios newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-	int32_t ch = getchar();  
-	tcsetattr(STDIN_FILENO, TCSANOW, &oldt); 
-	return ch; 
+	int32_t ch = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	return ch;
 }
 
 void signalHandler(int32_t sig)
@@ -236,7 +223,7 @@ int32_t getch()
 
 void allocationHandler()
 {
-	puts("Allocation failed, server out of memory!\nDecrease size of your map or compile in a 64-bit mode.");
+	puts("Alocacao falhou, servidor de memoria!\nDiminui o tamanho do seu mapa ou compila em um modo de 64 bits.");
 	char buffer[1024];
 	delete fgets(buffer, 1024, stdin);
 	exit(-1);
@@ -245,7 +232,7 @@ void allocationHandler()
 void startupErrorMessage(std::string error = "")
 {
 	if(error.length() > 0)
-		std::clog << std::endl << "> ERROR: " << error << std::endl;
+		std::clog << std::endl << "> ERRO: " << error << std::endl;
 
 	getch();
 	exit(-1);
@@ -270,7 +257,7 @@ int main(int argc, char* argv[])
 	ExceptionHandler mainExceptionHandler;
 	mainExceptionHandler.InstallHandler();
 #endif
-#ifndef WINDOWS
+#ifndef _WIN32
 
 	// ignore sigpipe...
 	struct sigaction sigh;
@@ -295,13 +282,14 @@ int main(int argc, char* argv[])
 	Dispatcher::getInstance().addTask(createTask(boost::bind(otserv, args, &servicer)));
 
 	g_loaderSignal.wait(g_loaderUniqueLock);
+	boost::this_thread::sleep(boost::posix_time::milliseconds(10000));
 	if(servicer.isRunning())
 	{
-		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Online!" << std::endl << std::endl;
+		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " servidor Online!" << std::endl << std::endl;
 		servicer.run();
 	}
 	else
-		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " server Offline! No services available..." << std::endl << std::endl;
+		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " servidor Offline! Nao ha servicos disponiveis..." << std::endl << std::endl;
 
 #ifdef __EXCEPTION_TRACER__
 	mainExceptionHandler.RemoveHandler();
@@ -320,15 +308,17 @@ void otserv(StringVec, ServiceManager* services)
 #if !defined(WINDOWS) && !defined(__ROOT_PERMISSION__)
 	if(!getuid() || !geteuid())
 	{
-		std::clog << "> WARNING: " << SOFTWARE_NAME << " has been executed as super user! It is "
-			<< "recommended to run as a normal user." << std::endl << "Continue? (y/N)" << std::endl;
+		std::clog << "> AVISO: " << SOFTWARE_NAME << " foi executado como superusuario! isto e "
+			<< "recomendado para ser executado como um usuario normal." << std::endl << "Continuar? (y/N)" << std::endl;
 		char buffer = getch();
 		if(buffer != 121 && buffer != 89)
-			startupErrorMessage("Aborted.");
+			startupErrorMessage("Abortado.");
 	}
 #endif
 
-	std::clog << SOFTWARE_NAME << " " << SOFTWARE_VERSION << std::endl << std::endl;
+	std::clog << SOFTWARE_NAME << ", Versao " << SOFTWARE_VERSION << " (" << SOFTWARE_CODENAME << ")\n"
+		"Compilado com " << BOOST_COMPILER << " em " << __DATE__ << ", " << __TIME__ << ".\n\n";
+
 	std::stringstream ss;
 #ifdef __DEBUG__
 	ss << " GLOBAL";
@@ -372,11 +362,11 @@ void otserv(StringVec, ServiceManager* services)
 
 	std::string debug = ss.str();
 	if(!debug.empty())
-		std::clog << ">> Debugging:" << debug << "." << std::endl;
+		std::clog << ">> Depuracao:" << debug << "." << std::endl;
 
-	std::clog << ">> Loading config (" << g_config.getString(ConfigManager::CONFIG_FILE) << ")" << std::endl;
+	std::clog << ">> Carregando Configuracoes (" << g_config.getString(ConfigManager::CONFIG_FILE) << ")" << std::endl;
 	if(!g_config.load())
-		startupErrorMessage("Unable to load " + g_config.getString(ConfigManager::CONFIG_FILE) + "!");
+		startupErrorMessage("Incapaz de carregar " + g_config.getString(ConfigManager::CONFIG_FILE) + "!");
 
 	// silently append trailing slash
 	std::string path = g_config.getString(ConfigManager::DATA_DIRECTORY);
@@ -385,13 +375,13 @@ void otserv(StringVec, ServiceManager* services)
 	path = g_config.getString(ConfigManager::LOGS_DIRECTORY);
 	g_config.setString(ConfigManager::LOGS_DIRECTORY, path.erase(path.find_last_not_of("/") + 1) + "/");
 
-	std::clog << ">> Opening logs" << std::endl;
+	std::clog << "> Abrindo Historico" << std::endl;
 	Logger::getInstance()->open();
 
 	IntegerVec cores = vectorAtoi(explodeString(g_config.getString(ConfigManager::CORES_USED), ","));
 	if(cores[0] != -1)
 	{
-#ifdef WINDOWS
+#ifdef _WIN32
 		int32_t mask = 0;
 		for(IntegerVec::iterator it = cores.begin(); it != cores.end(); ++it)
 			mask += 1 << (*it);
@@ -404,7 +394,7 @@ void otserv(StringVec, ServiceManager* services)
 
 	CreateMutex(NULL, FALSE, mutexName.str().c_str());
 	if(GetLastError() == ERROR_ALREADY_EXISTS)
-		startupErrorMessage("Another instance of The Forgotten Server is already running with the same worldId.\nIf you want to run multiple servers, please change the worldId in configuration file.");
+		startupErrorMessage("Outra distro do servidor ja esta sendo executada.\nSe voce quiser executar multiplos servidores, por favor mudar o mundo no arquivo de configuracao.");
 
 	std::string defaultPriority = asLowerCaseString(g_config.getString(ConfigManager::DEFAULT_PRIORITY));
 	if(defaultPriority == "realtime")
@@ -440,37 +430,120 @@ void otserv(StringVec, ServiceManager* services)
 	if(encryptionType == "md5")
 	{
 		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_MD5);
-		std::clog << "> Using MD5 encryption" << std::endl;
+		std::clog << "> Usando MD5 criptografia" << std::endl;
 	}
 	else if(encryptionType == "sha1")
 	{
 		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_SHA1);
-		std::clog << "> Using SHA1 encryption" << std::endl;
+		std::clog << "> Usando SHA1 criptografia" << std::endl;
 	}
 	else if(encryptionType == "sha256")
 	{
 		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_SHA256);
-		std::clog << "> Using SHA256 encryption" << std::endl;
+		std::clog << "> Usando SHA256 criptografia" << std::endl;
 	}
 	else if(encryptionType == "sha512")
 	{
 		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_SHA512);
-		std::clog << "> Using SHA512 encryption" << std::endl;
+		std::clog << "> Usando SHA512 criptografia" << std::endl;
+	}
+	else if(encryptionType == "vahash")
+	{
+		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_VAHASH);
+		std::clog << "> Usando VAHash criptografia" << std::endl;
 	}
 	else
 	{
 		g_config.setNumber(ConfigManager::ENCRYPTION, ENCRYPTION_PLAIN);
-		std::clog << "> Using plaintext encryption" << std::endl;
+		std::clog << "> Usando PlainText criptografia" << std::endl;
 	}
 
-	std::clog << ">> Loading RSA key" << std::endl;
-	const char* p("14299623962416399520070177382898895550795403345466153217470516082934737582776038882967213386204600674145392845853859217990626450972452084065728686565928113");
-	const char* q("7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
-	const char* d("46730330223584118622160180015036832148732986808519344675210555262940258739805766860224610646919605860206328024326703361630109888417839241959507572247284807035235569619173792292786907845791904955103601652822519121908367187885509270025388641700821735345222087940578381210879116823013776808975766851829020659073");
+	/* std::clog << ">> Checando a versao do Software... ";
+	if(xmlDocPtr doc = xmlParseFile(VERSION_CHECK))
+	{
+		xmlNodePtr p, root = xmlDocGetRootElement(doc);
+		if(!xmlStrcmp(root->name, (const xmlChar*)"versions"))
+		{
+			p = root->children->next;
+			if(!xmlStrcmp(p->name, (const xmlChar*)"entry"))
+			{
+				std::string version;
+				int32_t patch, build, timestamp;
 
-	g_RSA.initialize(p, q, d);
-	std::clog << ">> Starting SQL connection" << std::endl;
+				bool tmp = false;
+				if(readXMLString(p, "version", version) && version != SOFTWARE_VERSION)
+					tmp = true;
 
+				if(readXMLInteger(p, "patch", patch) && patch > VERSION_PATCH)
+					tmp = true;
+
+				if(readXMLInteger(p, "build", build) && build > VERSION_BUILD)
+					tmp = true;
+
+				if(readXMLInteger(p, "timestamp", timestamp) && timestamp > VERSION_TIMESTAMP)
+					tmp = true;
+
+				if(tmp)
+				{
+					std::clog << " ";
+					if(version.find("_SVN") == std::string::npos)
+						std::clog << "executando sub versao, entre em mente e instavel e apenas para fins de teste!";
+					else
+						std::clog << "desatualizado, por favor, considere a atualizacao!";
+
+					std::clog << std::endl << "> Informacoes sobre a versao atual - versao: "
+						<< SOFTWARE_VERSION << ", patch: " << VERSION_PATCH
+						<< ", build: " << VERSION_BUILD << ", timestamp: " << VERSION_TIMESTAMP
+						<< "." << std::endl << "> Informacoes versao mais recente - versao: "
+						<< version << ", patch: " << patch << ", build: " << build
+						<< ", timestamp: " << timestamp << "." << std::endl;
+					if(g_config.getBool(ConfigManager::CONFIRM_OUTDATED_VERSION) &&
+						asLowerCaseString(version).find("_svn") == std::string::npos)
+					{
+						std::clog << "Continuar? (y/N)" << std::endl;
+						char buffer = getch();
+						if(buffer != 121 && buffer != 89)
+							startupErrorMessage("Abortado.");
+					}
+				}
+				else
+					std::clog << "up to date!" << std::endl;
+			}
+			else
+				std::clog << "falhou a verificacao - entrada malformado." << std::endl;
+		}
+		else
+			std::clog << "verificacao falhou - arquivo malformado." << std::endl;
+
+		xmlFreeDoc(doc);
+	}
+	else
+		std::clog << "falhou - nao foi possivel analisar arquivo remoto (voce esta conectado em alguma rede?)" << std::endl; */
+
+	std::clog << ">> Carregando RSA key" << std::endl;
+	g_RSA = RSA_new();
+
+    BIGNUM *bp = nullptr, *bq = nullptr, *bd = nullptr, *bn = nullptr, *be = nullptr;
+    BN_dec2bn(&bp, g_config.getString(ConfigManager::RSA_PRIME1).c_str());
+    BN_dec2bn(&bq, g_config.getString(ConfigManager::RSA_PRIME2).c_str());
+    BN_dec2bn(&bd, g_config.getString(ConfigManager::RSA_PRIVATE).c_str());
+	BN_dec2bn(&bn, g_config.getString(ConfigManager::RSA_MODULUS).c_str());
+	BN_dec2bn(&be, g_config.getString(ConfigManager::RSA_PUBLIC).c_str());
+
+    RSA_set0_key(g_RSA, bn, be, bd);
+    RSA_set0_factors(g_RSA, bp, bq);
+	
+	if(!RSA_check_key(g_RSA))
+	{
+		std::stringstream s;
+		s << "OpenSSL falhou - ";
+	
+		ERR_load_crypto_strings();
+		s << ERR_error_string(ERR_get_error(), NULL);
+		startupErrorMessage(s.str());
+	}
+	
+	std::clog << ">> Iniciando conexao SQL" << std::endl;
 	Database* db = Database::getInstance();
 	if(db && db->isConnected())
 	{
@@ -484,87 +557,87 @@ void otserv(StringVec, ServiceManager* services)
 				if(!version)
 					break;
 
-				std::clog << "> Database has been updated to version: " << version << "." << std::endl;
+				std::clog << "> Banco de dados foi atualizado para a versao: " << version << "." << std::endl;
 			}
 			while(version < VERSION_DATABASE);
 		}
 		else
-			startupErrorMessage("The database you have specified in config.lua is empty, please import schemas/<engine>.sql to the database.");
+			startupErrorMessage("O banco de dados que especificou no config.lua esta vazia, por favor importar esquemas/<engine>.sql para a base de dados.");
 
 		DatabaseManager::getInstance()->checkTriggers();
 		DatabaseManager::getInstance()->checkEncryption();
 		if(g_config.getBool(ConfigManager::OPTIMIZE_DATABASE) && !DatabaseManager::getInstance()->optimizeTables())
-			std::clog << "> No tables were optimized." << std::endl;
+			std::clog << "> Sem tabelas para optimizar." << std::endl;
 	}
 	else
-		startupErrorMessage("Couldn't estabilish connection to SQL database!");
+		startupErrorMessage("Nao foi possivel estabelecer conexao com banco de dados SQL!");
 
-	std::clog << ">> Loading items (OTB)" << std::endl;
+	std::clog << ">> Carregando items (OTB)" << std::endl;
 	if(Item::items.loadFromOtb(getFilePath(FILE_TYPE_OTHER, "items/items.otb")))
-		startupErrorMessage("Unable to load items (OTB)!");
+		startupErrorMessage("Nao foi possivel carregar items (OTB)!");
 
-	std::clog << ">> Loading items (XML)" << std::endl;
+	std::clog << ">> Carregando items (XML)" << std::endl;
 	if(!Item::items.loadFromXml())
 	{
-		std::clog << "Unable to load items (XML)! Continue? (y/N)" << std::endl;
+		std::clog << "Nao foi possivel carregar items (XML)! Continuar? (y/N)" << std::endl;
 		char buffer = getch();
 		if(buffer != 121 && buffer != 89)
-			startupErrorMessage("Unable to load items (XML)!");
+			startupErrorMessage("Nao foi possivel carregar items (XML)!");
 	}
 
-	std::clog << ">> Loading groups" << std::endl;
+	std::clog << ">> Carregando Grupos" << std::endl;
 	if(!Groups::getInstance()->loadFromXml())
-		startupErrorMessage("Unable to load groups!");
+		startupErrorMessage("Nao foi possivel carregar groups!");
 
-	std::clog << ">> Loading vocations" << std::endl;
+	std::clog << ">> Carregando Vocacoes" << std::endl;
 	if(!Vocations::getInstance()->loadFromXml())
-		startupErrorMessage("Unable to load vocations!");
+		startupErrorMessage("Nao foi possivel carregar vocations!");
 
-	std::clog << ">> Loading outfits" << std::endl;
+	std::clog << ">> Carregando Outfits" << std::endl;
 	if(!Outfits::getInstance()->loadFromXml())
-		startupErrorMessage("Unable to load outfits!");
+		startupErrorMessage("Nao foi possivel carregar outfits!");
 
-	std::clog << ">> Loading chat channels" << std::endl;
+	std::clog << ">> Carregando Canal de Chat" << std::endl;
 	if(!g_chat.loadFromXml())
-		startupErrorMessage("Unable to load chat channels!");
+		startupErrorMessage("Nao foi possivel carregar chat channels!");
 
 	if(g_config.getBool(ConfigManager::SCRIPT_SYSTEM))
 	{
-		std::clog << ">> Loading script systems" << std::endl;
+		std::clog << ">> Carregando Sistema" << std::endl;
 		if(!ScriptManager::getInstance()->loadSystem())
 			startupErrorMessage();
 	}
 	else
 		ScriptManager::getInstance();
 
-	std::clog << ">> Loading mods..." << std::endl;
+	std::clog << ">> Carregando Mods..." << std::endl;
 	if(!ScriptManager::getInstance()->loadMods())
 		startupErrorMessage();
 
 	#ifdef __LOGIN_SERVER__
-	std::clog << ">> Loading game servers" << std::endl;
+	std::clog << ">> Carregando game servers" << std::endl;
 	if(!GameServers::getInstance()->loadFromXml(true))
-		startupErrorMessage("Unable to load game servers!");
+		startupErrorMessage("Nao foi possivel carregar game servers!");
 
 	#endif
-	std::clog << ">> Loading experience stages" << std::endl;
+	std::clog << ">> Carregando EXP Stages" << std::endl;
 	if(!g_game.loadExperienceStages())
-		startupErrorMessage("Unable to load experience stages!");
+		startupErrorMessage("Nao foi possivel carregar experience stages!");
 
-	std::clog << ">> Loading monsters" << std::endl;
+	std::clog << ">> Carregando Monstros" << std::endl;
 	if(!g_monsters.loadFromXml())
 	{
-		std::clog << "Unable to load monsters! Continue? (y/N)" << std::endl;
+		std::clog << "Nao foi possivel carregar monsters! Continuar? (y/N)" << std::endl;
 		char buffer = getch();
 		if(buffer != 121 && buffer != 89)
-			startupErrorMessage("Unable to load monsters!");
+			startupErrorMessage("Nao foi possivel carregar monsters!");
 	}
 
-	std::clog << ">> Loading map and spawns..." << std::endl;
+	std::clog << ">> Carregando Mapa e Spawns..." << std::endl;
 	if(!g_game.loadMap(g_config.getString(ConfigManager::MAP_NAME)))
 		startupErrorMessage();
 
-	std::clog << ">> Checking world type... ";
+	std::clog << "> Carregando Tipo de PVP... ";
 	std::string worldType = asLowerCaseString(g_config.getString(ConfigManager::WORLD_TYPE));
 	if(worldType == "open" || worldType == "2" || worldType == "openpvp")
 	{
@@ -584,10 +657,10 @@ void otserv(StringVec, ServiceManager* services)
 	else
 	{
 		std::clog << std::endl;
-		startupErrorMessage("Unknown world type: " + g_config.getString(ConfigManager::WORLD_TYPE));
+		startupErrorMessage("Tipo de PVP desconhecido: " + g_config.getString(ConfigManager::WORLD_TYPE));
 	}
 
-	std::clog << ">> Initializing game state and binding services..." << std::endl;
+	std::clog << "> Inicializando estado do jogo e registrando servicos..." << std::endl;
 	g_game.setGameState(GAMESTATE_INIT);
 	IPAddressList ipList;
 
@@ -600,7 +673,7 @@ void otserv(StringVec, ServiceManager* services)
 	IPAddress m_ip;
 	if(ip.size())
 	{
-		std::clog << "> Global IP address: ";
+		std::clog << "> IP do Servidor: ";
 		uint32_t resolvedIp = inet_addr(ip.c_str());
 		if(resolvedIp == INADDR_NONE)
 		{
@@ -608,7 +681,7 @@ void otserv(StringVec, ServiceManager* services)
 			if(!host)
 			{
 				std::clog << "..." << std::endl;
-				startupErrorMessage("Cannot resolve " + ip + "!");
+				startupErrorMessage("Nao e possivel resolver " + ip + "!");
 			}
 
 			resolvedIp = *(uint32_t*)host->h_addr;
@@ -644,7 +717,7 @@ void otserv(StringVec, ServiceManager* services)
 				}
 
 				if(s.str().size())
-					std::clog << "> Local IP address(es): " << s.str() << std::endl;
+					std::clog << "> IP local do Servidor: " << s.str() << std::endl;
 			}
 		}
 
@@ -653,7 +726,7 @@ void otserv(StringVec, ServiceManager* services)
 			ipList.push_back(boost::asio::ip::address_v4(LOCALHOST));
 	}
 	else if(ipList.size() < 2)
-		startupErrorMessage("Unable to bind any IP address! You may want to disable \"bindOnlyGlobalAddress\" setting in config.lua");
+		startupErrorMessage("Nao e possivel vincular qualquer endereco IP! Voce pode querer desativar \"bindOnlyGlobalAddress\" configuracao em config.lua");
 
 	services->add<ProtocolStatus>(g_config.getNumber(ConfigManager::STATUS_PORT), ipList);
 	services->add<ProtocolManager>(g_config.getNumber(ConfigManager::MANAGER_PORT), ipList);
@@ -676,14 +749,14 @@ void otserv(StringVec, ServiceManager* services)
 
 	services->add<ProtocolGame>(g_config.getNumber(ConfigManager::GAME_PORT), ipList);
 	services->add<ProtocolOldGame>(g_config.getNumber(ConfigManager::LOGIN_PORT), ipList);
-	std::clog << "> Bound ports: ";
+	std::clog << "> Portas do Servidor: ";
 
 	std::list<uint16_t> ports = services->getPorts();
 	for(std::list<uint16_t>::iterator it = ports.begin(); it != ports.end(); ++it)
 		std::clog << (*it) << "\t";
 
-	std::clog << std::endl << ">> Everything smells good, server is starting up..." << std::endl;
-	g_game.setGameState(g_config.getBool(ConfigManager::START_CLOSED) ? GAMESTATE_CLOSED : GAMESTATE_NORMAL);
+	std::clog << std::endl << "> Tudo ocorreu bem ate aqui, o Servidor sera Iniciado..." << std::endl;
 	g_game.start(services);
+	g_game.setGameState(g_config.getBool(ConfigManager::START_CLOSED) ? GAMESTATE_CLOSED : GAMESTATE_NORMAL);
 	g_loaderSignal.notify_all();
 }

@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
-#include "otpch.h"
-#include <iostream>
 
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
+#include "otpch.h"
 
 #include "vocation.h"
 #include "tools.h"
@@ -62,6 +59,9 @@ bool Vocations::parseVocationNode(xmlNodePtr p)
 
 	if(readXMLString(p, "needpremium", strValue))
 		voc->setNeedPremium(booleanString(strValue));
+	
+	if(readXMLString(p, "accountmanager", strValue) || readXMLString(p, "manager", strValue))
+	    voc->setAsManagerOption(booleanString(strValue));
 
 	if(readXMLInteger(p, "gaincap", intValue) || readXMLInteger(p, "gaincapacity", intValue))
 		voc->setGainCap(intValue);
@@ -463,6 +463,7 @@ void Vocation::reset()
 	memset(reflect[REFLECT_CHANCE], 0, sizeof(reflect[REFLECT_CHANCE]));
 
 	needPremium = false;
+	manager = true;
 	attackable = true;
 	lessLoss = fromVocation = 0;
 	gain[GAIN_SOUL] = 100;
@@ -500,7 +501,7 @@ int16_t Vocation::getReflect(CombatType_t combat) const
 	return 0;
 }
 
-uint32_t Vocation::getReqSkillTries(int32_t skill, int32_t level)
+uint64_t Vocation::getReqSkillTries(int32_t skill, int32_t level)
 {
 	if(skill < SKILL_FIRST || skill > SKILL_LAST)
 		return 0;
@@ -510,7 +511,7 @@ uint32_t Vocation::getReqSkillTries(int32_t skill, int32_t level)
 	if(it != cacheSkill[skill].end())
 		return it->second;
 
-	skillMap[level] = (uint32_t)(skillBase[skill] * std::pow(skillMultipliers[skill], (level - 11)));
+	skillMap[level] = (uint64_t)(skillBase[skill] * std::pow(skillMultipliers[skill], (level - 11)));
 	return skillMap[level];
 }
 

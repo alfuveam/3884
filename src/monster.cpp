@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 
 #include "monster.h"
@@ -84,8 +85,6 @@ Monster::Monster(MonsterType* _mType):
 	defenseTicks = 0;
 	yellTicks = 0;
 	extraMeleeAttack = false;
-	
-	targetPlayers = true; //MS
 
 	// register creature events
 	for(StringVec::iterator it = mType->scriptList.begin(); it != mType->scriptList.end(); ++it)
@@ -103,7 +102,6 @@ Monster::~Monster()
 {
 	clearTargetList();
 	clearFriendList();
-	namelist.clear(); //MS
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 
 	monsterCount--;
@@ -113,26 +111,6 @@ Monster::~Monster()
 		raid->unRef();
 		raid = NULL;
 	}
-}
-
-void Monster::setAttackPlayer(bool state) //MS
-{
-    targetPlayers = state;    
-    
-    if(attackedCreature && attackedCreature->getPlayer() && !targetPlayers) {
-    	setFollowCreature(NULL);
-    	setAttackedCreature(NULL); 
-        onAttackedCreatureDisappear(true);                   
-    }  
-    
-
-    updateTargetList(); 
-}
-
-void Monster::addAttackList(std::string name) //MS
-{
-    namelist.push_back(name);
-    updateTargetList(); 
 }
 
 void Monster::onAttackedCreature(Creature* target)
@@ -222,7 +200,7 @@ void Monster::updateTargetList()
 	CreatureList::iterator it;
 	for(it = friendList.begin(); it != friendList.end();)
 	{
-		if((*it)->getHealth() <= 0 || !isFriend(*it) || !canSee((*it)->getPosition())) //MS
+		if((*it)->getHealth() <= 0 || !canSee((*it)->getPosition()))
 		{
 			(*it)->unRef();
 			it = friendList.erase(it);
@@ -233,7 +211,7 @@ void Monster::updateTargetList()
 
 	for(it = targetList.begin(); it != targetList.end();)
 	{
-		if((*it)->getHealth() <= 0 || !isOpponent(*it) || !canSee((*it)->getPosition())) //MS
+		if((*it)->getHealth() <= 0 || !canSee((*it)->getPosition()))
 		{
 			(*it)->unRef();
 			it = targetList.erase(it);
@@ -307,14 +285,6 @@ void Monster::onCreatureEnter(Creature* creature)
 
 bool Monster::isFriend(const Creature* creature)
 {
-    if(creature->getMonster() == this) return true; 
-    NameList::iterator it = std::find(namelist.begin(), namelist.end(), creature->getName()); //MS
-    if(it != namelist.end())
-        return false;   
-    
-    if(creature->getPlayer() && !targetPlayers)
-        return true;   
-    
 	if(!isSummon() || !master->getPlayer())
 		return creature->getMonster() && !creature->isSummon();
 
@@ -325,19 +295,15 @@ bool Monster::isFriend(const Creature* creature)
 		tmpPlayer = creature->getPlayerMaster();
 
 	const Player* masterPlayer = master->getPlayer();
-	return tmpPlayer && (tmpPlayer == masterPlayer || masterPlayer->isPartner(tmpPlayer) || masterPlayer->isAlly(tmpPlayer));
+	return tmpPlayer && (tmpPlayer == masterPlayer || masterPlayer->isPartner(tmpPlayer)
+#ifdef __WAR_SYSTEM__
+		|| masterPlayer->isAlly(tmpPlayer)
+#endif
+		);
 }
 
 bool Monster::isOpponent(const Creature* creature)
 {
-    if(creature->getMonster() == this) return false;
-    NameList::iterator it = std::find(namelist.begin(), namelist.end(), creature->getName());
-    if(it != namelist.end())
-          return true;
-          
-    if(creature->getPlayer() && !targetPlayers)
-        return false;  
-            
 	return (isSummon() && master->getPlayer() && creature != master) || ((creature->getPlayer()
 		&& !creature->getPlayer()->hasFlag(PlayerFlag_IgnoredByMonsters)) ||
 		(creature->getMaster() && creature->getPlayerMaster()));
@@ -581,7 +547,7 @@ void Monster::updateIdleStatus()
 			if((!isMasterInRange && !teleportToMaster) || (master->getMonster() && master->getMonster()->getIdleStatus()))
 				idle = true;
 		}
-		else if(targetList.empty() && targetPlayers)
+		else if(targetList.empty())
 			idle = true;
 	}
 
@@ -659,6 +625,7 @@ void Monster::doAttacking(uint32_t interval)
 		return;
 
 	bool updateLook = true;
+	// bool outOfRange = true;
 	resetTicks = interval;
 	attackTicks += interval;
 
@@ -704,8 +671,11 @@ void Monster::doAttacking(uint32_t interval)
 			}
 		}
 
-		if(!inRange && it->isMelee) //melee swing out of reach
+		if(inRange){
+			// outOfRange = false;
+		} else if(it->isMelee){ //melee swing out of reach
 			extraMeleeAttack = true;
+		}
 	}
 
 	if(updateLook)
@@ -933,7 +903,7 @@ void Monster::pushItems(Tile* tile)
 	for(int32_t i = downItemsSize - 1; i >= 0; --i)
 	{
 		assert(i >= 0 && i < downItemsSize);
-		if((item = items->at(i)) && item->hasProperty(MOVEABLE) &&
+		if((item = items->at(i)) && item->hasProperty(MOVABLE) &&
 			(item->hasProperty(BLOCKPATH) || item->hasProperty(BLOCKSOLID)))
 		{
 			if(moveCount < 20 && pushItem(item, 1))
@@ -1351,7 +1321,7 @@ bool Monster::isImmune(CombatType_t type) const
 	return it->second >= 100;
 }
 
-void Monster::setNormalCreatureLight()
+void Monster::resetLight()
 {
 	internalLight.level = mType->lightLevel;
 	internalLight.color = mType->lightColor;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
 #include "iomap.h"
 
@@ -92,7 +93,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 	if(!f.openFile(identifier.c_str(), false, true))
 	{
 		std::stringstream ss;
-		ss << "Could not open the file " << identifier << ".";
+		ss << "Nao foi possivel abrir o arquivo " << identifier << ".";
 		setLastErrorString(ss.str());
 		return false;
 	}
@@ -120,40 +121,40 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 		//In otbm version 1 the count variable after splashes/fluidcontainers and stackables
 		//are saved as attributes instead, this solves alot of problems with items
 		//that is changed (stackable/charges/fluidcontainer/splash) during an update.
-		setLastErrorString("This map needs to be upgraded by using the latest map editor version to be able to load correctly.");
+		setLastErrorString("O mapa precisa ser atualizado usando a versao mais recente do editor de mapas para ser capaz de carregar corretamente.");
 		return false;
 	}
 
 	if(headerVersion > 3)
 	{
-		setLastErrorString("Unknown OTBM version detected.");
+		setLastErrorString("Versao OTBM desconhecida.");
 		return false;
 	}
 
 	uint32_t headerMajorItems = rootHeader->majorVersionItems;
 	if(headerMajorItems < 3)
 	{
-		setLastErrorString("This map needs to be upgraded by using the latest map editor version to be able to load correctly.");
+		setLastErrorString("O mapa precisa ser atualizado usando a versao mais recente do editor de mapas para ser capaz de carregar corretamente.");
 		return false;
 	}
 
 	if(headerMajorItems > (uint32_t)Items::dwMajorVersion)
 	{
-		setLastErrorString("The map was saved with a different items.otb version, an upgraded items.otb is required.");
+		setLastErrorString("O mapa foi salvo com uma versao items.otb diferente, um items.otb atualizado e necessario.");
 		return false;
 	}
 
 	uint32_t headerMinorItems = rootHeader->minorVersionItems;
 	if(headerMinorItems < CLIENT_VERSION_810)
 	{
-		setLastErrorString("This map needs an updated items.otb.");
+		setLastErrorString("O mapa precisa de um items.otb atualizado.");
 		return false;
 	}
 
 	if(headerMinorItems > (uint32_t)Items::dwMinorVersion)
-		setLastErrorString("This map needs an updated items.otb.");
+		setLastErrorString("O mapa precisa de um items.otb atualizado.");
 
-	std::clog << "> Map size: " << rootHeader->width << "x" << rootHeader->height << "." << std::endl;
+	std::clog << "> Tamanho do Mapa: " << rootHeader->width << "x" << rootHeader->height << "." << std::endl;
 	map->mapWidth = rootHeader->width;
 	map->mapHeight = rootHeader->height;
 
@@ -219,7 +220,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 		}
 	}
 
-	std::clog << "> Map descriptions: " << std::endl;
+	std::clog << "> Descricao do Mapa: " << std::endl;
 	for(StringVec::iterator it = map->descriptions.begin(); it != map->descriptions.end(); ++it)
 		std::clog << "\"" << (*it) << "\"" << std::endl;
 
@@ -284,7 +285,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 						if(!propStream.getLong(_houseid))
 						{
 							std::stringstream ss;
-							ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Could not read house id.";
+							ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Nao foi possivel ler house id.";
 
 							setLastErrorString(ss.str());
 							return false;
@@ -294,7 +295,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 						if(!house)
 						{
 							std::stringstream ss;
-							ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Could not create house id: " << _houseid;
+							ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Nao foi possivel criar house id: " << _houseid;
 
 							setLastErrorString(ss.str());
 							return false;
@@ -316,7 +317,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								if(!propStream.getLong(flags))
 								{
 									std::stringstream ss;
-									ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Failed to read tile flags.";
+									ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Falha ao ler tile flags.";
 
 									setLastErrorString(ss.str());
 									return false;
@@ -349,7 +350,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								if(!item)
 								{
 									std::stringstream ss;
-									ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Failed to create item.";
+									ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Falha ao criar item.";
 
 									setLastErrorString(ss.str());
 									return false;
@@ -358,10 +359,10 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								if(item->getItemCount() <= 0)
 									item->setItemCount(1);
 
-								if(house && item->isMoveable())
+								if(house && item->isMovable())
 								{
 									std::clog << "[Warning - IOMap::loadMap] Movable item in house: " << house->getId();
-									std::clog << ", item type: " << item->getID() << ", at position " << px << "/" << py << "/";
+									std::clog << ", Tipo de item: " << item->getID() << ", na posicao " << px << "/" << py << "/";
 									std::clog << pz << std::endl;
 
 									delete item;
@@ -375,8 +376,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								}
 								else if(item->isGroundTile())
 								{
-									if(ground)
-										delete ground;
+									delete ground;
 
 									ground = item;
 								}
@@ -415,7 +415,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 							if(!item)
 							{
 								std::stringstream ss;
-								ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Failed to create item.";
+								ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Falha ao criar item.";
 
 								setLastErrorString(ss.str());
 								return false;
@@ -426,7 +426,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								if(item->getItemCount() <= 0)
 									item->setItemCount(1);
 
-								if(house && item->isMoveable())
+								if(house && item->isMovable())
 								{
 									std::clog << "[Warning - IOMap::loadMap] Movable item in house: ";
 									std::clog << house->getId() << ", item type: " << item->getID();
@@ -443,8 +443,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 								}
 								else if(item->isGroundTile())
 								{
-									if(ground)
-										delete ground;
+									delete ground;
 
 									ground = item;
 								}
@@ -460,7 +459,7 @@ bool IOMap::loadMap(Map* map, const std::string& identifier)
 							else
 							{
 								std::stringstream ss;
-								ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Failed to load item " << item->getID() << ".";
+								ss << "[x:" << px << ", y:" << py << ", z:" << pz << "] Falha ao carregar item " << item->getID() << ".";
 								setLastErrorString(ss.str());
 
 								delete item;

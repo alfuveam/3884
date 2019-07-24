@@ -17,15 +17,13 @@
 
 #ifndef __ACCOUNT__
 #define __ACCOUNT__
-#include "otsystem.h"
 #ifndef __LOGIN_SERVER__
-
-typedef std::list<std::string> Characters;
+	typedef std::list<std::string> Characters;
 #else
-#include "gameservers.h"
-typedef std::map<std::string, GameServer*> Characters;
-
+	#include "gameservers.h"
+	typedef std::map<std::string, GameServer*> Characters;
 #endif
+
 class Account
 {
 	public:
@@ -34,7 +32,7 @@ class Account
 
 		uint32_t number, premiumDays, lastDay;
 		int32_t warnings;
-		std::string name, password, recoveryKey;
+		std::string name, password, recoveryKey, salt;
 		Characters charList;
 };
 #endif

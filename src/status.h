@@ -18,7 +18,6 @@
 #ifndef __STATUS__
 #define __STATUS__
 
-#include "otsystem.h"
 #include "protocol.h"
 
 enum RequestedInfo_t

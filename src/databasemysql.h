@@ -22,17 +22,10 @@
 #error "database.h should be included first."
 #endif
 
-#ifdef _MSC_VER
-#include <mysql.h>
-#else
 #include <mysql/mysql.h>
-#endif
-
 #if defined WINDOWS
-#include <winsock2.h>
+	#include <winsock2.h>
 #endif
-#include <sstream>
-#include <map>
 
 class DatabaseMySQL : public _Database
 {
@@ -40,7 +33,6 @@ class DatabaseMySQL : public _Database
 		DatabaseMySQL();
 		DATABASE_VIRTUAL ~DatabaseMySQL();
 
-		DATABASE_VIRTUAL bool sqlConnect(bool _reconnect);
 		DATABASE_VIRTUAL bool getParam(DBParam_t param);
 
 		DATABASE_VIRTUAL bool beginTransaction() {return query("BEGIN");}

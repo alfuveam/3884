@@ -17,7 +17,6 @@
 
 #ifndef __TOWN__
 #define __TOWN__
-#include "otsystem.h"
 
 class Position;
 class Town

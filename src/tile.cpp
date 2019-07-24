@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <iostream>
 
 #include "tile.h"
 #include "housetile.h"
@@ -394,7 +394,7 @@ void Tile::onUpdateTileItem(Item* oldItem, const ItemType& oldType, Item* newIte
 		(*it)->onUpdateTileItem(this, cylinderMapPos, oldItem, oldType, newItem, newType);
 }
 
-void Tile::onRemoveTileItem(const SpectatorVec& list, std::vector<int32_t>& oldStackposVector, Item* item)
+void Tile::onRemoveTileItem(const SpectatorVec& list, std::vector<uint32_t>& oldStackposVector, Item* item)
 {
 	updateTileFlags(item, true);
 	const Position& cylinderMapPos = pos;
@@ -450,7 +450,7 @@ void Tile::moveCreature(Creature* actor, Creature* creature, Cylinder* toCylinde
 	if(forceTeleport || !newTile->ground || !Position::areInRange<1,1,0>(pos, newPos))
 		teleport = true;
 
-	std::vector<int32_t> oldStackposVector;
+	std::vector<uint32_t> oldStackposVector;
 	Player* tmpPlayer = NULL;
 	for(it = list.begin(); it != list.end(); ++it)
 	{
@@ -487,7 +487,7 @@ void Tile::moveCreature(Creature* actor, Creature* creature, Cylinder* toCylinde
 	int32_t i = 0;
 	for(it = list.begin(); it != list.end(); ++it)
 	{
-		if((tmpPlayer = (*it)->getPlayer()))
+		if((tmpPlayer = (*it)->getPlayer()) && tmpPlayer->canSeeCreature(creature))
 			tmpPlayer->sendCreatureMove(creature, newTile, newPos, this, pos, oldStackposVector[i++], teleport);
 	}
 
@@ -633,7 +633,7 @@ ReturnValue Tile::__queryAdd(int32_t, const Thing* thing, uint32_t,
 				if(ground)
 				{
 					const ItemType& iType = Item::items[ground->getID()];
-					if(ground->isBlocking(creature) && (!iType.moveable || (ground->isLoadedFromMap() &&
+					if(ground->isBlocking(creature) && (!iType.movable || (ground->isLoadedFromMap() &&
 						(ground->getUniqueId() || (ground->getActionId() && ground->getContainer())))))
 						return RET_NOTPOSSIBLE;
 				}
@@ -643,7 +643,7 @@ ReturnValue Tile::__queryAdd(int32_t, const Thing* thing, uint32_t,
 					for(ItemVector::const_iterator it = items->begin(); it != items->end(); ++it)
 					{
 						const ItemType& iType = Item::items[(*it)->getID()];
-						if((*it)->isBlocking(creature) && (!iType.moveable || ((*it)->isLoadedFromMap() &&
+						if((*it)->isBlocking(creature) && (!iType.movable || ((*it)->isLoadedFromMap() &&
 							((*it)->getUniqueId() || ((*it)->getActionId() && (*it)->getContainer())))))
 							return RET_NOTPOSSIBLE;
 					}
@@ -681,7 +681,7 @@ ReturnValue Tile::__queryAdd(int32_t, const Thing* thing, uint32_t,
 
 		const uint32_t itemLimit = g_config.getNumber(
 				hasFlag(TILESTATE_PROTECTIONZONE) ? ConfigManager::PROTECTION_TILE_LIMIT : ConfigManager::TILE_LIMIT);
-		if(itemLimit && getThingCount() > itemLimit && !item->getMagicField())
+		if(itemLimit && getThingCount() > itemLimit)
 			return RET_TILEISFULL;
 
 		bool hasHangable = false, supportHangable = false;
@@ -739,7 +739,7 @@ ReturnValue Tile::__queryRemove(const Thing* thing, uint32_t count, uint32_t fla
 
 	const Item* item = thing->getItem();
 	if(!item || !count || (item->isStackable() && count > item->getItemCount())
-		|| (!item->isMoveable() && !hasBitSet(FLAG_IGNORENOTMOVEABLE, flags)))
+		|| (!item->isMovable() && !hasBitSet(FLAG_IGNORENOTMOVABLE, flags)))
 		return RET_NOTPOSSIBLE;
 
 	return RET_NOERROR;
@@ -898,20 +898,17 @@ void Tile::__addThing(Creature* actor, int32_t, Thing* thing)
 	{
 		if(ground)
 		{
-			const ItemType& oldType = Item::items[ground->getID()];
 			int32_t oldGroundIndex = __getIndexOfThing(ground);
 			Item* oldGround = ground;
-
-			ground->setParent(NULL);
-			g_game.freeThing(ground);
 			ground = item;
 
+			oldGround->setParent(NULL);
 			updateTileFlags(oldGround, true);
 			updateTileFlags(item, false);
 
-			onUpdateTileItem(oldGround, oldType, item, Item::items[item->getID()]);
-			postRemoveNotification(actor, oldGround, NULL, oldGroundIndex, true);
 			onUpdateTile();
+			g_game.freeThing(oldGround);
+			postRemoveNotification(actor, oldGround, NULL, oldGroundIndex, true);
 		}
 		else
 		{
@@ -1189,7 +1186,7 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 	if(item == ground)
 	{
 		const SpectatorVec& list = g_game.getSpectators(pos);
-		std::vector<int32_t> oldStackposVector;
+		std::vector<uint32_t> oldStackposVector;
 
 		Player* tmpPlayer = NULL;
 		for(SpectatorVec::const_iterator it = list.begin(); it != list.end(); ++it)
@@ -1218,7 +1215,7 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 				continue;
 
 			const SpectatorVec& list = g_game.getSpectators(pos);
-			std::vector<int32_t> oldStackposVector;
+			std::vector<uint32_t> oldStackposVector;
 
 			Player* tmpPlayer = NULL;
 			for(SpectatorVec::const_iterator iit = list.begin(); iit != list.end(); ++iit)
@@ -1256,7 +1253,7 @@ void Tile::__removeThing(Thing* thing, uint32_t count)
 			else
 			{
 				const SpectatorVec& list = g_game.getSpectators(pos);
-				std::vector<int32_t> oldStackposVector;
+				std::vector<uint32_t> oldStackposVector;
 
 				Player* tmpPlayer = NULL;
 				for(SpectatorVec::const_iterator iit = list.begin(); iit != list.end(); ++iit)

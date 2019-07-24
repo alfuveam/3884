@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
 
 #include "movement.h"
 #include "tools.h"
@@ -849,6 +848,8 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 					slot = SLOTP_AMMO;
 				else if(tmpStrValue == "pickupable")
 					slot = SLOTP_RIGHT | SLOTP_LEFT | SLOTP_AMMO;
+				else if(tmpStrValue == "wherever" || tmpStrValue == "any")
+					slot = SLOTP_WHEREEVER;
 				else
 					std::clog << "[Warning - MoveEvent::configureMoveEvent] Unknown slot type \"" << strValue << "\"" << std::endl;
 			}

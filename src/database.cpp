@@ -14,20 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
+
 #include "otpch.h"
-#include <string>
 
 #include "database.h"
 #ifdef __USE_MYSQL__
-#include "databasemysql.h"
-#endif
-#ifdef __USE_SQLITE__
-#include "databasesqlite.h"
+	#include "databasemysql.h"
 #endif
 
-#if defined MULTI_SQL_DRIVERS
-#include "configmanager.h"
-extern ConfigManager g_config;
+#ifdef __USE_ODBC__
+	#include "databaseodbc.h"
+#endif
+
+#ifdef __USE_SQLITE__
+	#include "databasesqlite.h"
+#endif
+
+#ifdef __USE_PGSQL__
+	#include "databasepgsql.h"
+#endif
+
+#if defined __MULTI_SQL_DRIVERS__
+	#include "configmanager.h"
+	extern ConfigManager g_config;
 #endif
 
 boost::recursive_mutex DBQuery::databaseLock;
@@ -37,14 +46,22 @@ Database* _Database::getInstance()
 {
 	if(!_instance)
 	{
-#if defined MULTI_SQL_DRIVERS
+#if defined __MULTI_SQL_DRIVERS__
 #ifdef __USE_MYSQL__
 		if(g_config.getString(ConfigManager::SQL_TYPE) == "mysql")
 			_instance = new DatabaseMySQL;
 #endif
+#ifdef __USE_ODBC__
+    if(g_config.getString(ConfigManager::SQL_TYPE) == "odbc")
+      _instance = new DatabaseODBC;
+#endif
 #ifdef __USE_SQLITE__
 		if(g_config.getString(ConfigManager::SQL_TYPE) == "sqlite")
 			_instance = new DatabaseSQLite;
+#endif
+#ifdef __USE_PGSQL__
+		if(g_config.getString(ConfigManager::SQL_TYPE) == "pgsql")
+			_instance = new DatabasePgSQL;
 #endif
 #else
 		_instance = new Database;
