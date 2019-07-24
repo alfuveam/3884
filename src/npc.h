@@ -35,6 +35,7 @@ class Npcs
 		void reload();
 };
 
+class NpcResponse;
 struct NpcState
 {
 	bool isIdle, isQueued, ignoreCap, inBackpacks;
@@ -239,8 +240,6 @@ struct ScriptVars
 };
 
 typedef std::list<ResponseAction> ActionList;
-
-class NpcResponse;
 typedef std::list<NpcResponse*> ResponseList;
 
 typedef std::map<std::string, int32_t> ResponseScriptMap;
