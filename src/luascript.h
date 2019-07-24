@@ -219,7 +219,11 @@ enum ErrorCode_t
 	LUA_ERROR_SPELL_NOT_FOUND
 };
 
-#define errorEx(a) error(__FUNCTION__, a)
+#ifdef __FUNCTION__
+	#define errorEx(a) error(__FUNCTION__, a)
+#else
+	#define errorEx(a) error(a)
+#endif
 
 class LuaInterface
 {
