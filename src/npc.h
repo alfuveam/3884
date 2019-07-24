@@ -36,6 +36,21 @@ class Npcs
 };
 
 class NpcResponse;
+
+struct ScriptVars
+{
+	ScriptVars()
+	{
+		b1 = b2 = b3 = false;
+		n1 = n2 = n3 = -1;
+		s1 = s2 = s3 = "";
+	}
+
+	bool b1, b2, b3;
+	int32_t n1, n2, n3;
+	std::string s1, s2, s3;
+};
+
 struct NpcState
 {
 	bool isIdle, isQueued, ignoreCap, inBackpacks;
@@ -223,20 +238,6 @@ struct ListItem
 
 	int32_t sellPrice, buyPrice, itemId, subType;
 	std::string keywords, name, pluralName;
-};
-
-struct ScriptVars
-{
-	ScriptVars()
-	{
-		b1 = b2 = b3 = false;
-		n1 = n2 = n3 = -1;
-		s1 = s2 = s3 = "";
-	}
-
-	bool b1, b2, b3;
-	int32_t n1, n2, n3;
-	std::string s1, s2, s3;
 };
 
 typedef std::list<ResponseAction> ActionList;
