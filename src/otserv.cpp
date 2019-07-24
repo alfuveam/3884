@@ -27,6 +27,10 @@
 #include "chat.h"
 #include "tools.h"
 
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/err.h>
+
 #include "protocollogin.h"
 #include "protocolgame.h"
 #include "protocolold.h"

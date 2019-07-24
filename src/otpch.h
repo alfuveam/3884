@@ -50,10 +50,6 @@
 #include <cmath>
 #include <memory>
 #include <unordered_set>
-
-#include <openssl/rsa.h>
-#include <openssl/bn.h>
-#include <openssl/err.h>
 // from src - end
 
 #include <boost/utility.hpp>
@@ -81,53 +77,3 @@
 #else
 	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
 #endif
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-// Provide compatibility across OpenSSL 1.02 and 1.1.
-static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
-  /* If the fields n and e in r are NULL, the corresponding input
-   * parameters MUST be non-NULL for n and e.  d may be
-   * left NULL (in case only the public key is used).
-   */
-  if ((r->n == NULL && n == NULL) || (r->e == NULL && e == NULL)) {
-    return 0;
-  }
-
-  if (n != NULL) {
-    BN_free(r->n);
-    r->n = n;
-  }
-  if (e != NULL) {
-    BN_free(r->e);
-    r->e = e;
-  }
-  if (d != NULL) {
-    BN_free(r->d);
-    r->d = d;
-  }
-
-  return 1;
-}
-
- static int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q) {
-    /* If the fields p and q in r are NULL, the corresponding input
-     * parameters MUST be non-NULL.
-     */
-    if ((r->p == NULL && p == NULL)
-        || (r->q == NULL && q == NULL))
-        return 0;
-
-    if (p != NULL) {
-        BN_free(r->p);
-        r->p = p;
-    }
-    if (q != NULL) {
-        BN_free(r->q);
-        r->q = q;
-    }
-
-    return 1;
- }
- 
-#endif  // OPENSSL_VERSION_NUMBER < 0x10100000L
