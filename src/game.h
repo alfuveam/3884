@@ -683,7 +683,7 @@ class Game
 #ifdef __WAR_SYSTEM__
 		uint32_t checkWarsEvent;
 #endif
-		bool globalSaveMessage[2];
+		bool globalSaveMessage[3];
 
 		RefreshTiles refreshTiles;
 		Trash trash;
