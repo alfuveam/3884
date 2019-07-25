@@ -19,6 +19,9 @@
 #define __ADMIN__
 
 #include "protocol.h"
+#include "textlogger.h"
+
+class Item;
 
 // -> server
 // command(1 byte) | size(2 bytes) | parameters(size bytes)

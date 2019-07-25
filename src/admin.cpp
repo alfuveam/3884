@@ -32,8 +32,6 @@
 #include "town.h"
 #include "iologindata.h"
 
-#include "textlogger.h"
-
 #ifdef __OTADMIN__
 
 extern ConfigManager g_config;
