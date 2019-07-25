@@ -33,8 +33,12 @@
 #include "town.h"
 #include "iologindata.h"
 
+#include "textlogger.h"
+
 extern ConfigManager g_config;
 extern Game g_game;
+
+class ProtocolAdmin;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t ProtocolAdmin::protocolAdminCount = 0;

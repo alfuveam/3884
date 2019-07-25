@@ -94,7 +94,6 @@ std::string parseParams(tokenizer::iterator &it, tokenizer::iterator end);
 std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLength, bool mixCase = false);
 int32_t random_range(int32_t lowest_number, int32_t highest_number, DistributionType_t type = DISTRO_UNIFORM);
 
-int32_t round(float v);
 uint32_t rand24b();
 float box_muller(float m, float s);
 

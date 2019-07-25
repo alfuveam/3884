@@ -20,7 +20,6 @@
 #ifdef __OTADMIN__
 
 #include "protocol.h"
-#include "textlogger.h"
 
 // -> server
 // command(1 byte) | size(2 bytes) | parameters(size bytes)
