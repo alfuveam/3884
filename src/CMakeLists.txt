@@ -2,7 +2,6 @@ set(tfs_SRC
     ${CMAKE_CURRENT_LIST_DIR}/otpch.cpp
     ${CMAKE_CURRENT_LIST_DIR}/actions.cpp
     ${CMAKE_CURRENT_LIST_DIR}/admin.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/allocator.cpp
     ${CMAKE_CURRENT_LIST_DIR}/baseevents.cpp
     ${CMAKE_CURRENT_LIST_DIR}/beds.cpp
     ${CMAKE_CURRENT_LIST_DIR}/chat.cpp

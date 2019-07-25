@@ -51,7 +51,6 @@
 #include "monsters.h"
 
 #include "admin.h"
-#include "allocator.h"
 #include "exception.h"
 #include "textlogger.h"
 
@@ -244,10 +243,6 @@ int main(int argc, char* argv[])
 	ServiceManager servicer;
 	g_config.startup();
 
-#ifdef __OTSERV_ALLOCATOR_STATS__
-	boost::thread(boost::bind(&allocatorStatsThread, (void*)NULL));
-	// TODO: shutdown this thread?
-#endif
 #ifdef __EXCEPTION_TRACER__
 	ExceptionHandler mainExceptionHandler;
 	mainExceptionHandler.InstallHandler();

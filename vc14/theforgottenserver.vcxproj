@@ -148,7 +148,6 @@
   <ItemGroup>
     <ClCompile Include="..\src\actions.cpp" />
     <ClCompile Include="..\src\admin.cpp" />
-    <ClCompile Include="..\src\allocator.cpp" />
     <ClCompile Include="..\src\baseevents.cpp" />
     <ClCompile Include="..\src\beds.cpp" />
     <ClCompile Include="..\src\chat.cpp" />
@@ -235,7 +234,6 @@
     <ClInclude Include="..\src\account.h" />
     <ClInclude Include="..\src\actions.h" />
     <ClInclude Include="..\src\admin.h" />
-    <ClInclude Include="..\src\allocator.h" />
     <ClInclude Include="..\src\baseevents.h" />
     <ClInclude Include="..\src\beds.h" />
     <ClInclude Include="..\src\chat.h" />
