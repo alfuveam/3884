@@ -453,24 +453,26 @@ void ExceptionHandler::dumpStack()
 		if(foundRetAddress)
 			nparameters++;
 
-		if(esp - stackstart < 20 || nparameters < 10 || std::abs(esp - next_ret) < 10 || frame_param_counter < 8)
-		{
-			output << (uint32_t)esp << " | ";
-			printPointer(&output, stack_val);
-			if(esp == next_ret)
-				output << " \\\\\\\\\\\\ stack frame //////";
-			else if(esp - next_ret == 1)
-				output << " <-- ret" ;
-			else if(esp - next_ret == 2)
+		#ifdef __GNUC__
+			if(esp - stackstart < 20 || nparameters < 10 || std::abs(esp - next_ret) < 10 || frame_param_counter < 8)
 			{
-				next_ret = (uint32_t*)*(esp - 2);
-				frame_param_counter = 0;
+				output << (uint32_t)esp << " | ";
+				printPointer(&output, stack_val);
+				if(esp == next_ret)
+					output << " \\\\\\\\\\\\ stack frame //////";
+				else if(esp - next_ret == 1)
+					output << " <-- ret" ;
+				else if(esp - next_ret == 2)
+				{
+					next_ret = (uint32_t*)*(esp - 2);
+					frame_param_counter = 0;
+				}
+
+				frame_param_counter++;
+				output << std::endl;
 			}
-
-			frame_param_counter++;
-			output << std::endl;
-		}
-
+		#endif
+		
 		if(stack_val >= offMin && stack_val <= offMax)
 		{
 			foundRetAddress++;
