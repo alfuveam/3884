@@ -69,16 +69,16 @@ class dummyallocator
 		}
 };
 
-void* operator new(size_t bytes, int32_t dummy);
 void* operator new(size_t bytes);
 void* operator new[](size_t bytes);
 void operator delete(void* p);
 void operator delete[](void* p);
 
-#ifdef _MSC_VER
+void* operator new(size_t bytes, int32_t dummy);
+void* operator new[](size_t bytes, int32_t dummy);
 void operator delete(void* p, int32_t dummy);
 void operator delete[](void* p, int32_t dummy);
-#endif
+
 #ifdef __OTSERV_ALLOCATOR_STATS__
 void allocatorStatsThread(void* a);
 #endif
