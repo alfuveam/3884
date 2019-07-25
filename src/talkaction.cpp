@@ -886,7 +886,7 @@ bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::
 	const uint32_t levelToFormGuild = g_config.getNumber(ConfigManager::LEVEL_TO_FORM_GUILD);
 	if(player->getLevel() < levelToFormGuild)
 	{
-		char buffer[70 + levelToFormGuild];
+		char* buffer = new char[70 + levelToFormGuild];
 		sprintf(buffer, "You have to be at least Level %d to form a guild.", levelToFormGuild);
 		player->sendCancel(buffer);
 		return true;
@@ -895,7 +895,7 @@ bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::
 	const int32_t premiumDays = g_config.getNumber(ConfigManager::GUILD_PREMIUM_DAYS);
 	if(player->getPremiumDays() < premiumDays && !g_config.getBool(ConfigManager::FREE_PREMIUM))
 	{
-		char buffer[70 + premiumDays];
+		char* buffer = new char[70 + premiumDays];
 		sprintf(buffer, "You need to have at least %d premium days to form a guild.", premiumDays);
 		player->sendCancel(buffer);
 		return true;
@@ -904,7 +904,7 @@ bool TalkAction::guildCreate(Creature* creature, const std::string&, const std::
 	player->setGuildName(param_);
 	IOGuild::getInstance()->createGuild(player);
 
-	char buffer[50 + maxLength];
+	char* buffer = new char[50 + maxLength];
 	sprintf(buffer, "You have formed guild \"%s\"!", param_.c_str());
 	player->sendTextMessage(MSG_INFO_DESCR, buffer);
 	return true;
@@ -1187,7 +1187,7 @@ bool TalkAction::banishmentInfo(Creature* creature, const std::string&, const st
 	if(deletion)
 		end = what + (std::string)" won't be undeleted";
 
-	char buffer[500 + ban.comment.length()];
+	char* buffer = new char[500 + ban.comment.length()];
 	sprintf(buffer, "%s has been %s at:\n%s by: %s,\nfor the following reason:\n%s.\nThe action taken was:\n%s.\nThe comment given was:\n%s.\n%s%s.",
 		what.c_str(), (deletion ? "deleted" : "banished"), formatDateEx(ban.added, "%d %b %Y").c_str(), admin.c_str(), getReason(ban.reason).c_str(),
 		getAction(ban.action, false).c_str(), ban.comment.c_str(), end.c_str(), (deletion ? "." : formatDateEx(ban.expires).c_str()));

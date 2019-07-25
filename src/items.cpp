@@ -1339,7 +1339,8 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 					it.abilities.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += intValue;
 				}
 			}
-			else if(tmpStrValue == "reflectchancemagic")
+			// break
+			if(tmpStrValue == "reflectchancemagic")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 				{

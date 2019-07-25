@@ -36,9 +36,6 @@
 
 #include "status.h"
 #include "manager.h"
-#ifdef __OTADMIN__
-	#include "admin.h"
-#endif
 
 #include "configmanager.h"
 #include "scriptmanager.h"
@@ -52,15 +49,11 @@
 #include "group.h"
 
 #include "monsters.h"
-#ifdef __OTSERV_ALLOCATOR__
-	#include "allocator.h"
-#endif
-#ifdef __EXCEPTION_TRACER__
-	#include "exception.h"
-#endif
-#ifndef __OTADMIN__
-	#include "textlogger.h"
-#endif
+
+#include "admin.h"
+#include "allocator.h"
+#include "exception.h"
+#include "textlogger.h"
 
 #ifdef __NO_BOOST_EXCEPTIONS__
 	#include <exception>

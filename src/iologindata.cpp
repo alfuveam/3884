@@ -1077,7 +1077,7 @@ bool IOLoginData::saveItems(const Player* player, const ItemBlockList& itemList,
 
 			uint32_t attributesSize = 0;
 			const char* attributes = propWriteStream.getStream(attributesSize);
-			char buffer[attributesSize * 3 + 100]; //MUST be (size * 2), else people can crash server when filling writable with native characters
+			char* buffer = new char[attributesSize * 3 + 100]; //MUST be (size * 2), else people can crash server when filling writable with native characters
 
 			sprintf(buffer, "%d, %d, %d, %d, %d, %s", player->getGUID(), stack.second, runningId, item->getID(),
 				(int32_t)item->getSubType(), db->escapeBlob(attributes, attributesSize).c_str());

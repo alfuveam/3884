@@ -18,12 +18,11 @@
 #include "otpch.h"
 #include "dispatcher.h"
 
-#include "outputmessage.h"
-	#if defined __EXCEPTION_TRACER__
-	#include "exception.h"
-#endif
+#include "outputmessage.h"	
+#include "exception.h"
 
 #include "game.h"
+
 extern Game g_game;
 
 Dispatcher::DispatcherState Dispatcher::m_threadState = Dispatcher::STATE_TERMINATED;

@@ -146,7 +146,7 @@ bool ScriptEnviroment::saveGameState()
 	query_insert.setQuery("INSERT INTO `global_storage` (`key`, `world_id`, `value`) VALUES ");
 	for(StorageMap::const_iterator it = m_storageMap.begin(); it != m_storageMap.end(); ++it)
 	{
-		char buffer[25 + it->second.length()];
+		char* buffer = new char[25 + it->second.length()];
 		sprintf(buffer, "%s, %u, %s", db->escapeString(it->first).c_str(), g_config.getNumber(ConfigManager::WORLD_ID), db->escapeString(it->second).c_str());
 		if(!query_insert.addRow(buffer))
 			return false;

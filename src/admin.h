@@ -17,7 +17,6 @@
 
 #ifndef __ADMIN__
 #define __ADMIN__
-#ifdef __OTADMIN__
 
 #include "protocol.h"
 
@@ -220,5 +219,4 @@ class ProtocolAdmin : public Protocol
 		ProtocolState_t m_state;
 		uint32_t m_lastCommand, m_startTime;
 };
-#endif
 #endif

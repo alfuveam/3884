@@ -15,11 +15,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __OTSERV_ALLOCATOR__
 #include "otpch.h"
 #include "allocator.h"
 
-class PoolManager;
+#ifdef __OTSERV_ALLOCATOR__
 
 //normal new/delete
 void* operator new(size_t bytes)

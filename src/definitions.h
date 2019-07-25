@@ -83,11 +83,15 @@
 	#endif
 
 	#pragma warning(disable:4786) // msvc too long debug names in stl
-	#pragma warning(disable:4250) // 'class1' : inherits 'class2::member' via dominance
-	#pragma warning(disable:4244)
-	#pragma warning(disable:4267)
-	#pragma warning(disable:4018)
+	#pragma warning(disable:4018) // 'expression' : signed/unsigned mismatch
 	#pragma warning(disable:4996) // '_ftime64' : this function or variable may be unsafe
+
+	#pragma warning(disable:4127) // conditional expression is constant
+	#pragma warning(disable:4244) // 'argument' : conversion from 'type1' to 'type2', possible loss of data
+	#pragma warning(disable:4250) // 'class1' : inherits 'class2::member' via dominance
+	#pragma warning(disable:4267) // 'var' : conversion from 'size_t' to 'type', possible loss of data
+	#pragma warning(disable:4351) // new behavior: elements of array will be default initialized
+	#pragma warning(disable:4458) // declaration hides class member
 
 	#ifndef _WIN32
 		#define _WIN32
@@ -248,12 +252,6 @@ inline uint32_t swap_uint32(uint32_t val)
     val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF ); 
     return (val << 16) | (val >> 16);
 }
-
-#ifndef _WIN32
-	#include <termios.h>
-#else
-	#include <conio.h>
-#endif
 
 #if defined WINDOWS
 	#include <winerror.h>

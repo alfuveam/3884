@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __OTADMIN__
 #include "otpch.h"
 
 #include "admin.h"
@@ -35,10 +34,10 @@
 
 #include "textlogger.h"
 
+#ifdef __OTADMIN__
+
 extern ConfigManager g_config;
 extern Game g_game;
-
-class ProtocolAdmin;
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t ProtocolAdmin::protocolAdminCount = 0;

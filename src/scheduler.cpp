@@ -18,9 +18,7 @@
 #include "otpch.h"
 #include "scheduler.h"
 
-#if defined __EXCEPTION_TRACER__
-	#include "exception.h"
-#endif
+#include "exception.h"
 
 Scheduler::SchedulerState Scheduler::m_threadState = Scheduler::STATE_TERMINATED;
 

@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __OTSERV_ALLOCATOR__
 #ifndef __ALLOCATOR__
 #define __ALLOCATOR__
 
@@ -261,5 +260,4 @@ class PoolManager
 		#endif
 		boost::recursive_mutex poolLock;
 };
-#endif
 #endif

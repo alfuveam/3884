@@ -11,8 +11,7 @@ include(cotire)
 
 add_compile_options(-Wall -Werror -pipe -fvisibility=hidden)
 #-lz ; to libxml2
-#-lcrypto ; to openssl
-link_libraries(-lz -lcrypto -lmysqlclient -lxml2)
+link_libraries(-lz -lmysqlclient -lxml2)
 
 set(CMAKE_CXX_FLAGS_PERFORMANCE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
@@ -103,8 +102,8 @@ endif()
 if(__USE_PGSQL__)
  add_definitions(-D__USE_PGSQL__)
   find_package(PostgreSQL REQUIRED)
-  include_directories(${POSTGRESQL_INCLUDE_DIR})
-  target_link_libraries(tfs ${POSTGRESQL_LIBRARIES})
+  include_directories(${PostgreSQL_INCLUDE_DIR})
+  target_link_libraries(tfs ${PostgreSQL_LIBRARIES})
 endif()
 
 include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR} ${Crypto++_INCLUDE_DIR})

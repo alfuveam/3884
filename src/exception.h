@@ -15,9 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __EXCEPTION_TRACER__
 #ifndef __EXCEPTION_H__
-#define __EXCEPTION_H
+#define __EXCEPTION_H__
 
 class ExceptionHandler
 {
@@ -41,5 +40,4 @@ class ExceptionHandler
 		SEHChain chain;
 		bool installed;
 };
-#endif
 #endif

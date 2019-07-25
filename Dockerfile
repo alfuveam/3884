@@ -6,6 +6,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   build-base \
   clang \
   cmake \  
+  crypto++-dev \
   gcc \  
   luajit-dev \
   make \
@@ -13,8 +14,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   libxml2-dev \
   sqlite-dev \
   unixodbc-dev \
-  libpq \
-  gmp-dev
+  postgresql-dev
 
 COPY cmake /usr/src/3884/cmake/
 COPY src /usr/src/3884/src/
@@ -28,6 +28,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   boost-iostreams \
   boost-system \  
   luajit \
+  crypto++ \
   mariadb-connector-c \
   libxml2
 

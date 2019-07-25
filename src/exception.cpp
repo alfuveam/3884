@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __EXCEPTION_TRACER__
 #include "otpch.h"
 #include "exception.h"
 
@@ -25,8 +24,10 @@
 #endif
 
 #include "tools.h"
-
 #include "configmanager.h"
+
+#ifdef __EXCEPTION_TRACER__
+
 extern ConfigManager g_config;
 
 typedef std::map<uint32_t, char*> FunctionMap;
