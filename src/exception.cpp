@@ -37,7 +37,7 @@ uint32_t offMax, offMin;
 bool mapLoaded = false;
 boost::recursive_mutex mapLock;
 
-#ifdef _WIN32
+#ifdef __GNUC__
 void printPointer(std::ostream* output, uint32_t p);
 EXCEPTION_DISPOSITION __cdecl _SEHHandler(struct _EXCEPTION_RECORD *ExceptionRecord, void* EstablisherFrame,
 	struct _CONTEXT *ContextRecord, void* DispatcherContext);
@@ -121,7 +121,7 @@ char* getFunctionName(unsigned long addr, unsigned long& start)
 	return NULL;
 }
 
-#ifdef _WIN32
+#ifdef __GNUC__
 EXCEPTION_DISPOSITION __cdecl _SEHHandler(struct _EXCEPTION_RECORD *ExceptionRecord, void* EstablisherFrame,
 	 struct _CONTEXT *ContextRecord, void* DispatcherContext)
 {

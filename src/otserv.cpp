@@ -290,13 +290,13 @@ int main(int argc, char* argv[])
 void otserv(StringVec, ServiceManager* services)
 {
 	srand((uint32_t)OTSYS_TIME());
-#if defined(WINDOWS)
+#if defined(_WIN32)
 	SetConsoleTitle(SOFTWARE_NAME);
 
 #endif
 	g_game.setGameState(GAMESTATE_STARTUP);
-#if !defined(WINDOWS) && !defined(__ROOT_PERMISSION__)
-	if(!getuid() || !geteuid())
+#ifndef _WIN32
+	if (getuid() == 0 || geteuid() == 0)
 	{
 		std::clog << "> AVISO: " << SOFTWARE_NAME << " foi executado como superusuario! isto e "
 			<< "recomendado para ser executado como um usuario normal." << std::endl << "Continuar? (y/N)" << std::endl;
