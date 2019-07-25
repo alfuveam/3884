@@ -271,8 +271,12 @@ class LuaInterface
 		}
 
 		bool pushFunction(int32_t functionId);
+		
+		static std::string getString(lua_State* L, int32_t arg);
+		std::string getStackTrace(const std::string& error_desc);		
+		static int luaErrorHandler(lua_State* L);
+		static int protectedCall(lua_State* L, int nargs, int nresults);
 		bool callFunction(uint32_t params);
-		static int32_t handleFunction(lua_State* L);
 
 		void dumpStack(lua_State* L = NULL);
 
@@ -287,13 +291,15 @@ class LuaInterface
 		static LuaVariant popVariant(lua_State* L);
 		static void popPosition(lua_State* L, PositionEx& position);
 		static void popPosition(lua_State* L, Position& position, uint32_t& stackpos);
-		static bool popBoolean(lua_State* L);
-		static int64_t popNumber(lua_State* L);
+
 		static double popFloatNumber(lua_State* L);
+		static int64_t popNumber(lua_State* L);
+		static bool popBoolean(lua_State* L);
+
 		static std::string popString(lua_State* L);
 		static int32_t popCallback(lua_State* L);
 		static Outfit_t popOutfit(lua_State* L);
-
+		
 		static int64_t getField(lua_State* L, const char* key);
 		static uint64_t getFieldUnsigned(lua_State* L, const char* key);
 		static std::string getFieldString(lua_State* L, const char* key);
@@ -703,8 +709,14 @@ class LuaInterface
 
 		static const luaL_Reg luaSystemTable[2];
 		static int32_t luaSystemTime(lua_State* L);
-
+		
+#ifndef LUAJIT_VERSION
+		static const luaL_Reg luaBitTable[13];
+#endif
 		static const luaL_Reg luaDatabaseTable[8];
+		static const luaL_Reg luaResultTable[7];
+		static const luaL_Reg luaStdTable[9];
+
 		static int32_t luaDatabaseExecute(lua_State* L);
 		static int32_t luaDatabaseStoreQuery(lua_State* L);
 		static int32_t luaDatabaseEscapeString(lua_State* L);
@@ -713,7 +725,6 @@ class LuaInterface
 		static int32_t luaDatabaseStringComparer(lua_State* L);
 		static int32_t luaDatabaseUpdateLimiter(lua_State* L);
 
-		static const luaL_Reg luaResultTable[7];
 		static int32_t luaResultGetDataInt(lua_State* L);
 		static int32_t luaResultGetDataLong(lua_State* L);
 		static int32_t luaResultGetDataString(lua_State* L);
@@ -721,7 +732,7 @@ class LuaInterface
 		static int32_t luaResultNext(lua_State* L);
 		static int32_t luaResultFree(lua_State* L);
 
-		static const luaL_Reg luaBitTable[13];
+#ifndef LUAJIT_VERSION
 		static int32_t luaBitNot(lua_State* L);
 		static int32_t luaBitAnd(lua_State* L);
 		static int32_t luaBitOr(lua_State* L);
@@ -734,8 +745,8 @@ class LuaInterface
 		static int32_t luaBitUXor(lua_State* L);
 		static int32_t luaBitULeftShift(lua_State* L);
 		static int32_t luaBitURightShift(lua_State* L);
-
-		static const luaL_Reg luaStdTable[9];
+#endif
+	
 		static int32_t luaStdCout(lua_State* L);
 		static int32_t luaStdClog(lua_State* L);
 		static int32_t luaStdCerr(lua_State* L);

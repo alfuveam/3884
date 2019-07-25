@@ -18,89 +18,139 @@
 #include "otpch.h"
 #include "tools.h"
 
-#include <openssl/sha.h>
-#include <openssl/md5.h>
-#include <openssl/hmac.h>
+#include <cryptopp/sha.h>
+#include <cryptopp/md5.h>
+#include <cryptopp/adler32.h>
+#include <cryptopp/hmac.h>
+
+#include <cryptopp/hex.h>
+#include <cryptopp/base64.h>
+#include <cryptopp/cryptlib.h>
 
 #include "vocation.h"
 #include "configmanager.h"
 
 extern ConfigManager g_config;
+typedef unsigned char byte;
 
 std::string transformToMD5(std::string plainText, bool upperCase)
 {
-	MD5_CTX c;
-	MD5_Init(&c);
-	MD5_Update(&c, plainText.c_str(), plainText.length());
+	// Crypto++ MD5 object
+	CryptoPP::Weak::MD5 hash;
 
-	uint8_t md[MD5_DIGEST_LENGTH];
-	MD5_Final(md, &c);
+	// Use native byte instead of casting chars
+	byte digest[CryptoPP::Weak::MD5::DIGESTSIZE];
 
-	char output[MD5_DIGEST_LENGTH * 2 + 1] = "";
-	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
+	// Do the actual calculation, require a byte value so we need a cast
+	hash.CalculateDigest(digest, (const byte*)plainText.c_str(), plainText.length());
 
+	// Crypto++ HexEncoder object
+	CryptoPP::HexEncoder encoder;
+
+	// Our output
+	std::string output;
+
+	// Drop internal hex encoder and use this, returns uppercase by default
+	encoder.Attach(new CryptoPP::StringSink(output));
+	encoder.Put(digest, sizeof(digest));
+	encoder.MessageEnd();
+
+	// Make sure we want uppercase
 	if(upperCase)
-		return std::string(output);
+		return output;
 
-	return asLowerCaseString(std::string(output));
+	// Convert to lowercase if needed
+	return asLowerCaseString(output);
 }
 
 std::string transformToSHA1(std::string plainText, bool upperCase)
 {
-	SHA_CTX c;
-	SHA1_Init(&c);
-	SHA1_Update(&c, plainText.c_str(), plainText.length());
+	// Crypto++ SHA1 object
+	CryptoPP::SHA1 hash;
 
-	uint8_t md[SHA_DIGEST_LENGTH];
-	SHA1_Final(md, &c);
+	// Use native byte instead of casting chars
+	byte digest[CryptoPP::SHA1::DIGESTSIZE];
 
-	char output[SHA_DIGEST_LENGTH * 2 + 1] = "";
-	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
+	// Do the actual calculation, require a byte value so we need a cast
+	hash.CalculateDigest(digest, (const byte*)plainText.c_str(), plainText.length());
 
+	// Crypto++ HexEncoder object
+	CryptoPP::HexEncoder encoder;
+
+	// Our output
+	std::string output;
+
+	// Drop internal hex encoder and use this, returns uppercase by default
+	encoder.Attach(new CryptoPP::StringSink(output));
+	encoder.Put(digest, sizeof(digest));
+	encoder.MessageEnd();
+
+	// Make sure we want uppercase
 	if(upperCase)
-		return std::string(output);
+		return output;
 
-	return asLowerCaseString(std::string(output));
+	// Convert to lowercase if needed
+	return asLowerCaseString(output);
 }
 
 std::string transformToSHA256(std::string plainText, bool upperCase)
 {
-	SHA256_CTX c;
-	SHA256_Init(&c);
-	SHA256_Update(&c, plainText.c_str(), plainText.length());
+	// Crypto++ SHA256 object
+	CryptoPP::SHA256 hash;
 
-	uint8_t md[SHA256_DIGEST_LENGTH];
-	SHA256_Final(md, &c);
+	// Use native byte instead of casting chars
+	byte digest[CryptoPP::SHA256::DIGESTSIZE];
 
-	char output[SHA256_DIGEST_LENGTH * 2 + 1] = "";
-	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)
-		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
+	// Do the actual calculation, require a byte value so we need a cast
+	hash.CalculateDigest(digest, (const byte*)plainText.c_str(), plainText.length());
 
+	// Crypto++ HexEncoder object
+	CryptoPP::HexEncoder encoder;
+
+	// Our output
+	std::string output;
+
+	// Drop internal hex encoder and use this, returns uppercase by default
+	encoder.Attach(new CryptoPP::StringSink(output));
+	encoder.Put(digest, sizeof(digest));
+	encoder.MessageEnd();
+
+	// Make sure we want uppercase
 	if(upperCase)
-		return std::string(output);
+		return output;
 
-	return asLowerCaseString(std::string(output));
+	// Convert to lowercase if needed
+	return asLowerCaseString(output);
 }
 
 std::string transformToSHA512(std::string plainText, bool upperCase)
 {
-	SHA512_CTX c;
-	SHA512_Init(&c);
-	SHA512_Update(&c, plainText.c_str(), plainText.length());
+	// Crypto++ SHA512 object
+	CryptoPP::SHA512 hash;
 
-	uint8_t md[SHA512_DIGEST_LENGTH];
-	SHA512_Final(md, &c);
+	// Use native byte instead of casting chars
+	byte digest[CryptoPP::SHA512::DIGESTSIZE];
 
-	char output[SHA512_DIGEST_LENGTH * 2 + 1] = "";
-	for(int32_t i = 0; i < static_cast<int32_t>(sizeof(md)); i++)		
-		sprintf(&output[i*2], "%02x", (unsigned int)md[i]);
+	// Do the actual calculation, require a byte value so we need a cast
+	hash.CalculateDigest(digest, (const byte*)plainText.c_str(), plainText.length());
 
+	// Crypto++ HexEncoder object
+	CryptoPP::HexEncoder encoder;
+
+	// Our output
+	std::string output;
+
+	// Drop internal hex encoder and use this, returns uppercase by default
+	encoder.Attach(new CryptoPP::StringSink(output));
+	encoder.Put(digest, sizeof(digest));
+	encoder.MessageEnd();
+
+	// Make sure we want uppercase
 	if(upperCase)
-		return std::string(output);
+		return output;
 
-	return asLowerCaseString(std::string(output));
+	// Convert to lowercase if needed
+	return asLowerCaseString(output);
 }
 
 std::string transformToVAHash(std::string plainText, bool upperCase)
@@ -115,15 +165,22 @@ std::string transformToVAHash(std::string plainText, bool upperCase)
 
 	// This holds the HMAC
 	// Use native byte instead of casting chars
-	unsigned char* digest;
-	const unsigned char* thePlainText = reinterpret_cast<const unsigned char*>(plainText.c_str());
+	byte digest[CryptoPP::SHA512::DIGESTSIZE];
 
 	// Do the actual calculation and setup, require a byte value so we need a cast on the key and the input
-	digest = HMAC(EVP_sha1(), key.c_str(), key.length(), thePlainText, plainText.length(), NULL, NULL);  
+	CryptoPP::HMAC<CryptoPP::SHA512>((const byte*)key.c_str(), key.length()).CalculateDigest(
+		digest, (const byte*)sha256.c_str(), CryptoPP::SHA256::DIGESTSIZE);
 
-    char output[20];
-    for(int i = 0; i < 20; i++)
-         sprintf(&output[i*2], "%02x", (unsigned int)digest[i]);
+	// Crypto++ Base64Encoder object
+	CryptoPP::Base64Encoder encoder;
+
+	// Our output
+	std::string output;
+
+	// Encode to base64
+	encoder.Attach(new CryptoPP::StringSink(output));
+	encoder.Put(digest, sizeof(digest));
+	encoder.MessageEnd();
 
 	// Make sure we want uppercase
 	if(upperCase)
@@ -2003,26 +2060,19 @@ bool fileExists(const char* filename)
 
 uint32_t adlerChecksum(uint8_t* data, size_t length)
 {
+	// Keep this check, rarely used I think
 	if(length > NETWORK_MAX_SIZE || !length)
 		return 0;
 
-	const uint16_t adler = 65521;
-	uint32_t a = 1, b = 0;
-	while(length > 0)
-	{
-		size_t tmp = length > 5552 ? 5552 : length;
-		length -= tmp;
-		do
-		{
-			a += *data++;
-			b += a;
-		}
-		while(--tmp);
-		a %= adler;
-		b %= adler;
-	}
-	
-	return (b << 16) | a;
+	// Crypto++ object
+	CryptoPP::Adler32 adler;
+	// Digest cash object, cast later
+	byte digest[CryptoPP::Adler32::DIGESTSIZE];
+
+	// Do the calculation now
+	adler.CalculateDigest(digest, (const byte*)data, length);
+	// return uint32_t cast type
+	return (uint32_t)(((uint16_t)digest[0] << 8 | digest[1]) << 16) | ((uint16_t)digest[2] << 8 | digest[3]);
 }
 
 std::string getFilePath(FileType_t type, std::string name/* = ""*/)

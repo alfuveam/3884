@@ -25,7 +25,7 @@ include(FindCXX)
 include(FindLTO)
 
 # Find packages.
-find_package(GMP REQUIRED)
+find_package(Crypto++ REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(Threads)
 
@@ -107,8 +107,8 @@ if(__USE_PGSQL__)
   target_link_libraries(tfs ${POSTGRESQL_LIBRARIES})
 endif()
 
-include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
-target_link_libraries(tfs ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${LIBXML2_LIBRARY} ${GMP_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBXML2_INCLUDE_DIR} ${Crypto++_INCLUDE_DIR})
+target_link_libraries(tfs ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${LIBXML2_LIBRARY} ${Crypto++_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(tfs PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "src/otpch.h")
 set_target_properties(tfs PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)

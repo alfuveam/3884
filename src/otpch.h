@@ -50,10 +50,6 @@
 #include <cmath>
 #include <memory>
 #include <unordered_set>
-
-#include <openssl/rsa.h>
-#include <openssl/bn.h>
-#include <openssl/err.h>
 // from src - end
 
 #include <boost/utility.hpp>

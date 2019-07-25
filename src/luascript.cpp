@@ -922,45 +922,73 @@ void LuaInterface::executeTimer(uint32_t eventIndex)
 	}
 }
 
-int32_t LuaInterface::handleFunction(lua_State* L)
+std::string LuaInterface::getString(lua_State* L, int32_t arg)
 {
-	lua_getfield(L, LUA_GLOBALSINDEX, "debug");
-	if(!lua_istable(L, -1))
-	{
-		lua_pop(L, 1);
-		return 1;
+	size_t len;
+	const char* c_str = lua_tolstring(L, arg, &len);
+	if (!c_str || len == 0) {
+		return std::string();
+	}
+	return std::string(c_str, len);
+}
+
+std::string LuaInterface::getStackTrace(const std::string& error_desc)
+{
+	lua_getglobal(m_luaState, "debug");
+	if (!lua_istable(m_luaState, -1)) {
+		lua_pop(m_luaState, 1);
+		return error_desc;
 	}
 
-	lua_getfield(L, -1, "traceback");
-	if(!lua_isfunction(L, -1))
-	{
-		lua_pop(L, 2);
-		return 1;
+	lua_getfield(m_luaState, -1, "traceback");
+	if (!lua_isfunction(m_luaState, -1)) {
+		lua_pop(m_luaState, 2);
+		return error_desc;
 	}
 
-	lua_pushvalue(L, 1);
-	lua_pushinteger(L, 2);
+	lua_replace(m_luaState, -2);
+	lua_pushlstring(m_luaState, error_desc.c_str(), error_desc.length());
+	lua_call(m_luaState, 1, 1);
+	return popString(m_luaState);
+}
 
-	lua_call(L, 2, 1);
+int LuaInterface::luaErrorHandler(lua_State* L)
+{
+	const std::string& errorMessage = popString(L);
+	auto interface = getEnv()->getInterface();
+	assert(interface); //This fires if the ScriptEnvironment hasn't been setup
+	lua_pushstring(L, interface->getStackTrace(errorMessage).c_str());
 	return 1;
+}
+
+/// Same as lua_pcall, but adds stack trace to error strings in called function.
+int LuaInterface::protectedCall(lua_State* L, int nargs, int nresults)
+{
+	int error_index = lua_gettop(L) - nargs;
+	lua_pushcfunction(L, luaErrorHandler);
+	lua_insert(L, error_index);
+
+	int ret = lua_pcall(L, nargs, nresults, error_index);
+	lua_remove(L, error_index);
+	return ret;
 }
 
 bool LuaInterface::callFunction(uint32_t params)
 {
-	int32_t size = lua_gettop(m_luaState), handler = lua_gettop(m_luaState) - params;
-	lua_pushcfunction(m_luaState, handleFunction);
-
 	bool result = false;
-	lua_insert(m_luaState, handler);
-	if(lua_pcall(m_luaState, params, 1, handler))
-		LuaInterface::error(NULL, LuaInterface::popString(m_luaState));
-	else
-		result = (int32_t)LuaInterface::popBoolean(m_luaState);
+	uint32_t size = lua_gettop(m_luaState);
+	if (protectedCall(m_luaState, params, 1) != 0) {
+		LuaInterface::error(nullptr, LuaInterface::getString(m_luaState, -1));
+	} else {
+		result = lua_toboolean(m_luaState, -1) != 0;
+	}
 
-	lua_remove(m_luaState, handler);
-	if((lua_gettop(m_luaState) + (int32_t)params + 1) != size)
-		LuaInterface::error(NULL, "Stack size changed!");
+	lua_pop(m_luaState, 1);
+	if ((lua_gettop(m_luaState) + params + 1) != size) {
+		LuaInterface::error(nullptr, "Stack size changed!");
+	}
 
+	releaseEnv();
 	return result;
 }
 
@@ -2492,8 +2520,10 @@ void LuaInterface::registerFunctions()
 	//result table
 	luaL_register(m_luaState, "result", LuaInterface::luaResultTable);
 
+#ifndef LUAJIT_VERSION
 	//bit table
 	luaL_register(m_luaState, "bit", LuaInterface::luaBitTable);
+#endif
 
 	//std table
 	luaL_register(m_luaState, "std", LuaInterface::luaStdTable);
@@ -2556,6 +2586,22 @@ const luaL_Reg LuaInterface::luaResultTable[] =
 	{NULL, NULL}
 };
 
+const luaL_Reg LuaInterface::luaStdTable[] =
+{
+	{"cout", LuaInterface::luaStdCout},
+	{"clog", LuaInterface::luaStdClog},
+	{"cerr", LuaInterface::luaStdCerr},
+
+	{"md5", LuaInterface::luaStdMD5},
+	{"sha1", LuaInterface::luaStdSHA1},
+	{"sha256", LuaInterface::luaStdSHA256},
+	{"sha512", LuaInterface::luaStdSHA512},
+	{"vahash", LuaInterface::luaStdVAHash},
+
+	{NULL, NULL}
+};
+
+#ifndef LUAJIT_VERSION
 const luaL_Reg LuaInterface::luaBitTable[] =
 {
 	//{"cast", LuaInterface::luaBitCast},
@@ -2578,21 +2624,7 @@ const luaL_Reg LuaInterface::luaBitTable[] =
 
 	{NULL, NULL}
 };
-
-const luaL_Reg LuaInterface::luaStdTable[] =
-{
-	{"cout", LuaInterface::luaStdCout},
-	{"clog", LuaInterface::luaStdClog},
-	{"cerr", LuaInterface::luaStdCerr},
-
-	{"md5", LuaInterface::luaStdMD5},
-	{"sha1", LuaInterface::luaStdSHA1},
-	{"sha256", LuaInterface::luaStdSHA256},
-	{"sha512", LuaInterface::luaStdSHA512},
-	{"vahash", LuaInterface::luaStdVAHash},
-
-	{NULL, NULL}
-};
+#endif
 
 int32_t LuaInterface::internalGetPlayerInfo(lua_State* L, PlayerInfo_t info)
 {

@@ -69,7 +69,8 @@ bool ProtocolLogin::parseFirstPacket(NetworkMessage& msg)
 	}
 
 	uint32_t clientIp = getConnection()->getIP();
-	/*uint16_t operatingSystem = msg.get<uint16_t>();*/msg.skip(2);
+	msg.skip(2);
+	/*uint16_t operatingSystem = msg.get<uint16_t>();*/
 	uint16_t version = msg.get<uint16_t>();
 
 	msg.skip(12);

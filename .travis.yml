@@ -16,6 +16,7 @@ addons:
       - libboost-iostreams-dev
       - libboost-thread-dev
       - libboost-date-time-dev
+      - libcrypto++-dev
       - liblua5.2-dev
       - libluajit-5.1-dev
       - libmysqlclient-dev
