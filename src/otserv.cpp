@@ -298,11 +298,8 @@ void otserv(StringVec, ServiceManager* services)
 #ifndef _WIN32
 	if (getuid() == 0 || geteuid() == 0)
 	{
-		std::clog << "> AVISO: " << SOFTWARE_NAME << " foi executado como superusuario! isto e "
-			<< "recomendado para ser executado como um usuario normal." << std::endl << "Continuar? (y/N)" << std::endl;
-		char buffer = getch();
-		if(buffer != 121 && buffer != 89)
-			startupErrorMessage("Abortado.");
+		std::clog << "> AVISO: " << SOFTWARE_NAME << " foi executado como superusuario! "
+			<< "E recomendado utilizar um usuario normal." << std::endl;
 	}
 #endif
 

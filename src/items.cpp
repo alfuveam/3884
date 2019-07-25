@@ -524,6 +524,9 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 	{
 		if(readXMLString(itemAttributesNode, "key", strValue))
 		{
+#ifdef _MSC_VER
+			bool notLoaded = false;
+#endif			
 			std::string tmpStrValue = asLowerCaseString(strValue);
 			if(tmpStrValue == "type")
 			{
@@ -1321,14 +1324,24 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 					it.abilities.reflect[REFLECT_PERCENT][COMBAT_UNDEFINEDDAMAGE] += intValue;
 			}
-			else if(tmpStrValue == "reflectchanceall")
+#ifndef _MSC_VER
+			else if(tmpStrValue == "reflectpercentall")
+#else
+			else
+				notLoaded = true;
+
+			if(!notLoaded)
+				continue;
+
+			if(tmpStrValue == "reflectpercentall")
+#endif
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 				{
 					for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
 						it.abilities.reflect[REFLECT_CHANCE][i] += intValue;
 				}
-			}
+			}			
 			else if(tmpStrValue == "reflectchanceelements")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
@@ -1339,8 +1352,7 @@ void Items::parseItemNode(xmlNodePtr itemNode, uint32_t id)
 					it.abilities.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += intValue;
 				}
 			}
-			// break
-			if(tmpStrValue == "reflectchancemagic")
+			else if(tmpStrValue == "reflectchancemagic")
 			{
 				if(readXMLInteger(itemAttributesNode, "value", intValue))
 				{

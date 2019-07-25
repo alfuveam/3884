@@ -3,6 +3,9 @@ FROM alpine:edge AS build
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
   binutils \
   boost-dev \
+  boost-filesystem \
+  boost-regex \
+  boost-thread \
   build-base \
   clang \
   cmake \  
@@ -13,6 +16,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   mariadb-connector-c-dev \
   libxml2-dev \
   sqlite-dev \
+  sqlite-libs \
   unixodbc-dev \
   postgresql-dev
 
@@ -27,15 +31,26 @@ FROM alpine:edge
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ \
   boost-iostreams \
   boost-system \  
+  boost-filesystem \
+  boost-regex \
+  boost-thread \  
   luajit \
   crypto++ \
   mariadb-connector-c \
-  libxml2
+  libxml2 \
+  sqlite-dev \
+  sqlite-libs \
+  unixodbc-dev \
+  postgresql-dev
 
 RUN ln -s /usr/lib/libcryptopp.so /usr/lib/libcryptopp.so.5.6
 COPY --from=build /usr/src/3884/build/tfs /bin/tfs
 COPY data /srv/data/
 COPY LICENSE README.md *.dist *.sql key.pem /srv/
+
+# User config
+COPY mods /srv/mods/
+COPY config.lua theforgottenserver.s3db /srv/
 
 EXPOSE 7171 7172
 WORKDIR /srv

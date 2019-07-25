@@ -95,7 +95,7 @@ endif()
 if(__USE_ODBC__)
  add_definitions(-D__USE_ODBC__)
   find_package(ODBC REQUIRED)
-  include_directories(${ODBC_INCLUDE_DIR})
+  include_directories(${ODBC_INCLUDE_DIRS})
   target_link_libraries(tfs ${ODBC_LIBRARIES})
 endif()
 
