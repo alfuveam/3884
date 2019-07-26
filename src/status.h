@@ -19,6 +19,7 @@
 #define __STATUS__
 
 #include "protocol.h"
+#include "tools.h"
 
 enum RequestedInfo_t
 {

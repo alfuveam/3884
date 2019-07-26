@@ -20,7 +20,6 @@
 #include "database.h"
 #include "databasesqlite.h"
 
-#include "tools.h"
 #include "configmanager.h"
 
 extern ConfigManager g_config;

@@ -19,7 +19,6 @@
 #include "enums.h"
 
 #include "databasemanager.h"
-#include "tools.h"
 
 #include "configmanager.h"
 extern ConfigManager g_config;

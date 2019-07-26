@@ -21,7 +21,6 @@
 #include "enums.h"
 #include "player.h"
 
-#include "tools.h"
 #include "luascript.h"
 #include "baseevents.h"
 

@@ -18,7 +18,6 @@
 #include "otpch.h"
 
 #include "status.h"
-#include "tools.h"
 
 #include "connection.h"
 #include "networkmessage.h"
