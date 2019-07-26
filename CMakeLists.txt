@@ -28,6 +28,8 @@ find_package(Crypto++ REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(Threads)
 
+option(USE_LUAJIT "Use LuaJIT" OFF)
+
 # Selects LuaJIT if user defines or auto-detected
 if(DEFINED USE_LUAJIT AND NOT USE_LUAJIT)
     set(FORCE_LUAJIT ${USE_LUAJIT})
@@ -35,6 +37,7 @@ else()
     find_package(LuaJIT)
     set(FORCE_LUAJIT ${LuaJIT_FOUND})
 endif()
+
 option(USE_LUAJIT "Use LuaJIT" ${FORCE_LUAJIT})
 
 if(FORCE_LUAJIT)

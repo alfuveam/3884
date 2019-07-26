@@ -49,6 +49,11 @@
 #include "game.h"
 #include "chat.h"
 
+#if LUA_VERSION_NUM >= 502
+	#undef lua_strlen
+	#define lua_strlen lua_rawlen
+#endif
+
 extern Game g_game;
 extern Monsters g_monsters;
 extern Chat g_chat;
@@ -968,7 +973,7 @@ int LuaInterface::protectedCall(lua_State* L, int nargs, int nresults)
 	lua_pushcfunction(L, luaErrorHandler);
 	lua_insert(L, error_index);
 
-	int ret = lua_pcall(L, nargs, nresults, error_index);
+	int ret = lua_pcall(L, nargs, nresults, error_index);	
 	lua_remove(L, error_index);
 	return ret;
 }
@@ -2511,9 +2516,6 @@ void LuaInterface::registerFunctions()
 	//errors(var)
 	lua_register(m_luaState, "errors", LuaInterface::luaL_errors);
 
-	//os table
-	luaL_register(m_luaState, "os", LuaInterface::luaSystemTable);
-
 	//db table
 	luaL_register(m_luaState, "db", LuaInterface::luaDatabaseTable);
 
@@ -2527,15 +2529,10 @@ void LuaInterface::registerFunctions()
 
 	//std table
 	luaL_register(m_luaState, "std", LuaInterface::luaStdTable);
+
+	// os
+	registerMethod("os", "mtime", LuaInterface::luaSystemTime);	
 }
-
-const luaL_Reg LuaInterface::luaSystemTable[] =
-{
-	//os.mtime()
-	{"mtime", LuaInterface::luaSystemTime},
-
-	{NULL, NULL}
-};
 
 const luaL_Reg LuaInterface::luaDatabaseTable[] =
 {
@@ -2625,6 +2622,17 @@ const luaL_Reg LuaInterface::luaBitTable[] =
 	{NULL, NULL}
 };
 #endif
+
+void LuaInterface::registerMethod(const std::string& globalName, const std::string& methodName, lua_CFunction func)
+{
+	// globalName.methodName = func
+	lua_getglobal(m_luaState, globalName.c_str());
+	lua_pushcfunction(m_luaState, func);
+	lua_setfield(m_luaState, -2, methodName.c_str());
+
+	// pop globalName
+	lua_pop(m_luaState, 1);
+}
 
 int32_t LuaInterface::internalGetPlayerInfo(lua_State* L, PlayerInfo_t info)
 {
@@ -11134,6 +11142,7 @@ int32_t LuaInterface::luaResultFree(lua_State* L)
 
 #undef CHECK_RESULT
 
+#ifndef LUAJIT_VERSION
 int32_t LuaInterface::luaBitNot(lua_State* L)
 {
 	int32_t number = (int32_t)popNumber(L);
@@ -11183,6 +11192,8 @@ SHIFT_OPERATOR(uint32_t, ULeftShift, <<)
 SHIFT_OPERATOR(uint32_t, URightShift, >>)
 
 #undef SHIFT_OPERATOR
+#endif
+
 int32_t LuaInterface::luaDoSendPlayerExtendedOpcode(lua_State* L)
 {
 //doSendPlayerExtendedOpcode(cid, opcode, buffer)

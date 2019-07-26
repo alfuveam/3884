@@ -175,11 +175,13 @@ pip-log.txt
 ## TFS / OT
 #############
 config.lua
+theforgottenserver.s3db
 _map
 
 *.dll
 theforgottenserver.exe
 vc14/theforgottenserver.VC.db
+
 
 #Server exe
 tfs

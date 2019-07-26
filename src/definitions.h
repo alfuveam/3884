@@ -242,9 +242,7 @@
 
 inline int64_t OTSYS_TIME()
 {
-	timeb t;
-	ftime(&t);
-	return ((int64_t)t.millitm) + ((int64_t)t.time) * 1000;
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 inline uint32_t swap_uint32(uint32_t val)

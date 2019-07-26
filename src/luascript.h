@@ -17,24 +17,18 @@
 
 #ifndef __LUASCRIPT__
 #define __LUASCRIPT__
-#ifdef __LUAJIT__
-#include <luajit-2.0/lua.hpp>
 
+#include <lua.hpp>
 
-extern "C"
-{
-	#include <luajit-2.0/luajit.h>
-	#include <luajit-2.0/lauxlib.h>
-	#include <luajit-2.0/lualib.h>
-}
-#else
-
-extern "C"
-{
-	#include "lua.h"
-	#include "lualib.h"
-	#include "lauxlib.h"
-}
+#if LUA_VERSION_NUM >= 502
+	#ifndef LUA_COMPAT_ALL
+		#ifndef LUA_COMPAT_MODULE
+			#define luaL_register(L, libname, l) (luaL_newlib(L, l), lua_pushvalue(L, -1), lua_setglobal(L, libname))
+		#endif
+		
+		#undef lua_equal
+		#define lua_equal(L, i1, i2) lua_compare(L, (i1), (i2), LUA_OPEQ)
+	#endif
 #endif
 
 #include "database.h"
@@ -333,6 +327,8 @@ class LuaInterface
 		static bool getArea(lua_State* L, std::list<uint32_t>& list, uint32_t& rows);
 
 		virtual void registerFunctions();
+		void registerMethod(const std::string& globalName, const std::string& methodName, lua_CFunction func);
+
 		static int32_t luaDoSendPlayerExtendedOpcode(lua_State* L);
   
         //lua functions
@@ -707,7 +703,6 @@ class LuaInterface
 		static int32_t luaL_domodlib(lua_State* L);
 		static int32_t luaL_dodirectory(lua_State* L);
 
-		static const luaL_Reg luaSystemTable[2];
 		static int32_t luaSystemTime(lua_State* L);
 		
 #ifndef LUAJIT_VERSION
