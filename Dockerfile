@@ -11,6 +11,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   cmake \  
   crypto++-dev \
   gcc \  
+  lua-dev \
   luajit-dev \
   make \
   mariadb-connector-c-dev \
@@ -34,6 +35,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   boost-filesystem \
   boost-regex \
   boost-thread \  
+  lua-dev \
   luajit \
   crypto++ \
   mariadb-connector-c \
