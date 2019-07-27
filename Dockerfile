@@ -51,7 +51,6 @@ COPY data /srv/data/
 COPY LICENSE README.md *.dist *.sql key.pem /srv/
 
 # User config
-COPY mods /srv/mods/
 COPY config.lua theforgottenserver.s3db /srv/
 
 EXPOSE 7171 7172
