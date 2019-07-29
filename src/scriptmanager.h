@@ -45,9 +45,11 @@ class ScriptManager
 
 		bool loadSystem();
 		bool loadMods();
+		bool revScriptsys();
 
 		void clearMods();
 		bool reloadMods();
+		bool reloadRevScriptsys();
 
 		inline LibMap::iterator getFirstLib() {return libMap.begin();}
 		inline LibMap::iterator getLastLib() {return libMap.end();}

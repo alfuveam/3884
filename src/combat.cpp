@@ -960,7 +960,7 @@ void ValueCallback::getMinMaxValues(Player* player, int32_t& min, int32_t& max, 
 		return;
 	}
 
-	ScriptEnviroment* env = m_interface->getEnv();
+	LuaEnvironment* env = m_interface->getScriptEnv();
 	if(!env->setCallbackId(m_scriptId, m_interface))
 		return;
 
@@ -1014,15 +1014,15 @@ void ValueCallback::getMinMaxValues(Player* player, int32_t& min, int32_t& max, 
 	int32_t params = lua_gettop(L);
 	if(!lua_pcall(L, parameters, 2, 0))
 	{
-		min = LuaInterface::popNumber(L);
-		max = LuaInterface::popNumber(L);
+		min = LuaScriptInterface::popNumber(L);
+		max = LuaScriptInterface::popNumber(L);
 		player->increaseCombatValues(min, max, useCharges, type != FORMULA_SKILL);
 	}
 	else
-		LuaInterface::error(NULL, std::string(LuaInterface::popString(L)));
+		LuaScriptInterface::error(NULL, std::string(LuaScriptInterface::popString(L)));
 
 	if((lua_gettop(L) + parameters + 1) != params)
-		LuaInterface::error(__FUNCTION__, "Stack size changed!");
+		LuaScriptInterface::error(__FUNCTION__, "Stack size changed!");
 
 	env->resetCallback();
 	m_interface->releaseEnv();
@@ -1035,7 +1035,7 @@ void TileCallback::onTileCombat(Creature* creature, Tile* tile) const
 	//"onTileCombat"(cid, pos)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(!env->setCallbackId(m_scriptId, m_interface))
 			return;
 
@@ -1060,7 +1060,7 @@ void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 	//"onTargetCombat"(cid, target)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(!env->setCallbackId(m_scriptId, m_interface))
 			return;
 
@@ -1076,10 +1076,10 @@ void TargetCallback::onTargetCombat(Creature* creature, Creature* target) const
 
 		int32_t size = lua_gettop(L);
 		if(lua_pcall(L, 2, 0 /*nReturnValues*/, 0) != 0)
-			LuaInterface::error(NULL, std::string(LuaInterface::popString(L)));
+			LuaScriptInterface::error(NULL, std::string(LuaScriptInterface::popString(L)));
 
 		if((lua_gettop(L) + 2 /*nParams*/ + 1) != size)
-			LuaInterface::error(__FUNCTION__, "Stack size changed!");
+			LuaScriptInterface::error(__FUNCTION__, "Stack size changed!");
 
 		env->resetCallback();
 		m_interface->releaseEnv();

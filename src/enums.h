@@ -18,6 +18,28 @@
 #ifndef __ENUMS__
 #define __ENUMS__
 
+enum SpellType_t : uint8_t {
+	SPELL_UNDEFINED = 0,
+	SPELL_INSTANT = 1,
+	SPELL_RUNE = 2,
+};
+
+enum SpellGroup_t : uint8_t {
+	SPELLGROUP_NONE = 0,
+	SPELLGROUP_ATTACK = 1,
+	SPELLGROUP_HEALING = 2,
+	SPELLGROUP_SUPPORT = 3,
+	SPELLGROUP_SPECIAL = 4,
+	SPELLGROUP_CONJURE = 5,	
+};
+
+enum EventScript_t
+{
+	EVENT_SCRIPT_FALSE,
+	EVENT_SCRIPT_BUFFER,
+	EVENT_SCRIPT_TRUE
+};
+
 enum DatabaseEngine_t
 {
 	DATABASE_ENGINE_NONE = 0,

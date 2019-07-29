@@ -63,7 +63,7 @@ struct NpcState
 	//Do not forget to update pushState/popState if you add more variables
 };
 
-class NpcScript : public LuaInterface
+class NpcScript : public LuaScriptInterface
 {
 	public:
 		NpcScript();
@@ -379,7 +379,7 @@ class Npc : public Creature
 		void onPlayerCloseChannel(const Player* player);
 
 		void setCreatureFocus(Creature* creature);
-		NpcScript* getInterface();
+		NpcScript* getScriptInterface();
 
 	protected:
 		Npc(const std::string& _name);

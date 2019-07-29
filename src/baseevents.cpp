@@ -29,7 +29,7 @@ bool BaseEvents::loadFromXml()
 		return false;
 	}
 
-	if(!getInterface().loadDirectory(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/lib/"))))
+	if(!getScriptInterface().loadDirectory(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/lib/"))))
 		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot load " << scriptsName << "/lib/" << std::endl;
 
 	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/" + scriptsName + ".xml")).c_str());
@@ -100,7 +100,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 		else if(tmpStrValue == "function")
 		{
 			if(readXMLString(p, "value", strValue))
-				success = event->loadFunction(strValue);
+				success = event->loadFunction(strValue, false);
 		}
 	}
 	else if(readXMLString(p, "script", strValue))
@@ -121,7 +121,7 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 		success = event->checkBuffer(strValue) && event->loadBuffer(strValue);
 	}
 	else if(readXMLString(p, "function", strValue))
-		success = event->loadFunction(strValue);
+		success = event->loadFunction(strValue, true);
 	else if(parseXMLContentString(p->children, strValue) && event->checkBuffer(strValue))
 		success = event->loadBuffer(strValue);
 
@@ -226,7 +226,25 @@ CallBack::CallBack()
 	m_loaded = false;
 }
 
-bool CallBack::loadCallBack(LuaInterface* _interface, std::string name)
+bool Event::loadCallback()
+{
+	if (!m_interface || m_scriptId != 0) {
+		std::cout << "Failure: [Event::loadCallback] m_interface == nullptr. scriptid = " << m_scriptId << std::endl;
+		return false;
+	}
+
+	int32_t id = m_interface->getEvent();
+	if (id == -1) {
+		std::cout << "[Warning - Event::loadCallback] Event " << getScriptEventName() << " not found. " << std::endl;
+		return false;
+	}
+
+	m_scripted = EVENT_SCRIPT_TRUE;
+	m_scriptId = id;
+	return true;
+}
+
+bool CallBack::loadCallBack(LuaScriptInterface* _interface, std::string name)
 {
 	if(!_interface)
 	{

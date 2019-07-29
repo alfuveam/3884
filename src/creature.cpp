@@ -46,7 +46,7 @@ Creature::Creature()
 	master = NULL;
 	lootDrop = LOOT_DROP_FULL;
 	skillLoss = true;
-	hideName = hideHealth = cannotMove = false;
+	hideName = hiddenHealth = cannotMove = false;
 	speakType = SPEAK_CLASS_NONE;
 	skull = SKULL_NONE;
 	partyShield = SHIELD_NONE;

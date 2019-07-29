@@ -228,9 +228,9 @@ void Item::onRemoved()
 		raid = NULL;
 	}
 
-	ScriptEnviroment::removeTempItem(this);
+	LuaEnvironment::removeTempItem(this);
 	if(getUniqueId())
-		ScriptEnviroment::removeUniqueThing(this);
+		LuaEnvironment::removeUniqueThing(this);
 }
 
 void Item::setDefaultSubtype()
@@ -620,7 +620,7 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream& propStream)
 		{
 			bool unique = hasIntegerAttribute("uid"), ret = unserializeMap(propStream);
 			if(!unique && hasIntegerAttribute("uid")) // unfortunately we have to do this
-				ScriptEnviroment::addUniqueThing(this);
+				LuaEnvironment::addUniqueThing(this);
 
 			// this attribute has a custom behavior as well
 			if(getDecaying() != DECAYING_FALSE)
@@ -1650,7 +1650,7 @@ void Item::setUniqueId(int32_t uid)
 		return;
 
 	setAttribute("uid", uid);
-	ScriptEnviroment::addUniqueThing(this);
+	LuaEnvironment::addUniqueThing(this);
 }
 
 bool Item::canDecay()

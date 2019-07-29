@@ -781,6 +781,7 @@ enum AmmoAction_t
 
 enum WieldInfo_t
 {
+	WIELDINFO_NONE = 0,
 	WIELDINFO_LEVEL = 1,
 	WIELDINFO_MAGLV = 2,
 	WIELDINFO_VOCREQ = 4,

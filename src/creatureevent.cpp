@@ -29,17 +29,19 @@ m_interface("CreatureScript Interface")
 
 CreatureEvents::~CreatureEvents()
 {
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
-		delete (*it);
+	for(auto it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it){
+		m_creatureEvents.erase(it);
+	}
 
 	m_creatureEvents.clear();
 }
 
 void CreatureEvents::clear()
 {
-	//clear creature events
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
-		(*it)->clearEvent();
+	//clear creature events	
+	for(auto it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it){
+		it->second->clearEvent();
+	}
 
 	//clear lua state
 	m_interface.reInitState();
@@ -79,16 +81,44 @@ bool CreatureEvents::registerEvent(Event* event, xmlNodePtr, bool override)
 	}
 
 	//if not, register it normally
-	m_creatureEvents.push_back(creatureEvent);
+	m_creatureEvents.emplace(creatureEvent->getName(), std::move(creatureEvent));
 	return true;
+}
+
+bool CreatureEvents::registerLuaEvent(Event* event)
+{
+	CreatureEvent* creatureEvent = static_cast<CreatureEvent*>(event); //event is guaranteed to be a CreatureEvent
+	if (creatureEvent->getEventType() == CREATURE_EVENT_NONE) {
+		std::cout << "Error: [CreatureEvents::registerLuaEvent] Trying to register event without type!" << std::endl;
+		return false;
+	}
+
+	CreatureEvent* oldEvent = getEventByName(creatureEvent->getName());
+	if (oldEvent) {
+		//if there was an event with the same that is not loaded
+		//(happens when realoading), it is reused
+		if (!oldEvent->isLoaded() && oldEvent->getEventType() == creatureEvent->getEventType()) {
+			oldEvent->copyEvent(creatureEvent);
+		}
+
+		return false;
+	} else {
+		//if not, register it normally
+		auto it = m_creatureEvents.find(creatureEvent->getName());
+		if (it != m_creatureEvents.end()) {
+			it->second = creatureEvent;
+		} else {
+			m_creatureEvents.emplace(creatureEvent->getName(), std::move(creatureEvent));
+		}
+		return true;
+	}
 }
 
 CreatureEvent* CreatureEvents::getEventByName(const std::string& name)
 {
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
-	{
-		if((*it)->getName() == name)
-			return (*it);
+	auto it = m_creatureEvents.find(name);
+	if (it != m_creatureEvents.end()) {
+		return it->second;
 	}
 
 	return NULL;
@@ -98,11 +128,11 @@ bool CreatureEvents::playerLogin(Player* player)
 {
 	//fire global event if is registered
 	bool result = true;
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
-	{
-		if((*it)->getEventType() == CREATURE_EVENT_LOGIN && (*it)->isLoaded()
-			&& !(*it)->executeLogin(player) && result)
+
+	for(auto it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it){
+		if(it->second->getEventType() == CREATURE_EVENT_LOGIN && it->second->isLoaded() && !it->second->executeLogin(player) && result){
 			result = false;
+		}
 	}
 
 	return result;
@@ -113,7 +143,7 @@ uint32_t CreatureEvent::executeMoveItem(Creature* actor, Item* item, const Posit
 	//onMoveItem(moveItem, frompos, position, cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(pos);
@@ -150,9 +180,9 @@ uint32_t CreatureEvent::executeMoveItem(Creature* actor, Item* item, const Posit
 			lua_State* L = m_interface->getState();
 			m_interface->pushFunction(m_scriptId);
 
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushPosition(L, frompos, 0);
-			LuaInterface::pushPosition(L, pos, 0);
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushPosition(L, frompos, 0);
+			LuaScriptInterface::pushPosition(L, pos, 0);
 
 			lua_pushnumber(L, env->addThing(actor));
 			bool result = m_interface->callFunction(4);
@@ -173,7 +203,7 @@ uint32_t CreatureEvent::executeMoveItem(Player* player, Item* item, uint8_t coun
     //onMoveItem(cid, item, count, toContainer, fromContainer, fromPos, toPos)
     if(m_interface->reserveEnv())
     {
-        ScriptEnviroment* env = m_interface->getEnv();
+        LuaEnvironment* env = m_interface->getScriptEnv();
         if(m_scripted == EVENT_SCRIPT_BUFFER)
         {
             env->setRealPos(player->getPosition());
@@ -215,12 +245,12 @@ uint32_t CreatureEvent::executeMoveItem(Player* player, Item* item, uint8_t coun
 
             lua_pushnumber(L, env->addThing(player));
 
-            LuaInterface::pushThing(L, item, env->addThing(item));
+            LuaScriptInterface::pushThing(L, item, env->addThing(item));
             lua_pushnumber(L, count);
-            LuaInterface::pushThing(L, toContainer, env->addThing(toContainer));
-            LuaInterface::pushThing(L, fromContainer, env->addThing(fromContainer));
-            LuaInterface::pushPosition(L, fromPos, fstack);
-                        LuaInterface::pushPosition(L, toPos, 0);
+            LuaScriptInterface::pushThing(L, toContainer, env->addThing(toContainer));
+            LuaScriptInterface::pushThing(L, fromContainer, env->addThing(fromContainer));
+            LuaScriptInterface::pushPosition(L, fromPos, fstack);
+                        LuaScriptInterface::pushPosition(L, toPos, 0);
 
             bool result = m_interface->callFunction(7);
             m_interface->releaseEnv();
@@ -238,33 +268,31 @@ bool CreatureEvents::playerLogout(Player* player, bool forceLogout)
 {
 	//fire global event if is registered
 	bool result = true;
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
+	for(auto it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
 	{
-		if((*it)->getEventType() == CREATURE_EVENT_LOGOUT && (*it)->isLoaded()
-			&& !(*it)->executeLogout(player, forceLogout) && result)
+		if(it->second->getEventType() == CREATURE_EVENT_LOGOUT && it->second->isLoaded() && !it->second->executeLogout(player, forceLogout) && result){
 			result = false;
+		}
 	}
-
 	return result;
 }
 
 uint32_t CreatureEvents::executeMoveItems(Creature* actor, Item* item, const Position& frompos, const Position& pos)
 {
 	// fire global event if is registered
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
-	{
-		if((*it)->getEventType() == CREATURE_EVENT_MOVEITEM)
-        {
-			if(!(*it)->executeMoveItem(actor, item, frompos, pos))
+	for(auto it = m_creatureEvents.begin(); it != m_creatureEvents.end();++it){
+		if(it->second->getEventType() == CREATURE_EVENT_MOVEITEM){
+			if(it->second->executeMoveItem(actor, item, frompos, pos))
 				return 0;
 		}
 	}
+
 	return 1;
 }
 
 /////////////////////////////////////
 
-CreatureEvent::CreatureEvent(LuaInterface* _interface):
+CreatureEvent::CreatureEvent(LuaScriptInterface* _interface):
 Event(_interface)
 {
 	m_type = CREATURE_EVENT_NONE;
@@ -508,7 +536,7 @@ uint32_t CreatureEvent::executeLogin(Player* player)
 	//onLogin(cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -558,7 +586,7 @@ uint32_t CreatureEvent::executeLogout(Player* player, bool forceLogout)
 	//onLogout(cid, forceLogout)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -612,7 +640,7 @@ uint32_t CreatureEvent::executeChannelJoin(Player* player, uint16_t channelId, U
 	//onJoinChannel(cid, channel, users)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -678,7 +706,7 @@ uint32_t CreatureEvent::executeChannelLeave(Player* player, uint16_t channelId, 
 	//onLeaveChannel(cid, channel, users)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -744,7 +772,7 @@ uint32_t CreatureEvent::executeAdvance(Player* player, skills_t skill, uint32_t 
 	//onAdvance(cid, skill, oldLevel, newLevel)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -803,7 +831,7 @@ uint32_t CreatureEvent::executeMailSend(Player* player, Player* receiver, Item* 
 	//onSendMail(cid, receiver, item, openBox)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -842,7 +870,7 @@ uint32_t CreatureEvent::executeMailSend(Player* player, Player* receiver, Item* 
 			lua_pushnumber(L, env->addThing(player));
 			lua_pushnumber(L, env->addThing(receiver));
 
-			LuaInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
 			lua_pushboolean(L, openBox);
 
 			bool result = m_interface->callFunction(4);
@@ -862,7 +890,7 @@ uint32_t CreatureEvent::executeMailReceive(Player* player, Player* sender, Item*
 	//onReceiveMail(cid, sender, item, openBox)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -901,7 +929,7 @@ uint32_t CreatureEvent::executeMailReceive(Player* player, Player* sender, Item*
 			lua_pushnumber(L, env->addThing(player));
 			lua_pushnumber(L, env->addThing(sender));
 
-			LuaInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
 			lua_pushboolean(L, openBox);
 
 			bool result = m_interface->callFunction(4);
@@ -921,7 +949,7 @@ uint32_t CreatureEvent::executeTradeRequest(Player* player, Player* target, Item
 	//onTradeRequest(cid, target, item)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -958,7 +986,7 @@ uint32_t CreatureEvent::executeTradeRequest(Player* player, Player* target, Item
 
 			lua_pushnumber(L, env->addThing(player));
 			lua_pushnumber(L, env->addThing(target));
-			LuaInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
 
 			bool result = m_interface->callFunction(3);
 			m_interface->releaseEnv();
@@ -977,7 +1005,7 @@ uint32_t CreatureEvent::executeTradeAccept(Player* player, Player* target, Item*
 	//onTradeAccept(cid, target, item, targetItem)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -1014,8 +1042,8 @@ uint32_t CreatureEvent::executeTradeAccept(Player* player, Player* target, Item*
 
 			lua_pushnumber(L, env->addThing(player));
 			lua_pushnumber(L, env->addThing(target));
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushThing(L, targetItem, env->addThing(targetItem));
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, targetItem, env->addThing(targetItem));
 
 			bool result = m_interface->callFunction(4);
 			m_interface->releaseEnv();
@@ -1034,7 +1062,7 @@ uint32_t CreatureEvent::executeLook(Player* player, Thing* thing, const Position
 	//onLook(cid, thing, position, lookDistance)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -1071,9 +1099,9 @@ uint32_t CreatureEvent::executeLook(Player* player, Thing* thing, const Position
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(player));
-			LuaInterface::pushThing(L, thing, env->addThing(thing));
+			LuaScriptInterface::pushThing(L, thing, env->addThing(thing));
 
-			LuaInterface::pushPosition(L, position, stackpos);
+			LuaScriptInterface::pushPosition(L, position, stackpos);
 			lua_pushnumber(L, lookDistance);
 
 			bool result = m_interface->callFunction(4);
@@ -1093,7 +1121,7 @@ uint32_t CreatureEvent::executeDirection(Creature* creature, Direction old, Dire
 	//onDirection(cid, old, current)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1149,7 +1177,7 @@ uint32_t CreatureEvent::executeOutfit(Creature* creature, const Outfit_t& old, c
 	//onOutfit(cid, old, current)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1185,8 +1213,8 @@ uint32_t CreatureEvent::executeOutfit(Creature* creature, const Outfit_t& old, c
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(creature));
-			LuaInterface::pushOutfit(L, old);
-			LuaInterface::pushOutfit(L, current);
+			LuaScriptInterface::pushOutfit(L, old);
+			LuaScriptInterface::pushOutfit(L, current);
 
 			bool result = m_interface->callFunction(3);
 			m_interface->releaseEnv();
@@ -1205,7 +1233,7 @@ uint32_t CreatureEvent::executeThink(Creature* creature, uint32_t interval)
 	//onThink(cid, interval)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1254,12 +1282,12 @@ uint32_t CreatureEvent::executeThink(Creature* creature, uint32_t interval)
 	}
 }
 
-uint32_t CreatureEvent::executeStatsChange(Creature* creature, Creature* attacker, StatsChange_t type, CombatType_t combat, int32_t value)
+uint32_t CreatureEvent::executeStatsChange(Creature* creature, Creature* attacker, CreatureEventType_t type, CombatType_t combat, int32_t value)
 {
 	//onStatsChange(cid, attacker, type, combat, value)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1321,7 +1349,7 @@ uint32_t CreatureEvent::executeCombatArea(Creature* creature, Tile* tile, bool a
 	//onAreaCombat(cid, ground, position, aggressive)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1358,9 +1386,9 @@ uint32_t CreatureEvent::executeCombatArea(Creature* creature, Tile* tile, bool a
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(creature));
-			LuaInterface::pushThing(L, tile->ground, env->addThing(tile->ground));
+			LuaScriptInterface::pushThing(L, tile->ground, env->addThing(tile->ground));
 
-			LuaInterface::pushPosition(L, tile->getPosition(), 0);
+			LuaScriptInterface::pushPosition(L, tile->getPosition(), 0);
 			lua_pushboolean(L, aggressive);
 
 			bool result = m_interface->callFunction(4);
@@ -1380,7 +1408,7 @@ uint32_t CreatureEvent::executeCombat(Creature* creature, Creature* target)
 	//onCombat(cid, target)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1434,7 +1462,7 @@ uint32_t CreatureEvent::executeAttack(Creature* creature, Creature* target)
 	//onAttack(cid, target)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1488,7 +1516,7 @@ uint32_t CreatureEvent::executeCast(Creature* creature, Creature* target/* = NUL
 	//onCast(cid[, target])
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1556,7 +1584,7 @@ uint32_t CreatureEvent::executeKill(Creature* creature, Creature* target, const 
 		if(entry.isUnjustified())
 			flags |= 4;
 
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1624,7 +1652,7 @@ uint32_t CreatureEvent::executeDeath(Creature* creature, Item* corpse, DeathList
 	//onDeath(cid, corpse, deathList)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1670,7 +1698,7 @@ uint32_t CreatureEvent::executeDeath(Creature* creature, Item* corpse, DeathList
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(creature));
-			LuaInterface::pushThing(L, corpse, env->addThing(corpse));
+			LuaScriptInterface::pushThing(L, corpse, env->addThing(corpse));
 
 			lua_newtable(L);
 			DeathList::iterator it = deathList.begin();
@@ -1702,7 +1730,7 @@ uint32_t CreatureEvent::executePrepareDeath(Creature* creature, DeathList deathL
 	//onPrepareDeath(cid, deathList)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1779,7 +1807,7 @@ uint32_t CreatureEvent::executeTextEdit(Player* player, Item* item, std::string 
 	//onTextEdit(cid, item, newText)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -1815,7 +1843,7 @@ uint32_t CreatureEvent::executeTextEdit(Player* player, Item* item, std::string 
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(player));
-			LuaInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
 			lua_pushstring(L, newText.c_str());
 
 			bool result = m_interface->callFunction(3);
@@ -1835,7 +1863,7 @@ uint32_t CreatureEvent::executeReportBug(Player* player, std::string comment)
 	//onReportBug(cid, comment)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -1889,7 +1917,7 @@ uint32_t CreatureEvent::executePush(Player* player, Creature* target)
 	//onPush(cid, target)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -1943,7 +1971,7 @@ uint32_t CreatureEvent::executeTarget(Creature* creature, Creature* target)
 	//onTarget(cid, target)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1997,7 +2025,7 @@ uint32_t CreatureEvent::executeFollow(Creature* creature, Creature* target)
 	//onFollow(cid, target)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -2051,7 +2079,7 @@ uint32_t CreatureEvent::executeExtendedOpcode(Creature* creature, uint8_t opcode
 //onExtendedOpcode(cid, opcode, buffer)
 if(m_interface->reserveEnv())
 {
-ScriptEnviroment* env = m_interface->getEnv();
+LuaEnvironment* env = m_interface->getScriptEnv();
 if(m_scripted == EVENT_SCRIPT_BUFFER)
 {
 env->setRealPos(creature->getPosition());

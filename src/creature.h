@@ -212,8 +212,8 @@ class Creature : public AutoId, virtual public Thing
 		bool getHideName() const {return hideName;}
 		void setHideName(bool v) {hideName = v;}
 
-		bool getHideHealth() const {return hideHealth;}
-		void setHideHealth(bool v) {hideHealth = v;}
+		bool getHideHealth() const {return hiddenHealth;}
+		void setHideHealth(bool v) {hiddenHealth = v;}
 
 		SpeakClasses getSpeakType() const {return speakType;}
 		void setSpeakType(SpeakClasses type) {speakType = type;}
@@ -478,7 +478,7 @@ class Creature : public AutoId, virtual public Thing
 		int32_t health, healthMax;
 		int32_t mana, manaMax;
 
-		bool hideName, hideHealth, cannotMove;
+		bool hideName, hiddenHealth, cannotMove;
 		SpeakClasses speakType;
 
 		Outfit_t currentOutfit;
@@ -565,6 +565,6 @@ class Creature : public AutoId, virtual public Thing
 
 		friend class Game;
 		friend class Map;
-		friend class LuaInterface;
+		friend class LuaScriptInterface;
 };
 #endif

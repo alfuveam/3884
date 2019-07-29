@@ -24,6 +24,8 @@
 #include "luascript.h"
 #include "baseevents.h"
 
+typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+
 enum TalkActionFilter
 {
 	TALKFILTER_QUOTATION,
@@ -45,7 +47,9 @@ class TalkActions : public BaseEvents
 
 		inline TalkActionsMap::const_iterator getFirstTalk() const {return talksMap.begin();}
 		inline TalkActionsMap::const_iterator getLastTalk() const {return talksMap.end();}
+		bool registerLuaEvent(Event* event);
 
+		std::string parseParams(tokenizer::iterator &it, tokenizer::iterator end);
 	protected:
 		TalkAction* defaultTalkAction;
 		TalkActionsMap talksMap;
@@ -56,8 +60,8 @@ class TalkActions : public BaseEvents
 		virtual Event* getEvent(const std::string& nodeName);
 		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
 
-		virtual LuaInterface& getInterface() {return m_interface;}
-		LuaInterface m_interface;
+		virtual LuaScriptInterface& getScriptInterface() {return m_interface;}
+		LuaScriptInterface m_interface;
 };
 
 typedef bool (TalkFunction)(Creature* creature, const std::string& words, const std::string& param);
@@ -65,18 +69,25 @@ class TalkAction : public Event
 {
 	public:
 		TalkAction(const TalkAction* copy);
-		TalkAction(LuaInterface* _interface);
+		TalkAction(LuaScriptInterface* _interface);
 		virtual ~TalkAction() {}
 
 		virtual bool configureEvent(xmlNodePtr p);
-		virtual bool loadFunction(const std::string& functionName);
+		virtual bool loadFunction(const std::string& functionName, bool isScripted = true);
 
 		int32_t executeSay(Creature* creature, const std::string& words, std::string param, uint16_t channel);
 
 		std::string getFunctionName() const {return m_functionName;}
 		std::string getWords() const {return m_words;}
 		void setWords(const std::string& words) {m_words = words;}
-
+		std::string getSeparator() const {
+			return m_separator;
+		}
+		void setSeparator(std::string _sep) {
+			boost::char_separator<char> sep(" ");
+			tokenizer tokens(_sep, sep);	
+			m_separator = _sep; // Incomplete
+		}
 		TalkActionFilter getFilter() const {return m_filter;}
 		uint32_t getAccess() const {return m_access;}
 		int32_t getChannel() const {return m_channel;}
@@ -107,7 +118,7 @@ class TalkAction : public Event
 		static TalkFunction ghost;
 		static TalkFunction software;
 
-		std::string m_words, m_functionName;
+		std::string m_words, m_functionName, m_separator;
 		TalkFunction* m_function;
 		TalkActionFilter m_filter;
 		uint32_t m_access;

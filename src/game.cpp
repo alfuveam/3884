@@ -176,7 +176,7 @@ void Game::start(ServiceManager* servicer)
 
 void Game::loadGameState()
 {
-	ScriptEnviroment::loadGameState();
+	LuaEnvironment::loadGameState();
 	loadMotd();
 	loadPlayersRecord();
 	checkHighscores();
@@ -278,7 +278,7 @@ void Game::saveGameState(bool shallow)
 		storage = "binary";
 
 	map->saveMap();
-	ScriptEnviroment::saveGameState();
+	LuaEnvironment::saveGameState();
 	if(gameState == GAMESTATE_MAINTAIN)
 		setGameState(GAMESTATE_NORMAL);
 
@@ -522,7 +522,7 @@ void Game::refreshMap(RefreshTiles::iterator* it/* = NULL*/, uint32_t limit/* = 
 			if(internalAddItem(NULL, tile, item , INDEX_WHEREEVER, FLAG_NOLIMIT) == RET_NOERROR)
 			{
 				if(item->getUniqueId() != 0)
-					ScriptEnviroment::addUniqueThing(item);
+					LuaEnvironment::addUniqueThing(item);
 
 				startDecay(item);
 			}
@@ -599,7 +599,7 @@ Thing* Game::internalGetThing(Player* player, const Position& pos, int32_t index
 			{
 				Item* downItem = tile->getTopDownItem();
 				Item* item = tile->getItemByTopOrder(2);
-				if(item && g_actions->hasAction(item))
+				if(item && g_actions->getAction(item))
 				{
 					const ItemType& it = Item::items[item->getID()];
 					if(!downItem || (!it.hasHeight && !it.allowPickupable))
@@ -686,6 +686,30 @@ void Game::internalGetPosition(Item* item, Position& pos, int16_t& stackpos)
 			stackpos = tile->__getIndexOfThing(item);
 		}
 	}
+}
+
+Monster* Game::getMonsterByID(uint32_t id)
+{
+	if(!id)
+		return NULL;
+
+	AutoList<Monster>::iterator it = Monster::autoList.find(id);
+	if(it != Monster::autoList.end() && !it->second->isRemoved())
+		return it->second;
+
+	return NULL; //just in case the Monster doesnt exist
+}
+
+Npc* Game::getNpcByID(uint32_t id)
+{
+	if(!id)
+		return NULL;
+
+	AutoList<Npc>::iterator it = Npc::autoList.find(id);
+	if(it != Npc::autoList.end() && !it->second->isRemoved())
+		return it->second;
+
+	return NULL; //just in case the Npc doesnt exist
 }
 
 Creature* Game::getCreatureByID(uint32_t id)
@@ -2489,6 +2513,16 @@ bool Game::playerReceivePing(uint32_t playerId)
 
 	player->receivePing();
 	return true;
+}
+
+void Game::playerReceivePingBack(uint32_t playerId)
+{
+	Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+
+	player->sendPingBack();
 }
 
 bool Game::playerAutoWalk(uint32_t playerId, std::list<Direction>& listDir)

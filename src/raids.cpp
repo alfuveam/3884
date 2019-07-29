@@ -929,7 +929,7 @@ bool AreaSpawnEvent::executeEvent() const
 	return true;
 }
 
-LuaInterface ScriptEvent::m_interface("Raid Interface");
+LuaScriptInterface ScriptEvent::m_interface("Raid Interface");
 
 bool ScriptEvent::configureRaidEvent(xmlNodePtr eventNode)
 {
@@ -961,7 +961,7 @@ bool ScriptEvent::executeEvent() const
 	//onRaid()
 	if(m_interface.reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface.getEnv();
+		LuaEnvironment* env = m_interface.getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			bool result = true;

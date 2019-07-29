@@ -5135,7 +5135,7 @@ bool Player::getHideHealth() const
 	if(hasFlag(PlayerFlag_HideHealth))
 		return true;
 
-	return hideHealth;
+	return hiddenHealth;
 }
 
 void Player::sendPlayerIcons(Player* player)

@@ -31,6 +31,8 @@
 #include "configmanager.h"
 #include "game.h"
 
+#include "condition.h"
+
 extern Game g_game;
 extern Spells* g_spells;
 extern Monsters g_monsters;
@@ -38,7 +40,7 @@ extern ConfigManager g_config;
 
 void MonsterType::reset()
 {
-	canPushItems = canPushCreatures = isSummonable = isIllusionable = isConvinceable = isLureable = isWalkable = hideName = hideHealth = false;
+	canPushItems = canPushCreatures = isSummonable = isIllusionable = isConvinceable = isLureable = isWalkable = hideName = hiddenHealth = false;
 	pushable = isAttackable = isHostile = true;
 
 	outfit.lookHead = outfit.lookBody = outfit.lookLegs = outfit.lookFeet = outfit.lookType = outfit.lookTypeEx = outfit.lookAddons = 0;
@@ -57,7 +59,7 @@ void MonsterType::reset()
 	guildEmblem = EMBLEM_NONE;
 	lootMessage = LOOTMSG_IGNORE;
 
-	for(SpellList::iterator it = spellAttackList.begin(); it != spellAttackList.end(); ++it)
+	for(auto it = spellAttackList.begin(); it != spellAttackList.end(); ++it)
 	{
 		if(!it->combatSpell)
 			continue;
@@ -67,7 +69,7 @@ void MonsterType::reset()
 	}
 
 	spellAttackList.clear();
-	for(SpellList::iterator it = spellDefenseList.begin(); it != spellDefenseList.end(); ++it)
+	for(auto it = spellDefenseList.begin(); it != spellDefenseList.end(); ++it)
 	{
 		if(!it->combatSpell)
 			continue;
@@ -90,10 +92,25 @@ uint16_t Monsters::getLootRandom()
 	return (uint16_t)std::ceil((double)random_range(0, MAX_LOOTCHANCE) / g_config.getDouble(ConfigManager::RATE_LOOT));
 }
 
+void MonsterType::loadLoot(MonsterType* monsterType, LootBlock lootBlock)
+{
+	if (lootBlock.childLoot.empty()) {
+		bool isContainer = Item::items[lootBlock.id].isContainer();
+		if (isContainer) {
+			for (LootBlock child : lootBlock.childLoot) {
+				lootBlock.childLoot.push_back(child);
+			}
+		}
+		monsterType->lootItems.push_back(lootBlock);
+	} else {
+		monsterType->lootItems.push_back(lootBlock);
+	}
+}
+
 void MonsterType::dropLoot(Container* corpse)
 {
 	ItemList items;
-	for(LootItems::const_iterator it = lootItems.begin(); it != lootItems.end() && !corpse->full(); ++it)
+	for(auto it = lootItems.begin(); it != lootItems.end() && !corpse->full(); ++it)
 	{
 		items = createLoot(*it);
 		if(items.empty())
@@ -140,13 +157,13 @@ void MonsterType::dropLoot(Container* corpse)
 
 ItemList MonsterType::createLoot(const LootBlock& lootBlock)
 {
-	uint16_t item = lootBlock.ids[0], random = Monsters::getLootRandom(), count = 0;
-	if(lootBlock.ids.size() > 1)
-		item = lootBlock.ids[random_range((size_t)0, lootBlock.ids.size() - 1)];
+	uint16_t item = lootBlock.id, random = Monsters::getLootRandom(), count = 0;
+	if(lootBlock.childLoot.size() > 1)
+		item = lootBlock.childLoot.at(random_range(0, lootBlock.childLoot.size() - 1)).id;
 
 	ItemList items;
 	if(random < lootBlock.chance)
-		count = random % lootBlock.count + 1;
+		count = random % lootBlock.countmax + 1;
 
 	Item* tmpItem = NULL;
 	while(count > 0)
@@ -177,14 +194,11 @@ ItemList MonsterType::createLoot(const LootBlock& lootBlock)
 	return items;
 }
 
+
 bool MonsterType::createChildLoot(Container* parent, const LootBlock& lootBlock)
 {
-	LootItems::const_iterator it = lootBlock.childLoot.begin();
-	if(it == lootBlock.childLoot.end())
-		return true;
-
 	ItemList items;
-	for(; it != lootBlock.childLoot.end() && !parent->full(); ++it)
+	for(auto it = lootBlock.childLoot.begin(); it != lootBlock.childLoot.end() && !parent->full(); ++it)
 	{
 		items = createLoot(*it);
 		if(items.empty())
@@ -1035,7 +1049,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 						mType->hideName = booleanString(strValue);
 
 					if(readXMLString(tmpNode, "hidehealth", strValue))
-						mType->hideHealth = booleanString(strValue);
+						mType->hiddenHealth = booleanString(strValue);
 
 					if(readXMLInteger(tmpNode, "lootmessage", intValue))
 						mType->lootMessage = (LootMessage_t)intValue;
@@ -1465,8 +1479,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 		if(new_mType)
 		{
 			id++;
-			monsterNames[asLowerCaseString(monsterName)] = id;
-			monsters[id] = mType;
+			monsters.emplace(asLowerCaseString(monsterName), mType);
 		}
 
 		return true;
@@ -1478,6 +1491,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 	return false;
 }
 
+void Monsters::addMonsterType(const std::string& name, MonsterType* mType)
+{
+	monsters.emplace(asLowerCaseString(name), mType);
+}
+
 bool Monsters::loadLoot(xmlNodePtr node, LootBlock& lootBlock)
 {
 	std::string strValue;
@@ -1485,36 +1503,36 @@ bool Monsters::loadLoot(xmlNodePtr node, LootBlock& lootBlock)
 	{
 		IntegerVec idsVec;
 		parseIntegerVec(strValue, idsVec);
-		for(IntegerVec::iterator it = idsVec.begin(); it != idsVec.end(); ++it)
+		for(auto it = idsVec.begin(); it != idsVec.end(); ++it)
 		{
-			lootBlock.ids.push_back(*it);
-			if(Item::items[(*it)].isContainer())
-				loadChildLoot(node, lootBlock);
+			// lootBlock.childLoot.push_back(*it);
+			// if(Item::items[(*it)].isContainer())
+			// 	loadChildLoot(node, lootBlock);
 		}
 	}
 	else if(readXMLString(node, "name", strValue) || readXMLString(node, "names", strValue))
 	{
 		StringVec names = explodeString(strValue, ";");
-		for(StringVec::iterator it = names.begin(); it != names.end(); ++it)
+		for(auto it = names.begin(); it != names.end(); ++it)
 		{
 			uint16_t tmp = Item::items.getItemIdByName(strValue);
 			if(!tmp)
 				continue;
 
-			lootBlock.ids.push_back(tmp);
+			// lootBlock.childLoot.push_back(tmp);
 			if(Item::items[tmp].isContainer())
 				loadChildLoot(node, lootBlock);
 		}
 	}
 
-	if(lootBlock.ids.empty())
+	if(lootBlock.childLoot.empty())
 		return false;
 
 	int32_t intValue;
 	if(readXMLInteger(node, "count", intValue) || readXMLInteger(node, "countmax", intValue))
-		lootBlock.count = intValue;
+		lootBlock.countmax = intValue;
 	else
-		lootBlock.count = 1;
+		lootBlock.countmax = 1;
 
 	if(readXMLInteger(node, "chance", intValue) || readXMLInteger(node, "chance1", intValue))
 		lootBlock.chance = std::min(MAX_LOOTCHANCE, intValue);
@@ -1583,19 +1601,19 @@ MonsterType* Monsters::getMonsterType(const std::string& name)
 
 MonsterType* Monsters::getMonsterType(uint32_t mid)
 {
-	MonsterMap::iterator it = monsters.find(mid);
-	if(it != monsters.end())
-		return it->second;
+	// auto it = monsters.find(mid);
+	// if(it != monsters.end())
+	// 	return it->second;
 
 	return NULL;
 }
 
 uint32_t Monsters::getIdByName(const std::string& name)
 {
-	std::string tmp = name;
-	MonsterNameMap::iterator it = monsterNames.find(asLowerCaseString(tmp));
-	if(it != monsterNames.end())
-		return it->second;
+	// std::string tmp = name;
+	// auto it = monsters.find(asLowerCaseString(tmp));
+	// if(it != monsters.end())
+		// return it->second;
 
 	return 0;
 }
@@ -1603,6 +1621,238 @@ uint32_t Monsters::getIdByName(const std::string& name)
 Monsters::~Monsters()
 {
 	loaded = false;
-	for(MonsterMap::iterator it = monsters.begin(); it != monsters.end(); it++)
+	for(auto it = monsters.begin(); it != monsters.end(); it++)
 		delete it->second;
+}
+
+bool Monsters::deserializeSpell(MonsterSpell* spell, spellBlock_t& sb, const std::string& description)
+{
+	// if (!spell->scriptName.empty()) {
+	// 	spell->isScripted = true;
+	// } else if (!spell->name.empty()) {
+	// 	spell->isScripted = false;
+	// } else {
+	// 	return false;
+	// }
+
+	// sb.speed = spell->interval;
+
+	// if (spell->chance > 100) {
+	// 	sb.chance = 100;
+	// } else {
+	// 	sb.chance = spell->chance;
+	// }
+
+	// if (spell->range > (Map::maxViewportX * 2)) {
+	// 	spell->range = Map::maxViewportX * 2;
+	// }
+	// sb.range = spell->range;
+
+	// sb.minCombatValue = spell->minCombatValue;
+	// sb.maxCombatValue = spell->maxCombatValue;
+	// if (std::abs(sb.minCombatValue) > std::abs(sb.maxCombatValue)) {
+	// 	int32_t value = sb.maxCombatValue;
+	// 	sb.maxCombatValue = sb.minCombatValue;
+	// 	sb.minCombatValue = value;
+	// }
+
+	// sb.spell = g_spells->getSpellByName(spell->name);
+	// if (sb.spell) {
+	// 	return true;
+	// }
+
+	// CombatSpell* combatSpell = nullptr;
+
+	// if (spell->isScripted) {
+	// 	std::unique_ptr<CombatSpell> combatSpellPtr(new CombatSpell(nullptr, spell->needTarget, spell->needDirection));
+	// 	if (!combatSpellPtr->loadScript("data/" + g_spells->getScriptBaseName() + "/scripts/" + spell->scriptName)) {
+	// 		std::cout << "cannot find file" << std::endl;
+	// 		return false;
+	// 	}
+
+	// 	if (!combatSpellPtr->loadScriptCombat()) {
+	// 		return false;
+	// 	}
+
+	// 	combatSpell = combatSpellPtr.release();
+	// 	// combatSpell->getCombat()->setPlayerCombatValues(COMBAT_FORMULA_DAMAGE, sb.minCombatValue, 0, sb.maxCombatValue, 0);
+	// } else {
+	// 	std::unique_ptr<Combat> combat{ new Combat };
+	// 	sb.combatSpell = true;
+
+	// 	if (spell->length > 0) {
+	// 		spell->spread = std::max<int32_t>(0, spell->spread);
+
+	// 		// AreaCombat* area = new AreaCombat();
+	// 		// area->setupArea(spell->length, spell->spread);
+	// 		// combat->setArea(area);
+
+	// 		spell->needDirection = true;
+	// 	}
+
+	// 	if (spell->radius > 0) {
+	// 		// AreaCombat* area = new AreaCombat();
+	// 		// area->setupArea(spell->radius);
+	// 		// combat->setArea(area);
+	// 	}
+
+	// 	std::string tmpName = asLowerCaseString(spell->name);
+
+	// 	if (tmpName == "melee") {
+	// 		sb.isMelee = true;
+
+	// 		if (spell->attack > 0 && spell->skill > 0) {
+	// 			sb.minCombatValue = 0;
+	// 			sb.maxCombatValue = -Weapons::getMaxMeleeDamage(spell->skill, spell->attack);
+	// 		}
+
+	// 		ConditionType_t conditionType = CONDITION_NONE;
+	// 		int32_t minDamage = 0;
+	// 		int32_t maxDamage = 0;
+	// 		uint32_t tickInterval = 2000;
+
+	// 		if (spell->conditionType != CONDITION_NONE) {
+	// 			conditionType = spell->conditionType;
+
+	// 			minDamage = spell->conditionMinDamage;
+	// 			maxDamage = minDamage;
+	// 			if (spell->tickInterval != 0) {
+	// 				tickInterval = spell->tickInterval;
+	// 			}
+
+	// 			// Condition* condition = getDamageCondition(conditionType, maxDamage, minDamage, spell->conditionStartDamage, tickInterval);
+	// 			// combat->addCondition(condition);
+	// 		}
+
+	// 		sb.range = 1;
+	// 		combat->setParam(COMBATPARAM_COMBATTYPE, COMBAT_PHYSICALDAMAGE);
+	// 		combat->setParam(COMBATPARAM_BLOCKEDBYARMOR, 1);
+	// 		combat->setParam(COMBATPARAM_BLOCKEDBYARMOR, 1);
+	// 		// combat->setOrigin(CONDITIONPARAM_SKILL_MELEE);
+	// 	} else if (tmpName == "combat") {
+	// 		if (spell->combatType == COMBAT_PHYSICALDAMAGE) {
+	// 			// combat->setParam(COMBAT_PARAM_BLOCKARMOR, 1);
+	// 			// combat->setOrigin(ORIGIN_RANGED);
+	// 		} else if (spell->combatType == COMBAT_HEALING) {
+	// 			combat->setParam(COMBATPARAM_AGGRESSIVE, 0);
+	// 		}
+	// 		combat->setParam(COMBATPARAM_COMBATTYPE, spell->combatType);
+	// 	} else if (tmpName == "speed") {
+	// 		int32_t speedChange = 0;
+	// 		int32_t duration = 10000;
+
+	// 		if (spell->duration != 0) {
+	// 			duration = spell->duration;
+	// 		}
+
+	// 		if (spell->speedChange != 0) {
+	// 			speedChange = spell->speedChange;
+	// 			if (speedChange < -1000) {
+	// 				//cant be slower than 100%
+	// 				speedChange = -1000;
+	// 			}
+	// 		}
+
+	// 		ConditionType_t conditionType;
+	// 		if (speedChange > 0) {
+	// 			conditionType = CONDITION_HASTE;
+	// 			combat->setParam(COMBATPARAM_AGGRESSIVE, 0);
+	// 		} else {
+	// 			conditionType = CONDITION_PARALYZE;
+	// 		}
+
+	// 		ConditionSpeed* condition = static_cast<ConditionSpeed*>(Condition::createCondition(CONDITIONID_COMBAT, conditionType, duration, 0));
+	// 		condition->setFormulaVars(speedChange / 1000.0, 0, speedChange / 1000.0, 0);
+	// 		// combat->addCondition(condition);
+	// 	} else if (tmpName == "outfit") {
+	// 		int32_t duration = 10000;
+
+	// 		if (spell->duration != 0) {
+	// 			duration = spell->duration;
+	// 		}
+
+	// 		// ConditionOutfit* condition = static_cast<ConditionOutfit*>(Condition::createCondition(CONDITIONID_COMBAT, CONDITION_OUTFIT, duration, 0));
+	// 		// condition->setOutfit(spell->outfit);
+	// 		combat->setParam(COMBATPARAM_AGGRESSIVE, 0);
+	// 		// combat->addCondition(condition);
+	// 	} else if (tmpName == "invisible") {
+	// 		int32_t duration = 10000;
+
+	// 		if (spell->duration != 0) {
+	// 			duration = spell->duration;
+	// 		}
+
+	// 		// Condition* condition = Condition::createCondition(CONDITIONID_COMBAT, CONDITION_INVISIBLE, duration, 0);
+	// 		combat->setParam(COMBATPARAM_AGGRESSIVE, 0);
+	// 		// combat->addCondition(condition);
+	// 	} else if (tmpName == "drunk") {
+	// 		int32_t duration = 10000;
+
+	// 		if (spell->duration != 0) {
+	// 			duration = spell->duration;
+	// 		}
+
+	// 		// Condition* condition = Condition::createCondition(CONDITIONID_COMBAT, CONDITION_DRUNK, duration, 0);
+	// 		// combat->addCondition(condition);
+	// 	} else if (tmpName == "firefield") {
+	// 		// combat->setParam(COMBATPARAM_CREATEITEM, ITEM_FIREFIELD_PVP_FULL);
+	// 	} else if (tmpName == "poisonfield") {
+	// 		// combat->setParam(COMBATPARAM_CREATEITEM, ITEM_POISONFIELD_PVP);
+	// 	} else if (tmpName == "energyfield") {
+	// 		// combat->setParam(COMBATPARAM_CREATEITEM, ITEM_ENERGYFIELD_PVP);
+	// 	} else if (tmpName == "condition") {
+	// 		uint32_t tickInterval = 2000;
+
+	// 		if (spell->conditionType == CONDITION_NONE) {
+	// 			std::cout << "[Error - Monsters::deserializeSpell] - " << description << " - Condition is not set for: " << spell->name << std::endl;
+	// 		}
+
+	// 		if (spell->tickInterval != 0) {
+	// 			int32_t value = spell->tickInterval;
+	// 			if (value > 0) {
+	// 				tickInterval = value;
+	// 			}
+	// 		}
+
+	// 		int32_t minDamage = std::abs(spell->conditionMinDamage);
+	// 		// int32_t maxDamage = std::abs(spell->conditionMaxDamage);
+	// 		int32_t startDamage = 0;
+
+	// 		if (spell->conditionStartDamage != 0) {
+	// 			int32_t value = std::abs(spell->conditionStartDamage);
+	// 			if (value <= minDamage) {
+	// 				startDamage = value;
+	// 			}
+	// 		}
+
+	// 		// Condition* condition = getDamageCondition(spell->conditionType, maxDamage, minDamage, startDamage, tickInterval);
+	// 		// combat->addCondition(condition);
+	// 	} else if (tmpName == "strength") {
+	// 		//
+	// 	} else if (tmpName == "effect") {
+	// 		//
+	// 	} else {
+	// 		std::cout << "[Error - Monsters::deserializeSpell] - " << description << " - Unknown spell name: " << spell->name << std::endl;
+	// 	}
+
+	// 	if (spell->needTarget) {
+	// 		// if (spell->shoot != CONST_ANI_NONE) {
+	// 		// 	combat->setParam(COMBAT_PARAM_DISTANCEEFFECT, spell->shoot);
+	// 		// }
+	// 	}
+
+	// 	// if (spell->effect != CONST_ME_NONE) {
+	// 	// 	combat->setParam(COMBAT_PARAM_EFFECT, spell->effect);
+	// 	// }
+
+	// 	// combat->setPlayerCombatValues(COMBAT_FORMULA_DAMAGE, sb.minCombatValue, 0, sb.maxCombatValue, 0);
+	// 	// combatSpell = new CombatSpell(combat.release(), spell->needTarget, spell->needDirection);
+	// }
+
+	// sb.spell = combatSpell;
+	// if (combatSpell) {
+	// 	sb.combatSpell = true;
+	// }
+	// return true;
+	return false;
 }

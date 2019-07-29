@@ -38,14 +38,16 @@
 
 #include "configmanager.h"
 #include "luascript.h"
+#include "revscriptsys.h"
 
-Actions* g_actions = NULL;
-CreatureEvents* g_creatureEvents = NULL;
-Spells* g_spells = NULL;
-TalkActions* g_talkActions = NULL;
-MoveEvents* g_moveEvents = NULL;
-Weapons* g_weapons = NULL;
-GlobalEvents* g_globalEvents = NULL;
+Actions* g_actions = nullptr;
+CreatureEvents* g_creatureEvents = nullptr;
+Spells* g_spells = nullptr;
+TalkActions* g_talkActions = nullptr;
+MoveEvents* g_moveEvents = nullptr;
+Weapons* g_weapons = nullptr;
+GlobalEvents* g_globalEvents = nullptr;
+Scripts* g_libs = nullptr;
 
 extern Chat g_chat;
 extern ConfigManager g_config;
@@ -156,8 +158,19 @@ bool ScriptManager::loadMods()
 	return true;
 }
 
+bool ScriptManager::revScriptsys()
+{
+	g_libs = new Scripts();
+	std::cout << ">> Loading lua libs" << std::endl;
+	if (!g_libs->loadScripts("scripts\\lib", true)) {
+		std::cout << "> ERROR: Unable to load lua libs!" << std::endl;
+		return false;
+	}
+}
+
 void ScriptManager::clearMods()
 {
+	delete g_libs;
 	modMap.clear();
 	libMap.clear();
 }
@@ -166,6 +179,11 @@ bool ScriptManager::reloadMods()
 {
 	clearMods();
 	return loadMods();
+}
+
+bool ScriptManager::reloadRevScriptsys()
+{
+
 }
 
 bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)

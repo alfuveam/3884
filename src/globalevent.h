@@ -51,6 +51,7 @@ class GlobalEvents : public BaseEvents
 
 		GlobalEventMap getEventMap(GlobalEvent_t type);
 		void clearMap(GlobalEventMap& map);
+		bool registerLuaEvent(Event* event);
 
 	protected:
 		virtual std::string getScriptBaseName() const {return "globalevents";}
@@ -59,8 +60,8 @@ class GlobalEvents : public BaseEvents
 		virtual Event* getEvent(const std::string& nodeName);
 		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
 
-		virtual LuaInterface& getInterface() {return m_interface;}
-		LuaInterface m_interface;
+		virtual LuaScriptInterface& getScriptInterface() {return m_interface;}
+		LuaScriptInterface m_interface;
 
 		GlobalEventMap thinkMap, serverMap, timerMap;
 };
@@ -68,7 +69,7 @@ class GlobalEvents : public BaseEvents
 class GlobalEvent : public Event
 {
 	public:
-		GlobalEvent(LuaInterface* _interface);
+		GlobalEvent(LuaScriptInterface* _interface);
 		virtual ~GlobalEvent() {}
 
 		virtual bool configureEvent(xmlNodePtr p);
@@ -76,8 +77,20 @@ class GlobalEvent : public Event
 		int32_t executeRecord(uint32_t current, uint32_t old, Player* player);
 		int32_t executeEvent();
 
+		void setEventType(GlobalEvent_t type) {
+			m_eventType = type;
+		}
+
 		GlobalEvent_t getEventType() const {return m_eventType;}
+		void setName(std::string eventName) {
+			m_name = eventName;
+		}
+
 		std::string getName() const {return m_name;}
+
+		void setInterval(uint32_t eventInterval) {
+			m_interval |= eventInterval;
+		}
 
 		uint32_t getInterval() const {return m_interval;}
 

@@ -108,6 +108,7 @@ bool ConfigManager::load()
 		m_confBool[RANDOMIZE_TILES] = getGlobalBool("randomizeTiles", true);
 		m_confBool[STORE_TRASH] = getGlobalBool("storeTrash", true);
 		m_confBool[EXPERIENCE_STAGES] = getGlobalBool("experienceStages", false);
+		m_confBool[SCRIPTS_CONSOLE_LOGS] = getGlobalBool("showScriptsLogInConsole", true);
 		m_confString[DEFAULT_PRIORITY] = getGlobalString("defaultPriority", "high");
 		m_confBool[GUILD_HALLS] = getGlobalBool("guildHalls", false);
 		#ifndef __LOGIN_SERVER__

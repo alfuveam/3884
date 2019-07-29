@@ -52,60 +52,38 @@ enum CreatureEventType_t
 	CREATURE_EVENT_DEATH,
 	CREATURE_EVENT_PREPAREDEATH,
 	CREATURE_EVENT_EXTENDED_OPCODE, // otclient opcodes de rede adicionais
-	CREATURE_EVENT_MOVEITEM
-};
-
-enum StatsChange_t
-{
+	CREATURE_EVENT_MOVEITEM,
+	CREATURE_EVENT_MODALWINDOW,
 	STATSCHANGE_HEALTHGAIN,
 	STATSCHANGE_HEALTHLOSS,
 	STATSCHANGE_MANAGAIN,
-	STATSCHANGE_MANALOSS
-};
-
-class CreatureEvent;
-class CreatureEvents : public BaseEvents
-{
-	public:
-		CreatureEvents();
-		virtual ~CreatureEvents();
-
-		// global events
-		bool playerLogin(Player* player);
-		bool playerLogout(Player* player, bool forceLogout);
-		uint32_t executeMoveItems(Creature* actor, Item* item, const Position& frompos, const Position& pos);
-
-		CreatureEvent* getEventByName(const std::string& name);
-
-	protected:
-		virtual std::string getScriptBaseName() const {return "creaturescripts";}
-		virtual void clear();
-
-		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
-
-		virtual LuaInterface& getInterface() {return m_interface;}
-		LuaInterface m_interface;
-
-		//creature events
-		typedef std::vector<CreatureEvent*> CreatureEventList;
-		CreatureEventList m_creatureEvents;
+	STATSCHANGE_MANALOSS	
 };
 
 struct DeathEntry;
 typedef std::vector<DeathEntry> DeathList;
 
 typedef std::map<uint32_t, Player*> UsersMap;
+
 class CreatureEvent : public Event
 {
 	public:
-		CreatureEvent(LuaInterface* _interface);
+		CreatureEvent(LuaScriptInterface* _interface);
 		virtual ~CreatureEvent() {}
 
 		virtual bool configureEvent(xmlNodePtr p);
 
+		void setLoaded(bool loaded){
+			m_isLoaded = loaded;
+		}
 		bool isLoaded() const {return m_isLoaded;}
+		void setName(const std::string& name) {
+			m_eventName = name;
+		}		
 		const std::string& getName() const {return m_eventName;}
+		void setEventType(CreatureEventType_t type){
+			m_type = type;
+		}
 		CreatureEventType_t getEventType() const {return m_type;}
 
 		void copyEvent(CreatureEvent* creatureEvent);
@@ -127,7 +105,7 @@ class CreatureEvent : public Event
 		uint32_t executeThink(Creature* creature, uint32_t interval);
 		uint32_t executeDirection(Creature* creature, Direction old, Direction current);
 		uint32_t executeOutfit(Creature* creature, const Outfit_t& old, const Outfit_t& current);
-		uint32_t executeStatsChange(Creature* creature, Creature* attacker, StatsChange_t type, CombatType_t combat, int32_t value);
+		uint32_t executeStatsChange(Creature* creature, Creature* attacker, CreatureEventType_t type, CombatType_t combat, int32_t value);
 		uint32_t executeCombatArea(Creature* creature, Tile* tile, bool isAggressive);
 		uint32_t executePush(Player* player, Creature* target);
 		uint32_t executeTarget(Creature* creature, Creature* target);
@@ -150,5 +128,34 @@ class CreatureEvent : public Event
 		bool m_isLoaded;
 		std::string m_eventName;
 		CreatureEventType_t m_type;
+};
+
+class CreatureEvents : public BaseEvents
+{
+	public:
+		CreatureEvents();
+		virtual ~CreatureEvents();
+
+		// global events
+		bool playerLogin(Player* player);
+		bool playerLogout(Player* player, bool forceLogout);
+		uint32_t executeMoveItems(Creature* actor, Item* item, const Position& frompos, const Position& pos);
+
+		CreatureEvent* getEventByName(const std::string& name);
+		bool registerLuaEvent(Event* event);
+
+	protected:
+		virtual std::string getScriptBaseName() const {return "creaturescripts";}
+		virtual void clear();
+
+		virtual Event* getEvent(const std::string& nodeName);
+		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+
+		virtual LuaScriptInterface& getScriptInterface() {return m_interface;}
+		LuaScriptInterface m_interface;
+
+		//creature events
+		using CreatureEventList = std::map<std::string, CreatureEvent*>;
+		CreatureEventList m_creatureEvents;
 };
 #endif

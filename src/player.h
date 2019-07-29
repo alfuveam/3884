@@ -297,6 +297,9 @@ class Player : public Creature, public Cylinder
 		}
 		
 		virtual const std::string& getName() const {return name;}
+		void setName(std::string name) {
+			this->name = std::move(name);
+		}		
 		virtual const std::string& getNameDescription() const {return nameDescription;}
 		virtual std::string getDescription(int32_t lookDistance) const;
 
@@ -1021,7 +1024,13 @@ class Player : public Creature, public Cylinder
 		void sendCritical() const;
 		void sendPlayerIcons(Player* player);
 
+		void sendPingBack() const {
+			if (client) {
+				client->sendPingBack();
+			}
+		}
 		void receivePing() {lastPong = OTSYS_TIME();}
+
 		virtual void onThink(uint32_t interval);
 		uint32_t getAttackSpeed() const;
 
@@ -1250,7 +1259,7 @@ class Player : public Creature, public Cylinder
 #endif
 
 		friend class Game;
-		friend class LuaInterface;
+		friend class LuaScriptInterface;
 		friend class Npc;
 		friend class Map;
 		friend class Actions;

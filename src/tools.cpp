@@ -698,29 +698,6 @@ std::string trimString(std::string& str)
 	return str.erase(0, str.find_first_not_of(" "));
 }
 
-std::string parseParams(tokenizer::iterator &it, tokenizer::iterator end)
-{
-	if(it == end)
-		return "";
-
-	std::string tmp = (*it);
-	++it;
-	if(tmp[0] == '"')
-	{
-		tmp.erase(0, 1);
-		while(it != end && tmp[tmp.length() - 1] != '"')
-		{
-			tmp += " " + (*it);
-			++it;
-		}
-
-		if(tmp.length() > 0 && tmp[tmp.length() - 1] == '"')
-			tmp.erase(tmp.length() - 1);
-	}
-
-	return tmp;
-}
-
 std::string formatDate(time_t _time/* = 0*/)
 {
 	if(!_time)
@@ -2096,6 +2073,11 @@ std::string getFilePath(FileType_t type, std::string name/* = ""*/)
 			#endif
 			break;
 		}
+		case FILE_TYPE_REVSCRIPT:
+		{
+			path += "scripts/" + name;
+			break;
+		}		
 		case FILE_TYPE_CONFIG:
 		{
 			#if defined(__HOMEDIR_CONF__)
@@ -2126,4 +2108,20 @@ uint32_t swap_uint32(uint32_t val)
 {
     val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF ); 
     return (val << 16) | (val >> 16);
+}
+
+SpellGroup_t stringToSpellGroup(std::string value)
+{
+	std::string tmpStr = asLowerCaseString(value);
+	if (tmpStr == "attack" || tmpStr == "1") {
+		return SPELLGROUP_ATTACK;
+	} else if (tmpStr == "healing" || tmpStr == "2") {
+		return SPELLGROUP_HEALING;
+	} else if (tmpStr == "support" || tmpStr == "3") {
+		return SPELLGROUP_SUPPORT;
+	} else if (tmpStr == "special" || tmpStr == "4") {
+		return SPELLGROUP_SPECIAL;
+	}
+
+	return SPELLGROUP_NONE;
 }

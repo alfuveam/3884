@@ -85,7 +85,7 @@ class Manager
 
 	protected:
 		Manager(): m_interface("Manager Interface") {m_interface.initState();}
-		LuaInterface m_interface;
+		LuaScriptInterface m_interface;
 
 		typedef std::map<ProtocolManager*, bool> ClientMap;
 		ClientMap m_clients;

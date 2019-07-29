@@ -248,6 +248,16 @@ uint32_t Spells::getInstantSpellCount(const Player* player)
 	return count;
 }
 
+InstantSpell* Spells::getInstantSpellById(uint32_t spellId)
+{
+	for (auto& it : instants) {
+		if (it.second.getId() == spellId) {
+			return &it.second;
+		}
+	}
+	return nullptr;
+}
+
 InstantSpell* Spells::getInstantSpellByIndex(const Player* player, uint32_t index)
 {
 	uint32_t count = 0;
@@ -315,8 +325,39 @@ bool BaseSpell::castSpell(Creature* creature, Creature* target)
 	return success;
 }
 
+//
+bool Spells::registerInstantLuaEvent(InstantSpell* event)
+{
+	InstantSpell* instant = dynamic_cast<InstantSpell*>(event);
+	if (instant) {
+		std::string words = instant->getWords();
+		auto result = InstantsMap.emplace(instant->getWords(), std::move(*instant));
+		if (!result.second) {
+			std::cout << "[Warning - Spells::registerInstantLuaEvent] Duplicate registered instant spell with words: " << words << std::endl;
+		}
+		return result.second;
+	}
+
+	return false;
+}
+
+bool Spells::registerRuneLuaEvent(RuneSpell* event)
+{
+	RuneSpell* rune = dynamic_cast<RuneSpell*>(event);
+	if (rune) {
+		uint16_t id = rune->getRuneItemId();
+		auto result = RunesMap.emplace(rune->getRuneItemId(), std::move(*rune));
+		if (!result.second) {
+			std::cout << "[Warning - Spells::registerRuneLuaEvent] Duplicate registered rune with id: " << id << std::endl;
+		}
+		return result.second;
+	}
+
+	return false;
+}
+
 CombatSpell::CombatSpell(Combat* _combat, bool _needTarget, bool _needDirection) :
-	Event(&g_spells->getInterface())
+	Event(&g_spells->getScriptInterface())
 {
 	combat =_combat;
 	needTarget = _needTarget;
@@ -333,7 +374,7 @@ bool CombatSpell::loadScriptCombat()
 {
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		combat = env->getCombatObject(env->getLastCombatId());
 
 		env->resetCallback();
@@ -415,7 +456,7 @@ bool CombatSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 	//onCastSpell(cid, var)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -479,7 +520,7 @@ Spell::Spell()
 	blockingCreature = false;
 	enabled = true;
 	premium = false;
-	isAggressive = true;
+	aggressive = true;
 	learnable = false;
 }
 
@@ -569,7 +610,7 @@ bool Spell::configureSpell(xmlNodePtr p)
 	}
 
 	if(readXMLString(p, "aggressive", strValue))
-		isAggressive = booleanString(strValue);
+		aggressive = booleanString(strValue);
 
 	std::string error = "";
 	xmlNodePtr vocationNode = p->children;
@@ -596,7 +637,7 @@ bool Spell::checkSpell(Player* player) const
 		return false;
 
 	bool exhausted = false;
-	if(isAggressive)
+	if(aggressive)
 	{
 		if(!player->hasFlag(PlayerFlag_IgnoreProtectionZone) && player->getZone() == ZONE_PROTECTION)
 		{
@@ -654,7 +695,7 @@ bool Spell::checkSpell(Player* player) const
 		return false;
 	}
 
-	if(isInstant() && isLearnable() && !player->hasLearnedInstantSpell(getName()))
+	if(isInstant() && getNeedLearn() && !player->hasLearnedInstantSpell(getName()))
 	{
 		player->sendCancelMessage(RET_YOUNEEDTOLEARNTHISSPELL);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -722,7 +763,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 	}
 
 	ReturnValue ret;
-	if((ret = Combat::canDoCombat(player, tile, isAggressive)) != RET_NOERROR)
+	if((ret = Combat::canDoCombat(player, tile, aggressive)) != RET_NOERROR)
 	{
 		player->sendCancelMessage(ret);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -745,7 +786,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 
 	if(!needTarget)
 	{
-		if(!isAggressive || player->getSkull() != SKULL_BLACK)
+		if(!aggressive || player->getSkull() != SKULL_BLACK)
 			return true;
 
 		player->sendCancelMessage(RET_YOUMAYNOTCASTAREAONBLACKSKULL);
@@ -761,7 +802,7 @@ bool Spell::checkInstantSpell(Player* player, Creature* creature)
 	}
 
 	Player* targetPlayer = creature->getPlayer();
-	if(!isAggressive || !targetPlayer || Combat::isInPvpZone(player, targetPlayer)
+	if(!aggressive || !targetPlayer || Combat::isInPvpZone(player, targetPlayer)
 		|| player->getSkullType(targetPlayer) != SKULL_NONE)
 		return true;
 
@@ -813,7 +854,7 @@ bool Spell::checkInstantSpell(Player* player, const Position& toPos)
 	}
 
 	ReturnValue ret;
-	if((ret = Combat::canDoCombat(player, tile, isAggressive)) != RET_NOERROR)
+	if((ret = Combat::canDoCombat(player, tile, aggressive)) != RET_NOERROR)
 	{
 		player->sendCancelMessage(ret);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -834,7 +875,7 @@ bool Spell::checkInstantSpell(Player* player, const Position& toPos)
 		return false;
 	}
 
-	if(player->getSkull() == SKULL_BLACK && isAggressive && range == -1) //-1 is (usually?) an area spell
+	if(player->getSkull() == SKULL_BLACK && aggressive && range == -1) //-1 is (usually?) an area spell
 	{
 		player->sendCancelMessage(RET_YOUMAYNOTCASTAREAONBLACKSKULL);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -883,7 +924,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 	}
 
 	ReturnValue ret;
-	if((ret = Combat::canDoCombat(player, tile, isAggressive)) != RET_NOERROR)
+	if((ret = Combat::canDoCombat(player, tile, aggressive)) != RET_NOERROR)
 	{
 		player->sendCancelMessage(ret);
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_POFF);
@@ -907,7 +948,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 
 	if(!needTarget)
 	{
-		if(!isAggressive || player->getSkull() != SKULL_BLACK)
+		if(!aggressive || player->getSkull() != SKULL_BLACK)
 			return true;
 
 		player->sendCancelMessage(RET_YOUMAYNOTCASTAREAONBLACKSKULL);
@@ -923,7 +964,7 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 	}
 
 	Player* targetPlayer = targetCreature->getPlayer();
-	if(!isAggressive || !targetPlayer || Combat::isInPvpZone(player, targetPlayer)
+	if(!aggressive || !targetPlayer || Combat::isInPvpZone(player, targetPlayer)
 		|| player->getSkullType(targetPlayer) != SKULL_NONE)
 		return true;
 
@@ -947,9 +988,9 @@ bool Spell::checkRuneSpell(Player* player, const Position& toPos)
 void Spell::postSpell(Player* player) const
 {
 	if(!player->hasFlag(PlayerFlag_HasNoExhaustion) && exhaustion > 0)
-		player->addExhaust(exhaustion, isAggressive ? EXHAUST_COMBAT : EXHAUST_HEALING);
+		player->addExhaust(exhaustion, aggressive ? EXHAUST_COMBAT : EXHAUST_HEALING);
 
-	if(isAggressive && !player->hasFlag(PlayerFlag_NotGainInFight))
+	if(aggressive && !player->hasFlag(PlayerFlag_NotGainInFight))
 		player->addInFightTicks(false);
 
 	postSpell(player, (uint32_t)getManaCost(player), (uint32_t)getSoulCost());
@@ -1016,7 +1057,7 @@ ReturnValue Spell::CreateIllusion(Creature* creature, uint32_t itemId, int32_t t
 	return CreateIllusion(creature, outfit, time);
 }
 
-InstantSpell::InstantSpell(LuaInterface* _interface) : TalkAction(_interface)
+InstantSpell::InstantSpell(LuaScriptInterface* _interface) : TalkAction(_interface)
 {
 	needDirection = false;
 	hasParam = false;
@@ -1054,24 +1095,24 @@ bool InstantSpell::configureEvent(xmlNodePtr p)
 	return true;
 }
 
-bool InstantSpell::loadFunction(const std::string& functionName)
+bool InstantSpell::loadFunction(const std::string& functionName, bool isScripted /* = false*/)
 {
 	std::string tmpFunctionName = asLowerCaseString(functionName);
 	if(tmpFunctionName == "summonmonster")
 		function = SummonMonster;
 	else if(tmpFunctionName == "searchplayer")
 	{
-		isAggressive = false;
+		aggressive = false;
 		function = SearchPlayer;
 	}
 	else if(tmpFunctionName == "levitate")
 	{
-		isAggressive = false;
+		aggressive = false;
 		function = Levitate;
 	}
 	else if(tmpFunctionName == "illusion")
 	{
-		isAggressive = false;
+		aggressive = false;
 		function = Illusion;
 	}
 	else
@@ -1249,7 +1290,7 @@ bool InstantSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 	//onCastSpell(cid, var)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1466,17 +1507,17 @@ bool InstantSpell::canCast(const Player* player) const
 	if(player->hasFlag(PlayerFlag_CannotUseSpells))
 		return false;
 
-	if(player->hasFlag(PlayerFlag_IgnoreSpellCheck) || (!isLearnable() && (vocSpellMap.empty()
+	if(player->hasFlag(PlayerFlag_IgnoreSpellCheck) || (!getNeedLearn() && (vocSpellMap.empty()
 		|| vocSpellMap.find(player->getVocationId()) != vocSpellMap.end())))
 		return true;
 
 	return player->hasLearnedInstantSpell(getName());
 }
 
-ConjureSpell::ConjureSpell(LuaInterface* _interface):
+ConjureSpell::ConjureSpell(LuaScriptInterface* _interface):
 	InstantSpell(_interface)
 {
-	isAggressive = false;
+	aggressive = false;
 	conjureId = 0;
 	conjureCount = 1;
 	conjureReagentId = 0;
@@ -1507,7 +1548,7 @@ bool ConjureSpell::configureEvent(xmlNodePtr p)
 	return true;
 }
 
-bool ConjureSpell::loadFunction(const std::string& functionName)
+bool ConjureSpell::loadFunction(const std::string& functionName, bool isScripted /* = false*/)
 {
 	std::string tmpFunctionName = asLowerCaseString(functionName);
 	if(tmpFunctionName == "conjureitem" || tmpFunctionName == "conjurerune")
@@ -1634,7 +1675,7 @@ bool ConjureSpell::castInstant(Player* player, const std::string& param)
 	return executeCastSpell(player, var);
 }
 
-RuneSpell::RuneSpell(LuaInterface* _interface):
+RuneSpell::RuneSpell(LuaScriptInterface* _interface):
 Action(_interface)
 {
 	runeId = 0;
@@ -1661,7 +1702,7 @@ bool RuneSpell::configureEvent(xmlNodePtr p)
 
 	std::string strValue;
 	if(readXMLString(p, "charges", strValue))
-		hasCharges = booleanString(strValue);
+		setCharges(strValue);
 
 	ItemType& it = Item::items.getItemType(runeId);
 	if(level && level != it.runeLevel)
@@ -1674,7 +1715,7 @@ bool RuneSpell::configureEvent(xmlNodePtr p)
 	return true;
 }
 
-bool RuneSpell::loadFunction(const std::string& functionName)
+bool RuneSpell::loadFunction(const std::string& functionName, bool isScripted /* = false*/)
 {
 	std::string tmpFunctionName = asLowerCaseString(functionName);
 	if(tmpFunctionName == "chameleon")
@@ -1808,8 +1849,8 @@ ReturnValue RuneSpell::canExecuteAction(const Player* player, const Position& to
 	return RET_NOERROR;
 }
 
-bool RuneSpell::executeUse(Player* player, Item* item, const PositionEx& posFrom,
-	const PositionEx& posTo, bool, uint32_t creatureId)
+bool RuneSpell::executeUse(Player* player, Item* item, const Position& posFrom,
+	const Position& posTo, bool, uint32_t creatureId)
 {
 	if(!checkRuneSpell(player, posTo))
 		return false;
@@ -1876,7 +1917,7 @@ bool RuneSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 	//onCastSpell(cid, var)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());

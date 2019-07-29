@@ -73,7 +73,7 @@ Monster::Monster(MonsterType* _mType):
 	setShield(mType->partyShield);
 	setEmblem(mType->guildEmblem);
 
-	hideName = mType->hideName, hideHealth = mType->hideHealth;
+	hideName = mType->hideName, hiddenHealth = mType->hiddenHealth;
 
 	minCombatValue = 0;
 	maxCombatValue = 0;
@@ -473,7 +473,8 @@ BlockType_t Monster::blockHit(Creature* attacker, CombatType_t combatType, int32
 		return blockType;
 
 	int32_t elementMod = 0;
-	ElementMap::iterator it = mType->elementMap.find(combatType);
+
+	auto it = mType->elementMap.find(combatType);
 	if(it != mType->elementMap.end())
 		elementMod = it->second;
 
@@ -630,7 +631,7 @@ void Monster::doAttacking(uint32_t interval)
 	attackTicks += interval;
 
 	const Position& myPos = getPosition();
-	for(SpellList::iterator it = mType->spellAttackList.begin(); it != mType->spellAttackList.end(); ++it)
+	for(auto it = mType->spellAttackList.begin(); it != mType->spellAttackList.end(); ++it)
 	{
 		if(!attackedCreature || attackedCreature->isRemoved())
 			break;
@@ -691,7 +692,7 @@ bool Monster::canUseAttack(const Position& pos, const Creature* target) const
 		return true;
 
 	const Position& targetPos = target->getPosition();
-	for(SpellList::iterator it = mType->spellAttackList.begin(); it != mType->spellAttackList.end(); ++it)
+	for(auto it = mType->spellAttackList.begin(); it != mType->spellAttackList.end(); ++it)
 	{
 		if((*it).range != 0 && std::max(std::abs(pos.x - targetPos.x), std::abs(pos.y - targetPos.y)) <= (int32_t)(*it).range)
 			return g_game.isSightClear(pos, targetPos, true);
@@ -763,7 +764,7 @@ void Monster::onThinkDefense(uint32_t interval)
 {
 	resetTicks = true;
 	defenseTicks += interval;
-	for(SpellList::iterator it = mType->spellDefenseList.begin(); it != mType->spellDefenseList.end(); ++it)
+	for(auto it = mType->spellDefenseList.begin(); it != mType->spellDefenseList.end(); ++it)
 	{
 		if(it->speed > defenseTicks)
 		{
@@ -788,7 +789,7 @@ void Monster::onThinkDefense(uint32_t interval)
 	{
 		if(mType->maxSummons < 0 || (int32_t)summons.size() < mType->maxSummons)
 		{
-			for(SummonList::iterator it = mType->summonList.begin(); it != mType->summonList.end(); ++it)
+			for(auto it = mType->summonList.begin(); it != mType->summonList.end(); ++it)
 			{
 				if((int32_t)summons.size() >= mType->maxSummons)
 					break;
@@ -1314,7 +1315,7 @@ void Monster::dropLoot(Container* corpse)
 
 bool Monster::isImmune(CombatType_t type) const
 {
-	ElementMap::const_iterator it = mType->elementMap.find(type);
+	auto it = mType->elementMap.find(type);
 	if(it == mType->elementMap.end())
 		return Creature::isImmune(type);
 

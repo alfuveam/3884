@@ -36,7 +36,7 @@ MoveEvent* MoveEventScript::event = NULL;
 
 void MoveEventScript::registerFunctions()
 {
-	LuaInterface::registerFunctions();
+	LuaScriptInterface::registerFunctions();
 	lua_register(m_luaState, "callFunction", MoveEventScript::luaCallFunction);
 }
 
@@ -53,7 +53,7 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 
 	if(event->getEventType() == MOVE_EVENT_EQUIP || event->getEventType() == MOVE_EVENT_DE_EQUIP)
 	{
-		ScriptEnviroment* env = getEnv();
+		LuaEnvironment* env = getScriptEnv();
 		bool boolean = popNumber(L);
 		slots_t slot = (slots_t)popNumber(L);
 
@@ -82,7 +82,7 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 	}
 	else if(event->getEventType() == MOVE_EVENT_STEP_IN)
 	{
-		ScriptEnviroment* env = getEnv();
+		LuaEnvironment* env = getScriptEnv();
 		Item* item = env->getItemByUID(popNumber(L));
 		if(!item)
 		{
@@ -104,7 +104,7 @@ int32_t MoveEventScript::luaCallFunction(lua_State* L)
 	}
 	else if(event->getEventType() == MOVE_EVENT_ADD_ITEM)
 	{
-		ScriptEnviroment* env = getEnv();
+		LuaEnvironment* env = getScriptEnv();
 		Item* item = env->getItemByUID(popNumber(L));
 		if(!item)
 		{
@@ -222,7 +222,7 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 			{
 				ItemType& it = Item::items.getItemType(intVector[0]);
 				it.wieldInfo = moveEvent->getWieldInfo();
-				it.minReqLevel = moveEvent->getReqLevel();
+				it.minReqLevel = moveEvent->getRequiredLevel();
 				it.minReqMagicLevel = moveEvent->getReqMagLv();
 				it.vocationString = moveEvent->getVocationString();
 			}
@@ -236,7 +236,7 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 					{
 						ItemType& tit = Item::items.getItemType(intVector[0]);
 						tit.wieldInfo = moveEvent->getWieldInfo();
-						tit.minReqLevel = moveEvent->getReqLevel();
+						tit.minReqLevel = moveEvent->getRequiredLevel();
 						tit.minReqMagicLevel = moveEvent->getReqMagLv();
 						tit.vocationString = moveEvent->getVocationString();
 					}
@@ -259,7 +259,7 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 				{
 					ItemType& it = Item::items.getItemType(intVector[i]);
 					it.wieldInfo = moveEvent->getWieldInfo();
-					it.minReqLevel = moveEvent->getReqLevel();
+					it.minReqLevel = moveEvent->getRequiredLevel();
 					it.minReqMagicLevel = moveEvent->getReqMagLv();
 					it.vocationString = moveEvent->getVocationString();
 				}
@@ -271,7 +271,7 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 					{
 						ItemType& tit = Item::items.getItemType(intVector[i]);
 						tit.wieldInfo = moveEvent->getWieldInfo();
-						tit.minReqLevel = moveEvent->getReqLevel();
+						tit.minReqLevel = moveEvent->getRequiredLevel();
 						tit.minReqMagicLevel = moveEvent->getReqMagLv();
 						tit.vocationString = moveEvent->getVocationString();
 					}
@@ -366,6 +366,116 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 	}
 
 	return success;
+}
+
+bool MoveEvents::registerLuaFunction(Event* event)
+{
+	MoveEvent_ptr moveEvent{ static_cast<MoveEvent*>(event) }; //event is guaranteed to be a MoveEvent
+	if (moveEvent->getItemIdRange().size() > 0) {
+		if (moveEvent->getItemIdRange().size() == 1) {
+			uint32_t id = moveEvent->getItemIdRange().at(0);
+			addEvent(*moveEvent, id, itemIdMap);
+			if (moveEvent->getEventType() == MOVE_EVENT_EQUIP) {
+				ItemType& it = Item::items.getItemType(id);
+				it.wieldInfo = moveEvent->getWieldInfo();
+				it.minReqLevel = moveEvent->getRequiredLevel();
+				it.minReqMagicLevel = moveEvent->getReqMagLv();
+				it.vocationString = moveEvent->getVocationString();
+			}
+		} else {
+			uint32_t iterId = 0;
+			while (++iterId < moveEvent->getItemIdRange().size()) {
+				if (moveEvent->getEventType() == MOVE_EVENT_EQUIP) {
+					ItemType& it = Item::items.getItemType(moveEvent->getItemIdRange().at(iterId));
+					it.wieldInfo = moveEvent->getWieldInfo();
+					it.minReqLevel = moveEvent->getRequiredLevel();
+					it.minReqMagicLevel = moveEvent->getReqMagLv();
+					it.vocationString = moveEvent->getVocationString();
+				}
+				addEvent(*moveEvent, moveEvent->getItemIdRange().at(iterId), itemIdMap);
+			}
+		}
+	} else {
+		return false;
+	}
+	return true;
+}
+
+bool MoveEvents::registerLuaEvent(Event* event)
+{
+	MoveEvent_ptr moveEvent{ static_cast<MoveEvent*>(event) }; //event is guaranteed to be a MoveEvent
+	if (moveEvent->getItemIdRange().size() > 0) {
+		if (moveEvent->getItemIdRange().size() == 1) {
+			uint32_t id = moveEvent->getItemIdRange().at(0);
+			addEvent(*moveEvent, id, itemIdMap);
+			if (moveEvent->getEventType() == MOVE_EVENT_EQUIP) {
+				ItemType& it = Item::items.getItemType(id);
+				it.wieldInfo = moveEvent->getWieldInfo();
+				it.minReqLevel = moveEvent->getRequiredLevel();
+				it.minReqMagicLevel = moveEvent->getReqMagLv();
+				it.vocationString = moveEvent->getVocationString();
+			}
+		} else {
+			auto v = moveEvent->getItemIdRange();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				if (moveEvent->getEventType() == MOVE_EVENT_EQUIP) {
+					ItemType& it = Item::items.getItemType(*i);
+					it.wieldInfo = moveEvent->getWieldInfo();
+					it.minReqLevel = moveEvent->getRequiredLevel();
+					it.minReqMagicLevel = moveEvent->getReqMagLv();
+					it.vocationString = moveEvent->getVocationString();
+				}
+				addEvent(*moveEvent, *i, itemIdMap);
+			}
+		}
+	} else if (moveEvent->getActionIdRange().size() > 0) {
+		if (moveEvent->getActionIdRange().size() == 1) {
+			int32_t id = moveEvent->getActionIdRange().at(0);
+			addEvent(*moveEvent, id, actionIdMap);
+		} else {
+			auto v = moveEvent->getActionIdRange();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				addEvent(*moveEvent, *i, actionIdMap);
+			}
+		}
+	} else if (moveEvent->getUniqueIdRange().size() > 0) {
+		if (moveEvent->getUniqueIdRange().size() == 1) {
+			int32_t id = moveEvent->getUniqueIdRange().at(0);
+			addEvent(*moveEvent, id, uniqueIdMap);
+		} else {
+			auto v = moveEvent->getUniqueIdRange();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				addEvent(*moveEvent, *i, uniqueIdMap);
+			}
+		}
+	} else if (moveEvent->getPosList().size() > 0) {
+		if (moveEvent->getPosList().size() == 1) {
+			std::string tempPos = moveEvent->getPosList().at(0);
+			std::vector<int32_t> temp = vectorAtoi(explodeString(tempPos, ";"));
+			if (temp.size() < 3) {
+				return false;
+			}
+
+			Position pos(temp[0], temp[1], temp[2]);
+			addEvent(*moveEvent, pos, positionMap);
+		} else {
+			auto v = moveEvent->getPosList();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				std::string tempPos = *i;
+				std::vector<int32_t> temp = vectorAtoi(explodeString(tempPos, ";"));
+				if (temp.size() < 3) {
+					return false;
+				}
+
+				Position pos(temp[0], temp[1], temp[2]);
+				addEvent(*moveEvent, pos, positionMap);
+			}
+		}
+	} else {
+		return false;
+	}
+
+	return true;
 }
 
 void MoveEvents::addEvent(MoveEvent* moveEvent, int32_t id, MoveListMap& map, bool override)
@@ -700,7 +810,7 @@ void MoveEvents::onRemoveTileItem(const Tile* tile, Item* item)
 	}
 }
 
-MoveEvent::MoveEvent(LuaInterface* _interface):
+MoveEvent::MoveEvent(LuaScriptInterface* _interface):
 Event(_interface)
 {
 	m_eventType = MOVE_EVENT_NONE;
@@ -902,7 +1012,7 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 	return true;
 }
 
-bool MoveEvent::loadFunction(const std::string& functionName)
+bool MoveEvent::loadFunction(const std::string& functionName, bool isScripted /* = false*/)
 {
 	std::string tmpFunctionName = asLowerCaseString(functionName);
 	if(tmpFunctionName == "onstepinfield")
@@ -947,6 +1057,11 @@ uint32_t MoveEvent::StepInField(Creature* creature, Item* item)
 	return LUA_ERROR_ITEM_NOT_FOUND;
 }
 
+uint32_t MoveEvent::RemoveItemField(Item*, Item*, const Position&)
+{
+	return 1;
+}
+
 uint32_t MoveEvent::AddItemField(Item* item)
 {
 	if(MagicField* field = item->getMagicField())
@@ -973,7 +1088,7 @@ bool MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, slot
 
 	if(!player->hasFlag(PlayerFlag_IgnoreEquipCheck) && moveEvent->getWieldInfo() != 0)
 	{
-		if(player->getLevel() < (uint32_t)moveEvent->getReqLevel() || player->getMagicLevel() < (uint32_t)moveEvent->getReqMagLv())
+		if(player->getLevel() < (uint32_t)moveEvent->getRequiredLevel() || player->getMagicLevel() < (uint32_t)moveEvent->getReqMagLv())
 			return false;
 
 		if(moveEvent->isPremium() && !player->isPremium())
@@ -1165,7 +1280,7 @@ uint32_t MoveEvent::executeStep(Creature* actor, Creature* creature, Item* item,
 	if(m_interface->reserveEnv())
 	{
 		MoveEventScript::event = this;
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());
@@ -1205,11 +1320,11 @@ uint32_t MoveEvent::executeStep(Creature* actor, Creature* creature, Item* item,
 			m_interface->pushFunction(m_scriptId);
 			lua_pushnumber(L, env->addThing(creature));
 
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushPosition(L, pos, 0);
-			LuaInterface::pushPosition(L, creature->getLastPosition(), 0);
-			LuaInterface::pushPosition(L, fromPos, 0);
-			LuaInterface::pushPosition(L, toPos, 0);
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushPosition(L, pos, 0);
+			LuaScriptInterface::pushPosition(L, creature->getLastPosition(), 0);
+			LuaScriptInterface::pushPosition(L, fromPos, 0);
+			LuaScriptInterface::pushPosition(L, toPos, 0);
 
 			lua_pushnumber(L, env->addThing(actor));
 			bool result = m_interface->callFunction(7);
@@ -1240,7 +1355,7 @@ bool MoveEvent::executeEquip(Player* player, Item* item, slots_t slot, bool bool
 	if(m_interface->reserveEnv())
 	{
 		MoveEventScript::event = this;
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -1277,7 +1392,7 @@ bool MoveEvent::executeEquip(Player* player, Item* item, slots_t slot, bool bool
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(player));
-			LuaInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
 			lua_pushnumber(L, slot);
 			lua_pushboolean(L, boolean);
 
@@ -1308,7 +1423,7 @@ uint32_t MoveEvent::executeAddRemItem(Creature* actor, Item* item, Item* tileIte
 	if(m_interface->reserveEnv())
 	{
 		MoveEventScript::event = this;
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(pos);
@@ -1348,9 +1463,9 @@ uint32_t MoveEvent::executeAddRemItem(Creature* actor, Item* item, Item* tileIte
 			lua_State* L = m_interface->getState();
 			m_interface->pushFunction(m_scriptId);
 
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushThing(L, tileItem, env->addThing(tileItem));
-			LuaInterface::pushPosition(L, pos, 0);
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushThing(L, tileItem, env->addThing(tileItem));
+			LuaScriptInterface::pushPosition(L, pos, 0);
 
 			lua_pushnumber(L, env->addThing(actor));
 			bool result = m_interface->callFunction(4);

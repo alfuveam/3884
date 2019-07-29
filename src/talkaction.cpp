@@ -104,8 +104,10 @@ bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
 		return true;
 	}
 
-	if(!readXMLString(p, "separator", strValue) || strValue.empty())
+	if(!readXMLString(p, "separator", strValue) || strValue.empty()){
 		strValue = ";";
+		separator = ";";
+	}
 
 	StringVec strVector = explodeString(talkAction->getWords(), strValue);
 	for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
@@ -127,6 +129,36 @@ bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
 	}
 
 	delete talkAction;
+	return true;
+}
+
+std::string TalkActions::parseParams(tokenizer::iterator &it, tokenizer::iterator end)
+{
+	if(it == end)
+		return "";
+
+	std::string tmp = (*it);
+	++it;
+	if(tmp[0] == '"')
+	{
+		tmp.erase(0, 1);
+		while(it != end && tmp[tmp.length() - 1] != '"')
+		{
+			tmp += " " + (*it);
+			++it;
+		}
+
+		if(tmp.length() > 0 && tmp[tmp.length() - 1] == '"')
+			tmp.erase(tmp.length() - 1);
+	}
+
+	return tmp;
+}
+
+bool TalkActions::registerLuaEvent(Event* event)
+{
+	TalkAction_ptr talkAction{ static_cast<TalkAction*>(event) }; // event is guaranteed to be a TalkAction
+	talkActions.push_front(std::move(*talkAction));
 	return true;
 }
 
@@ -197,24 +229,24 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 							trimString(param);
 							if(param.length() > 10) {
 								//pg->sendChannelMessage("[Chat System]", "This name is too long. (Max 8. letters)", MSG_STATUS_DEFAULT, privchannel->getId());
-								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome � muito longo.");
+								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome é muito longo.");
 								return true;
 							}
 							else if(param.length() <= 2) {
 								//pg->sendChannelMessage("[Chat System]", "This name is too short. (Min 3. letters)", MSG_STATUS_DEFAULT, privchannel->getId());
-								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome � muito curto.");
+								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome é muito curto.");
 								return true;
 							}
 
 							if(!isValidName(param, false)) {
-								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome � inv�lido.");
+								pg->publicSendMessage(p, SPEAK_PRIVATE, "Este nome é inválido.");
 							//	pg->sendChannelMessage("[Chat System]", "This name contains invalid characters.", MSG_STATUS_DEFAULT, privchannel->getId());
 								return true;
 							}
 
 							for(AutoList<ProtocolGame>::iterator it = Player::cSpectators.begin(); it != Player::cSpectators.end(); ++it)
 								if(it->second->getViewerName() == param && it->second->getPlayer() == p) {
-									pg->publicSendMessage(p, SPEAK_PRIVATE, "Esse nome j� est� em uso.");
+									pg->publicSendMessage(p, SPEAK_PRIVATE, "Esse nome já está em uso.");
 									return true;
 								}
 					
@@ -226,7 +258,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 							pg->publicSendMessage(p, SPEAK_PRIVATE, "Seu nome foi definido como: " + param);
 						}
 						else 
-							pg->publicSendMessage(p, SPEAK_PRIVATE, "Par�metro inv�lido.");
+							pg->publicSendMessage(p, SPEAK_PRIVATE, "Parámetro inválido.");
 				}
 				else if(words.substr(1, 8) == "castinfo") {
 					PlayerCast pc = p->getCast();
@@ -272,7 +304,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	{
 		if(player->hasCustomFlag(PlayerCustomFlag_GamemasterPrivileges))
 		{
-			player->sendTextMessage(MSG_STATUS_SMALL, "Voc� n�o pode executar esta talkaction.");
+			player->sendTextMessage(MSG_STATUS_SMALL, "Você não pode executar esta talkaction.");
 			return true;
 		}
 
@@ -296,7 +328,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	return false;
 }
 
-TalkAction::TalkAction(LuaInterface* _interface):
+TalkAction::TalkAction(LuaScriptInterface* _interface):
 Event(_interface)
 {
 	m_function = NULL;
@@ -367,7 +399,7 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 	return true;
 }
 
-bool TalkAction::loadFunction(const std::string& functionName)
+bool TalkAction::loadFunction(const std::string& functionName, bool isScripted /* = false*/)
 {
 	m_functionName = asLowerCaseString(functionName);
 	if(m_functionName == "housebuy")
@@ -414,7 +446,7 @@ int32_t TalkAction::executeSay(Creature* creature, const std::string& words, std
 	if(m_interface->reserveEnv())
 	{
 		trimString(param);
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(creature->getPosition());

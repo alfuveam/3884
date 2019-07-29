@@ -186,8 +186,8 @@ bool Npc::loadFromXml(const std::string& filename)
 	if(readXMLString(root, "hidename", strValue) || readXMLString(root, "hideName", strValue))
 		hideName = booleanString(strValue);
 
-	if(readXMLString(root, "hidehealth", strValue) || readXMLString(root, "hideHealth", strValue))
-		hideHealth = booleanString(strValue);
+	if(readXMLString(root, "hidehealth", strValue) || readXMLString(root, "hiddenHealth", strValue))
+		hiddenHealth = booleanString(strValue);
 
 	baseSpeed = 110;
 	if(readXMLInteger(root, "speed", intValue))
@@ -1589,7 +1589,7 @@ void Npc::executeResponse(Player* player, NpcState* npcState, const NpcResponse*
 					interface.loadFile(getFilePath(FILE_TYPE_OTHER, "npc/lib/npc.lua"));
 					if(interface.reserveEnv())
 					{
-						ScriptEnviroment* env = m_interface->getEnv();
+						LuaEnvironment* env = m_interface->getScriptEnv();
 						std::stringstream scriptstream;
 
 						//attach various variables that could be interesting
@@ -1687,7 +1687,7 @@ void Npc::executeResponse(Player* player, NpcState* npcState, const NpcResponse*
 			{
 				if(m_interface->reserveEnv())
 				{
-					ScriptEnviroment* env = m_interface->getEnv();
+					LuaEnvironment* env = m_interface->getScriptEnv();
 					lua_State* L = m_interface->getState();
 
 					env->setScriptId(functionId, m_interface);
@@ -1821,7 +1821,7 @@ void Npc::onPlayerTrade(Player* player, ShopEvent_t type, int32_t callback, uint
 void Npc::onPlayerEndTrade(Player* player, int32_t buyCallback,
 	int32_t sellCallback)
 {
-	lua_State* L = getInterface()->getState();
+	lua_State* L = getScriptInterface()->getState();
 	if(buyCallback != -1)
 		luaL_unref(L, LUA_REGISTRYINDEX, buyCallback);
 	if(sellCallback != -1)
@@ -2399,20 +2399,20 @@ void Npc::closeAllShopWindows()
 		(*it)->closeShopWindow();
 }
 
-NpcScript* Npc::getInterface()
+NpcScript* Npc::getScriptInterface()
 {
 	return m_interface;
 }
 
 NpcScript::NpcScript() :
-	LuaInterface("NpcScript Interface")
+	LuaScriptInterface("NpcScript Interface")
 {
 	initState();
 }
 
 void NpcScript::registerFunctions()
 {
-	LuaInterface::registerFunctions();
+	LuaScriptInterface::registerFunctions();
 	lua_register(m_luaState, "selfFocus", NpcScript::luaActionFocus);
 	lua_register(m_luaState, "selfSay", NpcScript::luaActionSay);
 	lua_register(m_luaState, "selfFollow", NpcScript::luaActionFollow);
@@ -2430,7 +2430,7 @@ void NpcScript::registerFunctions()
 int32_t NpcScript::luaActionFocus(lua_State* L)
 {
 	//selfFocus(cid)
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	Npc* npc = env->getNpc();
 	if(!npc)
 		return 0;
@@ -2456,7 +2456,7 @@ int32_t NpcScript::luaActionSay(lua_State* L)
 	if(params > 1)
 		target = popNumber(L);
 
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	Npc* npc = env->getNpc();
 	if(!npc)
 		return 0;
@@ -2478,7 +2478,7 @@ int32_t NpcScript::luaActionFollow(lua_State* L)
 {
 	//selfFollow(cid)
 	uint32_t cid = popNumber(L);
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 
 	Creature* creature = env->getCreatureByUID(cid);
 	if(cid && !creature)
@@ -2501,7 +2501,7 @@ int32_t NpcScript::luaActionFollow(lua_State* L)
 int32_t NpcScript::luaGetNpcId(lua_State* L)
 {
 	//getNpcId()
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	if(Npc* npc = env->getNpc())
 		lua_pushnumber(L, env->addThing(npc));
 	else
@@ -2513,7 +2513,7 @@ int32_t NpcScript::luaGetNpcId(lua_State* L)
 int32_t NpcScript::luaGetNpcParameter(lua_State* L)
 {
 	//getNpcParameter(key)
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	if(Npc* npc = env->getNpc())
 	{
 		Npc::ParametersMap::iterator it = npc->m_parameters.find(popString(L));
@@ -2531,7 +2531,7 @@ int32_t NpcScript::luaGetNpcParameter(lua_State* L)
 int32_t NpcScript::luaGetNpcState(lua_State* L)
 {
 	//getNpcState(cid)
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	Npc* npc = env->getNpc();
 
 	const Player* player = env->getPlayerByUID(popNumber(L));
@@ -2546,7 +2546,7 @@ int32_t NpcScript::luaGetNpcState(lua_State* L)
 int32_t NpcScript::luaSetNpcState(lua_State* L)
 {
 	//setNpcState(state, cid)
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	Npc* npc = env->getNpc();
 
 	const Player* player = env->getPlayerByUID(popNumber(L));
@@ -2622,7 +2622,7 @@ void NpcScript::popState(lua_State* L, NpcState* &state)
 int32_t NpcScript::luaOpenShopWindow(lua_State* L)
 {
 	//openShopWindow(cid, items, onBuy callback, onSell callback)
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	Npc* npc = env->getNpc();
 	if(!npc)
 	{
@@ -2687,7 +2687,7 @@ int32_t NpcScript::luaOpenShopWindow(lua_State* L)
 int32_t NpcScript::luaCloseShopWindow(lua_State* L)
 {
 	//closeShopWindow(cid)
-	ScriptEnviroment* env = getEnv();
+	LuaEnvironment* env = getScriptEnv();
 	Player* player = env->getPlayerByUID(popNumber(L));
 	if(!player)
 	{
@@ -2714,7 +2714,7 @@ int32_t NpcScript::luaCloseShopWindow(lua_State* L)
 }
 
 NpcEvents::NpcEvents(std::string file, Npc* npc):
-	m_npc(npc), m_interface(npc->getInterface())
+	m_npc(npc), m_interface(npc->getScriptInterface())
 {
 	if(!m_interface->loadFile(file, npc))
 	{
@@ -2742,7 +2742,7 @@ void NpcEvents::onCreatureAppear(const Creature* creature)
 	//onCreatureAppear(cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		#ifdef __DEBUG_LUASCRIPTS__
@@ -2773,7 +2773,7 @@ void NpcEvents::onCreatureDisappear(const Creature* creature)
 	//onCreatureDisappear(cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		#ifdef __DEBUG_LUASCRIPTS__
@@ -2804,7 +2804,7 @@ void NpcEvents::onCreatureMove(const Creature* creature, const Position& oldPos,
 	//onCreatureMove(cid, oldPos, newPos)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		#ifdef __DEBUG_LUASCRIPTS__
@@ -2820,8 +2820,8 @@ void NpcEvents::onCreatureMove(const Creature* creature, const Position& oldPos,
 		m_interface->pushFunction(m_onCreatureMove);
 		lua_pushnumber(L, env->addThing(const_cast<Creature*>(creature)));
 
-		LuaInterface::pushPosition(L, oldPos, 0);
-		LuaInterface::pushPosition(L, newPos, 0);
+		LuaScriptInterface::pushPosition(L, oldPos, 0);
+		LuaScriptInterface::pushPosition(L, newPos, 0);
 
 		m_interface->callFunction(3);
 		m_interface->releaseEnv();
@@ -2838,7 +2838,7 @@ void NpcEvents::onCreatureSay(const Creature* creature, SpeakClasses type, const
 	//onCreatureSay(cid, type, msg)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		#ifdef __DEBUG_LUASCRIPTS__
@@ -2873,7 +2873,7 @@ void NpcEvents::onPlayerTrade(const Player* player, int32_t callback, uint16_t i
 	//on"Buy/Sell"(cid, itemid, count, amount, ignoreCap, inBackpacks)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		#ifdef __DEBUG_LUASCRIPTS__
@@ -2887,7 +2887,7 @@ void NpcEvents::onPlayerTrade(const Player* player, int32_t callback, uint16_t i
 		env->setNpc(m_npc);
 
 		uint32_t cid = env->addThing(const_cast<Player*>(player));
-		LuaInterface::pushCallback(L, callback);
+		LuaScriptInterface::pushCallback(L, callback);
 
 		lua_pushnumber(L, cid);
 		lua_pushnumber(L, itemid);
@@ -2912,7 +2912,7 @@ void NpcEvents::onPlayerCloseChannel(const Player* player)
 	//onPlayerCloseChannel(cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		env->setScriptId(m_onPlayerCloseChannel, m_interface);
@@ -2937,7 +2937,7 @@ void NpcEvents::onPlayerEndTrade(const Player* player)
 	//onPlayerEndTrade(cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		lua_State* L = m_interface->getState();
 
 		env->setScriptId(m_onPlayerEndTrade, m_interface);
@@ -2962,7 +2962,7 @@ void NpcEvents::onThink()
 	//onThink()
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 
 		#ifdef __DEBUG_LUASCRIPTS__
 		std::stringstream desc;

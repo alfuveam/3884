@@ -98,42 +98,20 @@ class Position
 			return !(*this == p);
 		}
 
-		Position operator+(const Position& p1)
+		Position operator+(const Position& p1) const
 		{
 			return Position(x + p1.x, y + p1.y, z + p1.z);
 		}
 
-		Position operator-(const Position& p1)
+		Position operator-(const Position& p1) const
 		{
 			return Position(x - p1.x, y - p1.y, z - p1.z);
 		}
+
+		int16_t stackpos;
 };
 
 std::ostream& operator<<(std::ostream&, const Position&);
 std::ostream& operator<<(std::ostream&, const Direction&);
 
-class PositionEx : public Position
-{
-	public:
-		PositionEx() {}
-		~PositionEx() {}
-
-		PositionEx(uint16_t _x, uint16_t _y, uint16_t _z, int16_t _stackpos): Position(_x,_y,_z), stackpos(_stackpos) {}
-		PositionEx(uint16_t _x, uint16_t _y, uint16_t _z): Position(_x,_y,_z), stackpos(0) {}
-
-		PositionEx(Position p): Position(p.x, p.y, p.z), stackpos(0) {}
-		PositionEx(Position p, int16_t _stackpos): Position(p.x, p.y, p.z), stackpos(_stackpos) {}
-
-		int16_t stackpos;
-
-		bool operator==(const PositionEx& p) const
-		{
-			return (p.x == x && p.y == y && p.z == z && p.stackpos == stackpos);
-		}
-
-		bool operator!=(const PositionEx& p) const
-		{
-			return !(p.x == x && p.y == y && p.z == z && p.stackpos != stackpos);
-		}
-};
 #endif

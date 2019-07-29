@@ -152,7 +152,15 @@ int32_t Weapons::getMaxWeaponDamage(int32_t level, int32_t attackSkill, int32_t 
 	return (int32_t)std::ceil((2 * (attackValue * (attackSkill + 5.8) / 25 + (level - 1) / 10.)) / attackFactor);
 }
 
-Weapon::Weapon(LuaInterface* _interface):
+bool Weapons::registerLuaEvent(Weapon* event)
+{
+	Weapon_ptr weapon{ event };
+	weapons[weapon->getID()] = weapon.release();
+
+	return true;
+}
+
+Weapon::Weapon(LuaScriptInterface* _interface):
 	Event(_interface)
 {
 	id = 0;
@@ -247,7 +255,7 @@ bool Weapon::configureEvent(xmlNodePtr p)
 	{
 		ItemType& it = Item::items.getItemType(id);
 		it.minReqMagicLevel = getReqMagLv();
-		it.minReqLevel = getReqLevel();
+		it.minReqLevel = getRequiredLevel();
 
 		it.wieldInfo = wieldInfo;
 		it.vocationString = parseVocationString(vocStringVec);
@@ -256,8 +264,13 @@ bool Weapon::configureEvent(xmlNodePtr p)
 	return configureWeapon(Item::items[getID()]);
 }
 
-bool Weapon::loadFunction(const std::string& functionName)
+bool Weapon::loadFunction(const std::string& functionName, bool scripted)
 {
+	if(scripted){
+		m_scripted = true;
+		return true;
+	}
+
 	std::string tmpFunctionName = asLowerCaseString(functionName);
 	if(tmpFunctionName == "internalloadweapon" || tmpFunctionName == "default")
 	{
@@ -308,12 +321,12 @@ int32_t Weapon::playerWeaponCheck(Player* player, Creature* target) const
 		return 0;
 
 	int32_t modifier = 100;
-	if(player->getLevel() < getReqLevel())
+	if(player->getLevel() < getRequiredLevelLevel())
 	{
 		if(!isWieldedUnproperly())
 			return 0;
 
-		double penalty = (getReqLevel() - player->getLevel()) * 0.02;
+		double penalty = (getRequiredLevelLevel() - player->getLevel()) * 0.02;
 		if(penalty > 0.5)
 			penalty = 0.5;
 
@@ -489,7 +502,7 @@ bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
 	//onUseWeapon(cid, var)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -538,7 +551,7 @@ bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
 	}
 }
 
-WeaponMelee::WeaponMelee(LuaInterface* _interface):
+WeaponMelee::WeaponMelee(LuaScriptInterface* _interface):
 	Weapon(_interface)
 {
 	elementType = COMBAT_NONE;
@@ -664,7 +677,7 @@ int32_t WeaponMelee::getElementDamage(const Player* player, const Item* item) co
 	return -random_range(0, (int32_t)std::floor(maxValue), DISTRO_NORMAL);
 }
 
-WeaponDistance::WeaponDistance(LuaInterface* _interface):
+WeaponDistance::WeaponDistance(LuaScriptInterface* _interface):
 	Weapon(_interface)
 {
 	hitChance = -1;
@@ -945,7 +958,7 @@ bool WeaponDistance::getSkillType(const Player* player, const Item*,
 	return true;
 }
 
-WeaponWand::WeaponWand(LuaInterface* _interface):
+WeaponWand::WeaponWand(LuaScriptInterface* _interface):
 	Weapon(_interface)
 {
 	minChange = 0;

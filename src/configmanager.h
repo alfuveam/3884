@@ -46,6 +46,7 @@ class ConfigManager
 			SQL_PASS,
 			SQL_DB,
 			DEFAULT_PRIORITY,
+			SCRIPTS_CONSOLE_LOGS,
 			#ifdef __MULTI_SQL_DRIVERS__
 			SQL_TYPE,
 			#endif
@@ -317,26 +318,26 @@ class ConfigManager
 		bool setNumber(uint32_t _what, int32_t _value);
 		bool setBool(uint32_t _what, bool _value);
 
-		void getValue(const std::string& key, lua_State* _L) {LuaInterface::getValue(key, L, _L);}
+		void getValue(const std::string& key, lua_State* _L) {LuaScriptInterface::getValue(key, L, _L);}
 
 	private:
 		static void moveValue(lua_State* fromL, lua_State* toL);
 
 		std::string getGlobalString(const std::string& _identifier, const std::string& _default = "")
 		{
-			return LuaInterface::getGlobalString(L, _identifier, _default);
+			return LuaScriptInterface::getGlobalString(L, _identifier, _default);
 		}
 		bool getGlobalBool(const std::string& _identifier, bool _default = false)
 		{
-			return LuaInterface::getGlobalBool(L, _identifier, _default);
+			return LuaScriptInterface::getGlobalBool(L, _identifier, _default);
 		}
 		int32_t getGlobalNumber(const std::string& _identifier, const int32_t _default = 0)
 		{
-			return LuaInterface::getGlobalNumber(L, _identifier, _default);
+			return LuaScriptInterface::getGlobalNumber(L, _identifier, _default);
 		}
 		double getGlobalDouble(const std::string& _identifier, const double _default = 0)
 		{
-			return LuaInterface::getGlobalDouble(L, _identifier, _default);
+			return LuaScriptInterface::getGlobalDouble(L, _identifier, _default);
 		}
 
 		bool m_loaded, m_startup;

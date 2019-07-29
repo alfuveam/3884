@@ -56,8 +56,9 @@ Actions::~Actions()
 
 inline void Actions::clearMap(ActionUseMap& map)
 {
-	for(ActionUseMap::iterator it = map.begin(); it != map.end(); ++it)
-		delete it->second;
+	for (auto it = map.begin(); it != map.end(); it++ ) {
+		map.erase(it);
+	}
 
 	map.clear();
 }
@@ -80,6 +81,71 @@ Event* Actions::getEvent(const std::string& nodeName)
 		return new Action(&m_interface);
 
 	return NULL;
+}
+
+bool Actions::registerLuaEvent(Event* event)
+{
+	Action_ptr action{ static_cast<Action*>(event) }; //event is guaranteed to be an Action
+	if (action->getItemIdRange().size() > 0) {
+		if (action->getItemIdRange().size() == 1) {
+			auto result = useItemMap.emplace(action->getItemIdRange().at(0), std::move(*action));
+			if (!result.second) {
+				std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with id: " << action->getItemIdRange().at(0) << std::endl;
+			}
+			return result.second;
+		} else {
+			auto v = action->getItemIdRange();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				auto result = useItemMap.emplace(*i, std::move(*action));
+				if (!result.second) {
+					std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with id: " << *i << " in range from id: " << v.at(0) << ", to id: " << v.at(v.size() - 1) << std::endl;
+					continue;
+				}
+			}
+			return true;
+		}
+	}
+	else if (action->getUniqueIdRange().size() > 0) {
+		if (action->getUniqueIdRange().size() == 1) {
+			auto result = uniqueItemMap.emplace(action->getUniqueIdRange().at(0), std::move(*action));
+			if (!result.second) {
+				std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with uid: " << action->getUniqueIdRange().at(0) << std::endl;
+			}
+			return result.second;
+		} else {
+			auto v = action->getUniqueIdRange();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				auto result = uniqueItemMap.emplace(*i, std::move(*action));
+				if (!result.second) {
+					std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with uid: " << *i << " in range from uid: " << v.at(0) << ", to uid: " << v.at(v.size() - 1) << std::endl;
+					continue;
+				}
+			}
+			return true;
+		}
+	}
+	else if (action->getActionIdRange().size() > 0) {
+		if (action->getActionIdRange().size() == 1) {
+			auto result = actionItemMap.emplace(action->getActionIdRange().at(0), std::move(*action));
+			if (!result.second) {
+				std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with aid: " << action->getActionIdRange().at(0) << std::endl;
+			}
+			return result.second;
+		} else {
+			auto v = action->getActionIdRange();
+			for (auto i = v.begin(); i != v.end(); i++) {
+				auto result = actionItemMap.emplace(*i, std::move(*action));
+				if (!result.second) {
+					std::cout << "[Warning - Actions::registerLuaEvent] Duplicate registered item with aid: " << *i << " in range from aid: " << v.at(0) << ", to aid: " << v.at(v.size() - 1) << std::endl;
+					continue;
+				}
+			}
+			return true;
+		}
+	} else {
+		std::cout << "[Warning - Actions::registerLuaEvent] There is no id / aid / uid set for this event" << std::endl;
+		return false;
+	}
 }
 
 bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
@@ -123,11 +189,11 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 				success = false;
 			}
 			else
-				delete useItemMap[intVector[0]];
+				useItemMap.erase(intVector[0]);
 		}
 
 		if(success)
-			useItemMap[intVector[0]] = action;
+			useItemMap.emplace(intVector[0], std::move(action));
 
 		for(size_t i = 1, size = intVector.size(); i < size; ++i)
 		{
@@ -139,10 +205,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 					continue;
 				}
 				else
-					delete useItemMap[intVector[i]];
+					useItemMap.erase(intVector[i]);
 			}
 
-			useItemMap[intVector[i]] = new Action(action);
+			useItemMap.emplace(intVector[i], new Action(action));
 		}
 	}
 	else if(readXMLString(p, "fromid", strValue) && readXMLString(p, "toid", endValue))
@@ -166,10 +232,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 							continue;
 						}
 						else
-							delete useItemMap[intVector[i]];
+							useItemMap.erase(intVector[i]);
 					}
 
-					useItemMap[intVector[i]++] = new Action(action);
+					useItemMap.emplace(intVector[i]++, new Action(action));
 				}
 			}
 		}
@@ -195,11 +261,11 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 				success = false;
 			}
 			else
-				delete uniqueItemMap[intVector[0]];
+				uniqueItemMap.erase(intVector[0]);
 		}
 
 		if(success)
-			uniqueItemMap[intVector[0]] = action;
+			uniqueItemMap.emplace(intVector[0], std::move(action));
 
 		for(size_t i = 1, size = intVector.size(); i < size; ++i)
 		{
@@ -211,10 +277,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 					continue;
 				}
 				else
-					delete uniqueItemMap[intVector[i]];
+					uniqueItemMap.erase(intVector[i]);
 			}
 
-			uniqueItemMap[intVector[i]] = new Action(action);
+			uniqueItemMap.emplace(intVector[i], new Action(action));
 		}
 	}
 	else if(readXMLString(p, "fromuid", strValue) && readXMLString(p, "touid", endValue))
@@ -238,10 +304,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 							continue;
 						}
 						else
-							delete uniqueItemMap[intVector[i]];
+							uniqueItemMap.erase(intVector[i]);
 					}
 
-					uniqueItemMap[intVector[i]++] = new Action(action);
+					uniqueItemMap.emplace(intVector[i]++, Action(action));
 				}
 			}
 		}
@@ -267,11 +333,11 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 				success = false;
 			}
 			else
-				delete actionItemMap[intVector[0]];
+				actionItemMap.erase(intVector[0]);
 		}
 
 		if(success)
-			actionItemMap[intVector[0]] = action;
+			actionItemMap.emplace(intVector[0], std::move(action));
 
 		for(size_t i = 1, size = intVector.size(); i < size; ++i)
 		{
@@ -283,10 +349,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 					continue;
 				}
 				else
-					delete actionItemMap[intVector[i]];
+					actionItemMap.erase(intVector[i]);
 			}
 
-			actionItemMap[intVector[i]] = new Action(action);
+			actionItemMap.emplace(intVector[i], Action(action));
 		}
 	}
 	else if(readXMLString(p, "fromaid", strValue) && readXMLString(p, "toaid", endValue))
@@ -310,10 +376,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 							continue;
 						}
 						else
-							delete actionItemMap[intVector[i]];
+							actionItemMap.erase(intVector[i]);
 					}
 
-					actionItemMap[intVector[i]++] = new Action(action);
+					actionItemMap.emplace(intVector[i]++, new Action(action));
 				}
 			}
 		}
@@ -385,27 +451,30 @@ ReturnValue Actions::canUseFar(const Creature* creature, const Position& toPos, 
 	return RET_NOERROR;
 }
 
-Action* Actions::getAction(const Item* item, ActionType_t type/* = ACTION_ANY*/) const
+Action* Actions::getAction(const Item* item, ActionType_t type/* = ACTION_ANY*/)
 {
 	if(item->getUniqueId() && (type == ACTION_ANY || type == ACTION_UNIQUEID))
 	{
-		ActionUseMap::const_iterator it = uniqueItemMap.find(item->getUniqueId());
-		if(it != uniqueItemMap.end())
-			return it->second;
+		auto it = uniqueItemMap.find(item->getUniqueId());
+		if (it != uniqueItemMap.end()) {
+			return &it->second;
+		}
 	}
 
 	if(item->getActionId() && (type == ACTION_ANY || type == ACTION_ACTIONID))
 	{
-		ActionUseMap::const_iterator it = actionItemMap.find(item->getActionId());
-		if(it != actionItemMap.end())
-			return it->second;
+		auto it = actionItemMap.find(item->getActionId());
+		if (it != actionItemMap.end()) {
+			return &it->second;
+		}		
 	}
 
 	if(type == ACTION_ANY || type == ACTION_ITEMID)
 	{
-		ActionUseMap::const_iterator it = useItemMap.find(item->getID());
-		if(it != useItemMap.end())
-			return it->second;
+		auto it = useItemMap.find(item->getID());
+		if (it != useItemMap.end()) {
+			return &it->second;
+		}
 	}
 
 	if(type == ACTION_ANY || type == ACTION_RUNEID)
@@ -414,13 +483,13 @@ Action* Actions::getAction(const Item* item, ActionType_t type/* = ACTION_ANY*/)
 			return runeSpell;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool Actions::executeUse(Action* action, Player* player, Item* item,
-	const PositionEx& posEx, uint32_t creatureId)
+	const Position& pos, uint32_t creatureId)
 {
-	return action->executeUse(player, item, posEx, posEx, false, creatureId);
+	return action->executeUse(player, item, pos, pos, false, creatureId);
 }
 
 ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item, uint32_t creatureId)
@@ -431,22 +500,17 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 			return RET_CANNOTUSETHISOBJECT;
 	}
 
-	int32_t tmp = 0;
-	if(item->getParent())
-		tmp = item->getParent()->__getIndexOfThing(item);
-
-	PositionEx posEx(pos, tmp);
 	Action* action = NULL;
 	if((action = getAction(item, ACTION_UNIQUEID)))
 	{
 		if(action->isScripted())
 		{
-			if(executeUse(action, player, item, posEx, creatureId))
+			if(executeUse(action, player, item, pos, creatureId))
 				return RET_NOERROR;
 		}
 		else if(action->function)
 		{
-			if(action->function(player, item, posEx, posEx, false, creatureId))
+			if(action->function(player, item, pos, pos, false, creatureId))
 				return RET_NOERROR;
 		}
 	}
@@ -455,12 +519,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	{
 		if(action->isScripted())
 		{
-			if(executeUse(action, player, item, posEx, creatureId))
+			if(executeUse(action, player, item, pos, creatureId))
 				return RET_NOERROR;
 		}
 		else if(action->function)
 		{
-			if(action->function(player, item, posEx, posEx, false, creatureId))
+			if(action->function(player, item, pos, pos, false, creatureId))
 				return RET_NOERROR;
 		}
 	}
@@ -469,12 +533,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	{
 		if(action->isScripted())
 		{
-			if(executeUse(action, player, item, posEx, creatureId))
+			if(executeUse(action, player, item, pos, creatureId))
 				return RET_NOERROR;
 		}
 		else if(action->function)
 		{
-			if(action->function(player, item, posEx, posEx, false, creatureId))
+			if(action->function(player, item, pos, pos, false, creatureId))
 				return RET_NOERROR;
 		}
 	}
@@ -483,12 +547,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	{
 		if(action->isScripted())
 		{
-			if(executeUse(action, player, item, posEx, creatureId))
+			if(executeUse(action, player, item, pos, creatureId))
 				return RET_NOERROR;
 		}
 		else if(action->function)
 		{
-			if(action->function(player, item, posEx, posEx, false, creatureId))
+			if(action->function(player, item, pos, pos, false, creatureId))
 				return RET_NOERROR;
 		}
 	}
@@ -497,12 +561,12 @@ ReturnValue Actions::internalUseItem(Player* player, const Position& pos, uint8_
 	{
 		if(defaultAction->isScripted())
 		{
-			if(executeUse(defaultAction, player, item, posEx, creatureId))
+			if(executeUse(defaultAction, player, item, pos, creatureId))
 				return RET_NOERROR;
 		}
 		else if(defaultAction->function)
 		{
-			if(defaultAction->function(player, item, posEx, posEx, false, creatureId))
+			if(defaultAction->function(player, item, pos, pos, false, creatureId))
 				return RET_NOERROR;
 		}
 	}
@@ -590,14 +654,14 @@ bool Actions::useItem(Player* player, const Position& pos, uint8_t index, Item* 
 	return false;
 }
 
-bool Actions::executeUseEx(Action* action, Player* player, Item* item, const PositionEx& fromPosEx,
-	const PositionEx& toPosEx, bool isHotkey, uint32_t creatureId)
+bool Actions::executeUseEx(Action* action, Player* player, Item* item, const Position& fromPosEx,
+	const Position& toPosEx, bool isHotkey, uint32_t creatureId)
 {
 	return (action->executeUse(player, item, fromPosEx, toPosEx, isHotkey,
 		creatureId) || action->hasOwnErrorHandler());
 }
 
-ReturnValue Actions::internalUseItemEx(Player* player, const PositionEx& fromPosEx, const PositionEx& toPosEx,
+ReturnValue Actions::internalUseItemEx(Player* player, const Position& fromPosEx, const Position& toPosEx,
 	Item* item, bool isHotkey, uint32_t creatureId)
 {
 	Action* action = NULL;
@@ -676,14 +740,7 @@ bool Actions::useItemEx(Player* player, const Position& fromPos, const Position&
 		return false;
 	}
 
-	int32_t fromStackPos = 0;
-	if(item->getParent())
-		fromStackPos = item->getParent()->__getIndexOfThing(item);
-
-	PositionEx fromPosEx(fromPos, fromStackPos);
-	PositionEx toPosEx(toPos, toStackPos);
-
-	ReturnValue ret = internalUseItemEx(player, fromPosEx, toPosEx, item, isHotkey, creatureId);
+	ReturnValue ret = internalUseItemEx(player, fromPos, toPos, item, isHotkey, creatureId);
 	if(ret == RET_NOERROR)
 		return true;
 
@@ -691,18 +748,18 @@ bool Actions::useItemEx(Player* player, const Position& fromPos, const Position&
 	return false;
 }
 
-Action::Action(LuaInterface* _interface):
-Event(_interface)
-{
-	allowFarUse = false;
-	checkLineOfSight = true;
-}
-
 Action::Action(const Action* copy):
 Event(copy)
 {
 	allowFarUse = copy->allowFarUse;
 	checkLineOfSight = copy->checkLineOfSight;
+}
+
+Action::Action(LuaScriptInterface* _interface):
+Event(_interface)
+{
+	allowFarUse = false;
+	checkLineOfSight = true;
 }
 
 bool Action::configureEvent(xmlNodePtr p)
@@ -717,7 +774,29 @@ bool Action::configureEvent(xmlNodePtr p)
 	return true;
 }
 
-bool Action::loadFunction(const std::string& functionName)
+namespace {
+	bool increaseItemId(Player* player, Item* item, const Position&, const Position&, bool, uint32_t)
+	{
+		if(!player || !item)
+			return false;
+
+		g_game.transformItem(item, item->getID() + 1);
+		g_game.startDecay(item);
+		return true;
+	}
+
+	bool decreaseItemId(Player* player, Item* item, const Position&, const Position&, bool, uint32_t)
+	{
+		if(!player || !item)
+			return false;
+
+		g_game.transformItem(item, item->getID() - 1);
+		g_game.startDecay(item);
+		return true;
+	}
+}
+
+bool Action::loadFunction(const std::string& functionName, bool isScripted)
 {
 	std::string tmpFunctionName = asLowerCaseString(functionName);
 	if(tmpFunctionName == "increaseitemid")
@@ -726,33 +805,19 @@ bool Action::loadFunction(const std::string& functionName)
 		function = decreaseItemId;
 	else
 	{
-		std::clog << "[Warning - Action::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
-		return false;
+		if (!isScripted) {
+			std::cout << "[Warning - Action::loadFunction] Function \"" << functionName << "\" does not exist." << std::endl;
+			return false;
+		}
+	}
+	if (!isScripted) {
+		m_scripted = EVENT_SCRIPT_FALSE;
 	}
 
 	m_scripted = EVENT_SCRIPT_FALSE;
 	return true;
 }
 
-bool Action::increaseItemId(Player* player, Item* item, const PositionEx&, const PositionEx&, bool, uint32_t)
-{
-	if(!player || !item)
-		return false;
-
-	g_game.transformItem(item, item->getID() + 1);
-	g_game.startDecay(item);
-	return true;
-}
-
-bool Action::decreaseItemId(Player* player, Item* item, const PositionEx&, const PositionEx&, bool, uint32_t)
-{
-	if(!player || !item)
-		return false;
-
-	g_game.transformItem(item, item->getID() - 1);
-	g_game.startDecay(item);
-	return true;
-}
 
 ReturnValue Action::canExecuteAction(const Player* player, const Position& toPos)
 {
@@ -762,12 +827,12 @@ ReturnValue Action::canExecuteAction(const Player* player, const Position& toPos
 	return g_actions->canUseFar(player, toPos, getCheckLineOfSight());
 }
 
-bool Action::executeUse(Player* player, Item* item, const PositionEx& fromPos, const PositionEx& toPos, bool extendedUse, uint32_t)
+bool Action::executeUse(Player* player, Item* item, const Position& fromPos, const Position& toPos, bool extendedUse, uint32_t)
 {
 	//onUse(cid, item, fromPosition, itemEx, toPosition)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			env->setRealPos(player->getPosition());
@@ -786,7 +851,7 @@ bool Action::executeUse(Player* player, Item* item, const PositionEx& fromPos, c
 			else
 			{
 				env->streamThing(scriptstream, "itemEx", NULL, 0);
-				env->streamPosition(scriptstream, "toPosition", PositionEx());
+				env->streamPosition(scriptstream, "toPosition", Position());
 			}
 
 			scriptstream << m_scriptData;
@@ -815,19 +880,19 @@ bool Action::executeUse(Player* player, Item* item, const PositionEx& fromPos, c
 			m_interface->pushFunction(m_scriptId);
 
 			lua_pushnumber(L, env->addThing(player));
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushPosition(L, fromPos, fromPos.stackpos);
+			LuaScriptInterface::pushThing(L, item, env->addThing(item));
+			LuaScriptInterface::pushPosition(L, fromPos, fromPos.stackpos);
 
 			Thing* thing = g_game.internalGetThing(player, toPos, toPos.stackpos);
 			if(thing && (thing != item || !extendedUse))
 			{
-				LuaInterface::pushThing(L, thing, env->addThing(thing));
-				LuaInterface::pushPosition(L, toPos, toPos.stackpos);
+				LuaScriptInterface::pushThing(L, thing, env->addThing(thing));
+				LuaScriptInterface::pushPosition(L, toPos, toPos.stackpos);
 			}
 			else
 			{
-				LuaInterface::pushThing(L, NULL, 0);
-				LuaInterface::pushPosition(L, PositionEx());
+				LuaScriptInterface::pushThing(L, NULL, 0);
+				LuaScriptInterface::pushPosition(L, Position());
 			}
 
 			bool result = m_interface->callFunction(5);

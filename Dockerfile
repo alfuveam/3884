@@ -48,10 +48,8 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
 RUN ln -s /usr/lib/libcryptopp.so /usr/lib/libcryptopp.so.5.6
 COPY --from=build /usr/src/3884/build/tfs /bin/tfs
 COPY data /srv/data/
-COPY LICENSE README.md *.dist *.sql key.pem config.lua theforgottenserver.s3db /srv/
-
-# User config
-COPY config.lua theforgottenserver.s3db /srv/
+COPY LICENSE README.md *.dist *.sql key.pem *.lua *.s3db /srv/
+RUN ls -l /srv/
 
 EXPOSE 7171 7172
 WORKDIR /srv

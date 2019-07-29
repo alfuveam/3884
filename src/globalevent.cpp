@@ -88,6 +88,37 @@ bool GlobalEvents::registerEvent(Event* event, xmlNodePtr, bool override)
 	return false;
 }
 
+bool GlobalEvents::registerLuaEvent(Event* event)
+{
+	GlobalEvent* globalEvent = dynamic_cast<GlobalEvent*>(event);
+	if(!globalEvent)
+		return false;
+
+	GlobalEventMap* map = &thinkMap;
+	if(globalEvent->getEventType() == GLOBALEVENT_TIMER)
+		map = &timerMap;
+	else if(globalEvent->getEventType() != GLOBALEVENT_NONE)
+		map = &serverMap;
+
+	GlobalEventMap::iterator it = map->find(globalEvent->getName());
+	if(it == map->end())
+	{
+		map->insert(std::make_pair(globalEvent->getName(), globalEvent));
+		return true;
+	}
+	// check reload
+	bool override = false;
+	if(override)
+	{
+		delete it->second;
+		it->second = globalEvent;
+		return true;
+	}
+
+	std::clog << "[Warning - GlobalEvents::configureEvent] Duplicate registered globalevent with name: " << globalEvent->getName() << std::endl;
+	return false;
+}
+
 void GlobalEvents::startup()
 {
 	execute(GLOBALEVENT_STARTUP);
@@ -175,7 +206,7 @@ GlobalEventMap GlobalEvents::getEventMap(GlobalEvent_t type)
 	return GlobalEventMap();
 }
 
-GlobalEvent::GlobalEvent(LuaInterface* _interface):
+GlobalEvent::GlobalEvent(LuaScriptInterface* _interface):
 	Event(_interface)
 {
 	m_lastExecution = OTSYS_TIME();
@@ -301,7 +332,7 @@ int32_t GlobalEvent::executeRecord(uint32_t current, uint32_t old, Player* playe
 	//onRecord(current, old, cid)
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			std::stringstream scriptstream;
@@ -352,7 +383,7 @@ int32_t GlobalEvent::executeEvent()
 {
 	if(m_interface->reserveEnv())
 	{
-		ScriptEnviroment* env = m_interface->getEnv();
+		LuaEnvironment* env = m_interface->getScriptEnv();
 		if(m_scripted == EVENT_SCRIPT_BUFFER)
 		{
 			std::stringstream scriptstream;

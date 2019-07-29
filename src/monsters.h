@@ -22,9 +22,6 @@
 #define MAX_LOOTCHANCE 100000
 #define MAX_STATICWALK 100
 
-struct LootBlock;
-typedef std::list<LootBlock> LootItems;
-
 enum LootMessage_t
 {
 	LOOTMSG_IGNORE = -1,
@@ -34,26 +31,49 @@ enum LootMessage_t
 	LOOTMSG_BOTH = 3
 };
 
-struct LootBlock
-{
-	std::vector<uint16_t> ids;
-	uint16_t count;
-	int32_t subType, actionId, uniqueId;
+struct LootBlock {
+	uint16_t id;
+	uint32_t countmax;
 	uint32_t chance;
-	std::string text;
-	LootItems childLoot;
 
-	LootBlock()
-	{
-		count = chance = 0;
-		subType = actionId = uniqueId = -1;
+	//optional
+	int32_t subType;
+	int32_t actionId;
+	int32_t uniqueId;
+	std::string text;
+	std::string name;
+	std::string article;
+	int32_t attack;
+	int32_t defense;
+	int32_t extraDefense;
+	int32_t armor;
+	int32_t shootRange;
+	int32_t hitChance;
+	bool unique;
+
+	std::vector<LootBlock> childLoot;
+	LootBlock() {
+		id = 0;
+		countmax = 1;
+		chance = 0;
+
+		subType = -1;
+		actionId = -1;
+		uniqueId = -1;
+		attack = -1;
+		defense = -1;
+		extraDefense = -1;
+		armor = -1;
+		shootRange = -1;
+		hitChance = -1;
+		unique = false;
 	}
 };
 
 struct summonBlock_t
 {
 	std::string name;
-	uint32_t chance, interval, amount;
+	uint32_t chance, interval, amount, speed;
 };
 
 class BaseSpell;
@@ -72,10 +92,16 @@ struct voiceBlock_t
 	std::string text;
 };
 
-typedef std::list<summonBlock_t> SummonList;
-typedef std::list<spellBlock_t> SpellList;
-typedef std::vector<voiceBlock_t> VoiceVector;
-typedef std::map<CombatType_t, int32_t> ElementMap;
+class Loot {
+	public:
+		Loot() = default;
+
+		// non-copyable
+		Loot(const Loot&) = delete;
+		Loot& operator=(const Loot&) = delete;
+
+		LootBlock lootBlock;
+};
 
 class MonsterType
 {
@@ -85,12 +111,15 @@ class MonsterType
 
 		void reset();
 
+		LuaScriptInterface* scriptInterface;
+		
+		void loadLoot(MonsterType* monsterType, LootBlock lootblock);
 		void dropLoot(Container* corpse);
 		ItemList createLoot(const LootBlock& lootBlock);
 		bool createChildLoot(Container* parent, const LootBlock& lootBlock);
 
 		bool isSummonable, isIllusionable, isConvinceable, isAttackable, isHostile, isLureable,
-			isWalkable, canPushItems, canPushCreatures, pushable, hideName, hideHealth;
+			isWalkable, canPushItems, canPushCreatures, pushable, hideName, hiddenHealth;
 
 		Outfit_t outfit;
 		RaceType_t race;
@@ -98,6 +127,12 @@ class MonsterType
 		PartyShields_t partyShield;
 		GuildEmblems_t guildEmblem;
 		LootMessage_t lootMessage;
+		
+		int32_t creatureAppearEvent = -1;
+		int32_t creatureDisappearEvent = -1;
+		int32_t creatureMoveEvent = -1;
+		int32_t creatureSayEvent = -1;
+		int32_t thinkEvent = -1;
 
 		int32_t defense, armor, health, healthMax, baseSpeed, lookCorpse, corpseUnique, corpseAction,
 			maxSummons, targetDistance, runAwayHealth, conditionImmunities, damageImmunities,
@@ -107,13 +142,56 @@ class MonsterType
 
 		std::string name, nameDescription;
 
-		SummonList summonList;
-		LootItems lootItems;
-		ElementMap elementMap;
-		SpellList spellAttackList;
-		SpellList spellDefenseList;
-		VoiceVector voiceVector;
-		StringVec scriptList;
+		std::list<summonBlock_t> summonList;
+		std::vector<LootBlock> lootItems;
+		std::map<CombatType_t, int32_t> elementMap;
+		std::list<spellBlock_t> spellAttackList;
+		std::list<spellBlock_t> spellDefenseList;
+		std::vector<voiceBlock_t> voiceVector;
+		std::vector<std::string> scriptList;
+};
+
+class MonsterSpell
+{
+	public:
+		MonsterSpell() = default;
+
+		MonsterSpell(const MonsterSpell&) = delete;
+		MonsterSpell& operator=(const MonsterSpell&) = delete;
+
+		std::string name = "";
+		std::string scriptName = "";
+
+		uint8_t chance = 100;
+		uint8_t range = 0;
+
+		uint16_t interval = 2000;
+
+		int32_t minCombatValue = 0;
+		int32_t maxCombatValue = 0;
+		int32_t attack = 0;
+		int32_t skill = 0;
+		int32_t length = 0;
+		int32_t spread = 0;
+		int32_t radius = 0;
+		int32_t conditionMinDamage = 0;
+		int32_t conditionMaxDamage = 0;
+		int32_t conditionStartDamage = 0;
+		int32_t tickInterval = 0;
+		int32_t speedChange = 0;
+		int32_t duration = 0;
+
+		bool isScripted = false;
+		bool needTarget = false;
+		bool needDirection = false;
+		bool combatSpell = false;
+		bool isMelee = false;
+
+		Outfit_t outfit = {};
+		ShootEffect_t shoot = SHOOT_EFFECT_NONE;
+		MagicEffect_t effect = MAGIC_EFFECT_NONE;
+		ConditionType_t conditionType = CONDITION_NONE;
+		CombatType_t combatType = COMBAT_UNDEFINEDDAMAGE;
 };
 
 class Monsters
@@ -127,6 +205,9 @@ class Monsters
 
 		bool loadMonster(const std::string& file, const std::string& monsterName, bool reloading = false);
 
+		void addMonsterType(const std::string& name, MonsterType* mType);
+		bool deserializeSpell(MonsterSpell* spell, spellBlock_t& sb, const std::string& description = "");
+		
 		MonsterType* getMonsterType(const std::string& name);
 		MonsterType* getMonsterType(uint32_t mid);
 
@@ -134,20 +215,18 @@ class Monsters
 		bool isLoaded() const {return loaded;}
 		static uint16_t getLootRandom();
 
+		bool loadLoot(xmlNodePtr, LootBlock&);
+		
+		std::unique_ptr<LuaScriptInterface> scriptInterface;
 	private:
 		bool loaded;
-
-		bool loadLoot(xmlNodePtr, LootBlock&);
+		
 		bool loadChildLoot(xmlNodePtr, LootBlock&);
 
 		ConditionDamage* getDamageCondition(ConditionType_t conditionType,
 			int32_t maxDamage, int32_t minDamage, int32_t startDamage, uint32_t tickInterval);
 		bool deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::string& description = "");
 
-		typedef std::map<std::string, uint32_t> MonsterNameMap;
-		MonsterNameMap monsterNames;
-
-		typedef std::map<uint32_t, MonsterType*> MonsterMap;
-		MonsterMap monsters;
+		std::map<std::string, MonsterType*> monsters;
 };
 #endif

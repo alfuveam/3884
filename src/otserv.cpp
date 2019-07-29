@@ -40,6 +40,7 @@
 #include "configmanager.h"
 #include "scriptmanager.h"
 #include "databasemanager.h"
+#include "script.h"
 
 #include "iologindata.h"
 #include "ioban.h"
@@ -69,6 +70,7 @@ Game g_game;
 Chat g_chat;
 Monsters g_monsters;
 Npcs g_npcs;
+Scripts g_scripts;
 
 boost::mutex g_loaderLock;
 boost::condition_variable g_loaderSignal;
@@ -586,6 +588,11 @@ void otserv(StringVec, ServiceManager* services)
 	if(!ScriptManager::getInstance()->loadMods())
 		startupErrorMessage();
 
+	std::cout << ">> Loading lua revScriptsys" << std::endl;
+	if(!ScriptManager::getInstance()->revScriptsys())
+		startupErrorMessage("Failed to load lua revScriptsys");
+		
+	}
 	#ifdef __LOGIN_SERVER__
 	std::clog << ">> Carregando game servers" << std::endl;
 	if(!GameServers::getInstance()->loadFromXml(true))

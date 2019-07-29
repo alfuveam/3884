@@ -207,6 +207,20 @@ class Game
 		  * \returns A pointer to a leaf
 		  */
 		QTreeLeafNode* getLeaf(uint32_t x, uint32_t y) {return map->getLeaf(x, y);}
+		
+		/**
+		  * Returns a monster based on the unique creature identifier
+		  * \param id is the unique monster id to get a monster pointer to
+		  * \returns A Monster pointer to the monster
+		  */
+		Monster* getMonsterByID(uint32_t id);
+
+		/**
+		  * Returns a npc based on the unique creature identifier
+		  * \param id is the unique npc id to get a npc pointer to
+		  * \returns A NPC pointer to the npc
+		  */
+		Npc* getNpcByID(uint32_t id);
 
 		/**
 		  * Returns a creature based on the unique creature identifier
@@ -473,6 +487,7 @@ class Game
 		bool playerCloseRuleViolation(uint32_t playerId, const std::string& name);
 		bool playerCancelRuleViolation(uint32_t playerId);
 		bool playerReceivePing(uint32_t playerId);
+		void playerReceivePingBack(uint32_t playerId);
 		bool playerAutoWalk(uint32_t playerId, std::list<Direction>& listDir);
 		bool playerStopAutoWalk(uint32_t playerId);
 		bool playerUseItemEx(uint32_t playerId, const Position& fromPos, int16_t fromStackpos,

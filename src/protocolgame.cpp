@@ -629,8 +629,12 @@ void ProtocolGame::parsePacket(NetworkMessage &msg)
 				parseSay(msg);
 				break;
 
+			case 0x1D:
+				addGameTask(&Game::playerReceivePingBack, player->getID());
+				break;
+
 			case 0x1E:
-				parseReceivePing(msg);
+				addGameTask(&Game::playerReceivePing, player->getID());
 				break;
 
 			case 0x32: // otclient extended opcode
@@ -675,8 +679,12 @@ void ProtocolGame::parsePacket(NetworkMessage &msg)
 				parseLogout(msg);
 				break;
 
+			case 0x1D:
+				addGameTask(&Game::playerReceivePingBack, player->getID());
+				break;
+
 			case 0x1E: // keep alive / ping response
-				parseReceivePing(msg);
+				addGameTask(&Game::playerReceivePing, player->getID());
 				break;
 
 			case 0x64: // move with steps
@@ -1225,11 +1233,6 @@ void ProtocolGame::parseCloseNpc(NetworkMessage&)
 void ProtocolGame::parseCancelMove(NetworkMessage&)
 {
 	addGameTask(&Game::playerCancelAttackAndFollow, player->getID());
-}
-
-void ProtocolGame::parseReceivePing(NetworkMessage&)
-{
-	addGameTask(&Game::playerReceivePing, player->getID());
 }
 
 void ProtocolGame::parseAutoWalk(NetworkMessage& msg)
@@ -2220,6 +2223,16 @@ void ProtocolGame::sendPing()
 	if(msg)
 	{
 		TRACK_MESSAGE(msg);
+		msg->put<char>(0x1D);
+	}
+}
+
+void ProtocolGame::sendPingBack()
+{
+	NetworkMessage_ptr msg = getOutputBuffer();
+	if(msg)
+	{
+		TRACK_MESSAGE(msg);	
 		msg->put<char>(0x1E);
 	}
 }

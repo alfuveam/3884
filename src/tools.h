@@ -26,7 +26,6 @@
 typedef std::vector<std::string> StringVec;
 typedef std::vector<int32_t> IntegerVec;
 
-typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 typedef std::map<int32_t, bool> VocationMap;
 
 enum DistributionType_t
@@ -41,6 +40,7 @@ enum FileType_t
 	FILE_TYPE_XML,
 	FILE_TYPE_LOG,
 	FILE_TYPE_OTHER,
+	FILE_TYPE_REVSCRIPT,
 	FILE_TYPE_CONFIG,
 	FILE_TYPE_MOD
 };
@@ -89,7 +89,6 @@ bool isNumbers(std::string text);
 char upchar(char character);
 bool checkText(std::string text, std::string str);
 std::string trimString(std::string& str);
-std::string parseParams(tokenizer::iterator &it, tokenizer::iterator end);
 
 std::string generateRecoveryKey(int32_t fieldCount, int32_t fieldLength, bool mixCase = false);
 int32_t random_range(int32_t lowest_number, int32_t highest_number, DistributionType_t type = DISTRO_UNIFORM);
@@ -136,4 +135,6 @@ std::string getFilePath(FileType_t type, std::string name = "");
 
 int64_t OTSYS_TIME();
 uint32_t swap_uint32(uint32_t val);
+
+SpellGroup_t stringToSpellGroup(std::string value);
 #endif

@@ -56,7 +56,7 @@
 
 	<!-- Tutors -->
 	<talkaction log="yes" words="/baninfo;!baninfo" access="1" event="function" value="banishmentInfo"/>
-	<talkaction log="yes" words="/pos;!pos" access="1" event="script" value="position.lua"/>
+	<!-- <talkaction log="yes" words="/pos;!pos" access="1" event="script" value="position.lua"/> -->
 
 	<!-- Players -->
 	<talkaction words="!frags;/frags" event="script" value="frags.lua"/>
