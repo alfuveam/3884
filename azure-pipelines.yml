@@ -16,7 +16,7 @@ variables:
   appxPackageDir: '$(build.artifactStagingDirectory)\AppxPackages\\'
 
 steps:
-- script:
+- script: |
     git clone https://github.com/Microsoft/vcpkg
     cd vcpkg
     .\bootstrap-vcpkg.bat
