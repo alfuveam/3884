@@ -16,13 +16,7 @@ variables:
   appxPackageDir: '$(build.artifactStagingDirectory)\AppxPackages\\'
 
 steps:
-- script: |
-    git clone https://github.com/Microsoft/vcpkg
-    cd vcpkg
-    .\bootstrap-vcpkg.bat
-    .\vcpkg integrate install
-    .\vcpkg install boost-iostreams:x64-windows boost-asio:x64-windows boost-system:x64-windows boost-filesystem:x64-windows boost-variant:x64-windows boost-lockfree:x64-windows boost-date-time:x64-windows boost-thread:x64-windows boost-any:x64-windows   openssl:x64-windows luajit:x64-windows libmariadb:x64-windows libxml2:x64-windows sqlite3:x64-windows libpq:x64-windows cryptopp:x64-windows
-    cd ..
+- script: vcpkg install boost-iostreams:x64-windows boost-asio:x64-windows boost-system:x64-windows boost-filesystem:x64-windows boost-variant:x64-windows boost-lockfree:x64-windows boost-date-time:x64-windows boost-thread:x64-windows boost-any:x64-windows   openssl:x64-windows luajit:x64-windows libmariadb:x64-windows libxml2:x64-windows sqlite3:x64-windows libpq:x64-windows cryptopp:x64-windows
 
 - task: NuGetToolInstaller@1
 
