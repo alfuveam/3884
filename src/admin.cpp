@@ -601,24 +601,26 @@ uint32_t Admin::getOptions() const
 
 Item* Admin::createMail(const std::string xmlData, std::string& name, uint32_t& depotId)
 {
-	xmlDocPtr doc = xmlParseMemory(xmlData.c_str(), xmlData.length());
-	if(!doc)
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_buffer_inplace(xmlData.c_str(), xmlData.length());	
+	if(!result)
 		return NULL;
 
-	xmlNodePtr root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"mail"))
+	// xmlNodePtr root = xmlDocGetRootElement(doc);
+	if(doc.attribute("mail"))
 		return NULL;
 
 	int32_t intValue;
 	std::string strValue;
+	pugi::xml_attribute attr;
 
 	int32_t itemId = ITEM_PARCEL;
-	if(readXMLString(root, "to", strValue))
-		name = strValue;
+	if(attr = node.attribute("to"))
+		name = pugi::cast<std::string>(attr.value());
 
-	if(readXMLString(root, "town", strValue))
+	if(attr = node.attribute("town"))
 	{
-		Town* town = Towns::getInstance()->getTown(strValue);
+		Town* town = Towns::getInstance()->getTown(pugi::cast<int32_t>(attr.value()));
 		if(!town)
 			return false;
 
@@ -627,31 +629,31 @@ Item* Admin::createMail(const std::string xmlData, std::string& name, uint32_t& 
 	else if(!IOLoginData::getInstance()->getDefaultTownByName(name, depotId)) //use the players default town
 		return false;
 
-	if(readXMLInteger(root, "id", intValue))
-		itemId = intValue;
+	if(attr = node.attribute("id"))
+		itemId = pugi::cast<int32_t>(attr.value());
 
-	Item* mailItem = Item::CreateItem(itemId);
+	Item* mailItem = Item::CreateItem(itemId);	//	for to only one item ?????
 	mailItem->setParent(VirtualCylinder::virtualCylinder);
-	if(Container* mailContainer = mailItem->getContainer())
-	{
-		xmlNodePtr node = root->children;
-		while(node)
-		{
-			if(node->type != XML_ELEMENT_NODE)
-			{
-				node = node->next;
-				continue;
-			}
+	// if(Container* mailContainer = mailItem->getContainer())
+	// {
+	// 	xmlNodePtr node = root->children;
+	// 	while(node)
+	// 	{
+	// 		if(node->type != XML_ELEMENT_NODE)
+	// 		{
+	// 			node = node->next;
+	// 			continue;
+	// 		}
 
-			if(!Item::loadItem(node, mailContainer))
-			{
-				delete mailContainer;
-				return NULL;
-			}
+	// 		if(!Item::loadItem(node, mailContainer))
+	// 		{
+	// 			delete mailContainer;
+	// 			return NULL;
+	// 		}
 
-			node = node->next;
-		}
-	}
+	// 		node = node->next;
+	// 	}
+	// }
 
 	return mailItem;
 }

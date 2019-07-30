@@ -18,10 +18,7 @@
 // Definitions should be global.
 #include "definitions.h"
 
-//libxml
-#include <xmlmemory.h>
-#include <parser.h>
-#include <threads.h>
+#include <pugixml.hpp>
 
 //boost
 #include <boost/config.hpp>

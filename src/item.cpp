@@ -98,25 +98,25 @@ Item* Item::CreateItem(PropStream& propStream)
 	return Item::CreateItem(items.getRandomizedItem(type), 0);
 }
 
-bool Item::loadItem(xmlNodePtr node, Container* parent)
+bool Item::loadItem(pugi::xml_node& node, Container* parent)
 {
-	if(xmlStrcmp(node->name, (const xmlChar*)"item"))
+	pugi::xml_attribute attr;
+	if(strcasecmp(node.name(), "item") == 0)
 		return false;
 
-	int32_t intValue;
 	std::string strValue;
 
 	Item* item = NULL;
-	if(readXMLInteger(node, "id", intValue))
-		item = Item::CreateItem(intValue);
+	if((attr = node.attribute("id")))
+		item = Item::CreateItem(pugi::cast<int>(attr.value()));
 
 	if(!item)
 		return false;
 
-	if(readXMLString(node, "attributes", strValue))
+	if(attr = node.attribute("attributes"))
 	{
-		StringVec v, attr = explodeString(strValue, ";");
-		for(StringVec::iterator it = attr.begin(); it != attr.end(); ++it)
+		StringVec v, _attr = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		for(StringVec::iterator it = _attr.begin(); it != _attr.end(); ++it)
 		{
 			v = explodeString((*it), ",");
 			if(v.size() < 2)
@@ -130,19 +130,19 @@ bool Item::loadItem(xmlNodePtr node, Container* parent)
 	}
 
 	//compatibility
-	if(readXMLInteger(node, "subtype", intValue) || readXMLInteger(node, "subType", intValue))
-		item->setSubType(intValue);
+	if((attr = node.attribute("subtype")) || (attr = node.attribute("subType")))
+		item->setSubType(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(node, "actionId", intValue) || readXMLInteger(node, "actionid", intValue)
-		|| readXMLInteger(node, "aid", intValue))
-		item->setActionId(intValue);
+	if((attr = node.attribute("actionId")) || (attr = node.attribute("actionid"))
+		|| (attr = node.attribute("aid")))
+		item->setActionId(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(node, "uniqueId", intValue) || readXMLInteger(node, "uniqueid", intValue)
-		|| readXMLInteger(node, "uid", intValue))
-		item->setUniqueId(intValue);
+	if((attr = node.attribute("uniqueId")) || (attr = node.attribute("uniqueid"))
+		|| (attr = node.attribute("uid")))
+		item->setUniqueId(pugi::cast<int>(attr.value()));
 
-	if(readXMLString(node, "text", strValue))
-		item->setText(strValue);
+	if(attr = node.attribute("text"))
+		item->setText(pugi::cast<std::string>(attr.value());
 
 	if(item->getContainer())
 		loadContainer(node, item->getContainer());
@@ -153,21 +153,12 @@ bool Item::loadItem(xmlNodePtr node, Container* parent)
 	return true;
 }
 
-bool Item::loadContainer(xmlNodePtr parentNode, Container* parent)
+bool Item::loadContainer(pugi::xml_node& node, Container* parent)
 {
-	xmlNodePtr node = parentNode->children;
-	while(node)
+	for(auto _node : node.children())
 	{
-		if(node->type != XML_ELEMENT_NODE)
-		{
-			node = node->next;
-			continue;
-		}
-
-		if(!xmlStrcmp(node->name, (const xmlChar*)"item") && !loadItem(node, parent))
+		if(!strcasecmp(_node.name(), "item") && !loadItem(_node, parent))
 			return false;
-
-		node = node->next;
 	}
 
 	return true;

@@ -58,7 +58,7 @@ Event* GlobalEvents::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool GlobalEvents::registerEvent(Event* event, xmlNodePtr, bool override)
+bool GlobalEvents::registerEvent(Event* event, pugi::xml_node&, bool override)
 {
 	GlobalEvent* globalEvent = dynamic_cast<GlobalEvent*>(event);
 	if(!globalEvent)
@@ -182,19 +182,22 @@ GlobalEvent::GlobalEvent(LuaInterface* _interface):
 	m_interval = 0;
 }
 
-bool GlobalEvent::configureEvent(xmlNodePtr p)
+bool GlobalEvent::configureEvent(pugi::xml_node& node)
 {
+	pugi::xml_attribute attr;
 	std::string strValue;
-	if(!readXMLString(p, "name", strValue))
+	if(!(attr = node.attribute("name")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		std::clog << "[Error - GlobalEvent::configureEvent] No name for a globalevent." << std::endl;
 		return false;
 	}
 
 	m_name = strValue;
 	m_eventType = GLOBALEVENT_NONE;
-	if(readXMLString(p, "type", strValue))
+	if((attr = node.attribute("type")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "startup" || tmpStrValue == "start" || tmpStrValue == "load")
 			m_eventType = GLOBALEVENT_STARTUP;
@@ -212,8 +215,9 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 
 		return true;
 	}
-	else if(readXMLString(p, "time", strValue) || readXMLString(p, "at", strValue))
+	else if((attr = node.attribute("time")) || (attr = node.attribute("at")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		IntegerVec params = vectorAtoi(explodeString(strValue, ":"));
 		if(params[0] > 23 || params[0] < 0)
 		{
@@ -248,8 +252,9 @@ bool GlobalEvent::configureEvent(xmlNodePtr p)
 	}
 
 	int32_t intValue;
-	if(readXMLInteger(p, "interval", intValue))
+	if(attr = node.attribute("interval"))
 	{
+		intValue = pugi::cast<int32_t>(attr.value());
 		m_interval = std::max((int32_t)SCHEDULER_MINTICKS, intValue);
 		return true;
 	}

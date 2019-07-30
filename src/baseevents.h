@@ -30,14 +30,14 @@ class BaseEvents
 		bool loadFromXml();
 		bool reload();
 
-		bool parseEventNode(xmlNodePtr p, std::string scriptsPath, bool override);
+		bool parseEventNode(pugi::xml_node& p, std::string scriptsPath, bool override);
 		bool isLoaded() const {return m_loaded;}
 
 	protected:
 		virtual std::string getScriptBaseName() const = 0;
 		virtual void clear() = 0;
 
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override) = 0;
+		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override) = 0;
 		virtual Event* getEvent(const std::string& nodeName) = 0;
 
 		virtual LuaInterface& getInterface() = 0;
@@ -60,14 +60,13 @@ class Event
 		Event(const Event* copy);
 		virtual ~Event() {}
 
-		virtual bool configureEvent(xmlNodePtr p) = 0;
+		virtual bool configureEvent(pugi::xml_node& p) = 0;
 		virtual bool isScripted() const {return m_scripted != EVENT_SCRIPT_FALSE;}
 
 		bool loadBuffer(const std::string& buffer);
-		bool checkBuffer(const std::string& buffer);
 
 		bool loadScript(const std::string& script, bool file);
-		bool checkScript(const std::string& script, bool file);
+		// bool checkScript(const std::string& script, bool file);
 
 		virtual bool loadFunction(const std::string&) {return false;}
 

@@ -5863,19 +5863,19 @@ bool Game::loadExperienceStages()
 	if(!g_config.getBool(ConfigManager::EXPERIENCE_STAGES))
 		return true;
 
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "stages.xml").c_str());
-	if(!doc)
+	pugi::xml_attribute attr;
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_XML, "stages.xml").c_str());
+	
+	if(!result)
 	{
-		std::clog << "[Warning - Game::loadExperienceStages] Cannot load stages file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		printXMLError("Error - Game::loadExperienceStages", "data/XML/stages.xml", result);
 		return false;
 	}
 
-	xmlNodePtr q, p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name, (const xmlChar*)"stages"))
+	if(!doc.child("stages"))
 	{
-		std::clog << "[Error - Game::loadExperienceStages] Malformed stages file" << std::endl;
-		xmlFreeDoc(doc);
+		printXMLError("[Error - Game::loadExperienceStages] Malformed stages file", result);		
 		return false;
 	}
 
@@ -5884,17 +5884,15 @@ bool Game::loadExperienceStages()
 	std::string strValue;
 
 	lastStageLevel = 0;
-	stages.clear();
 
-	q = root->children;
-	while(q)
+	for(auto stageNode : doc.child("stages").children())
 	{
-		if(!xmlStrcmp(q->name, (const xmlChar*)"world"))
+		if(!(stageNode.attribute("world")))
 		{
-			if(readXMLString(q, "id", strValue))
+			if((attr = stageNode.attribute("id")))
 			{
 				IntegerVec intVector;
-				if(!parseIntegerVec(strValue, intVector) || std::find(intVector.begin(),
+				if(!parseIntegerVec(pugi::cast<std::string>(attr.value()), intVector) || std::find(intVector.begin(),
 					intVector.end(), g_config.getNumber(ConfigManager::WORLD_ID)) == intVector.end())
 				{
 					q = q->next;
@@ -5903,27 +5901,26 @@ bool Game::loadExperienceStages()
 			}
 
 			defStageMultiplier = 1.0f;
-			if(readXMLFloat(q, "multiplier", floatValue))
-				defStageMultiplier = floatValue;
-
-			p = q->children;
-			while(p)
+			if((attr = stageNode.attribute("multiplier")))
+				defStageMultiplier = pugi::cast<float>(attr.value());;
+		
+			for(auto childNode : stageNode.children())
 			{
-				if(!xmlStrcmp(p->name, (const xmlChar*)"stage"))
+				if(!(childNode.attribute("stage")))
 				{
 					low = 1;
-					if(readXMLInteger(p, "minlevel", intValue) || readXMLInteger(p, "minLevel", intValue))
-						low = intValue;
+					if((attr = childNode.attribute("minlevel")) || (attr = childNode.attribute("minLevel")))
+						low = pugi::cast<int>(attr.value());
 
 					high = 0;
-					if(readXMLInteger(p, "maxlevel", intValue) || readXMLInteger(p, "maxLevel", intValue))
-						high = intValue;
+					if((attr = childNode.attribute("maxlevel")) || (attr = childNode.attribute("maxLevel")))
+						high = pugi::cast<int>(attr.value());
 					else
 						lastStageLevel = low;
 
 					mul = 1.0f;
-					if(readXMLFloat(p, "multiplier", floatValue))
-						mul = floatValue;
+					if((attr = childNode.attribute("multiplier")))
+						mul = pugi::cast<float>(attr.value());
 
 					mul *= defStageMultiplier;
 					if(lastStageLevel && lastStageLevel == (uint32_t)low)
@@ -5934,27 +5931,25 @@ bool Game::loadExperienceStages()
 							stages[i] = mul;
 					}
 				}
-
-				p = p->next;
 			}
 		}
 
-		if(!xmlStrcmp(q->name, (const xmlChar*)"stage"))
+		if(!(stageNode.attribute("stage")))
 		{
 			low = 1;
-			if(readXMLInteger(q, "minlevel", intValue))
-				low = intValue;
+			if((attr = stageNode.attribute("minlevel")))
+				low = pugi::cast<int>(attr.value());
 			else
 
 			high = 0;
-			if(readXMLInteger(q, "maxlevel", intValue))
-				high = intValue;
+			if((attr = stageNode.attribute("maxlevel")))
+				high = pugi::cast<int>(attr.value());
 			else
 				lastStageLevel = low;
 
 			mul = 1.0f;
-			if(readXMLFloat(q, "multiplier", floatValue))
-				mul = floatValue;
+			if((attr = stageNode.attribute("multiplier")))
+				mul = pugi::cast<float>(attr.value());
 
 			if(lastStageLevel && lastStageLevel == (uint32_t)low)
 				stages[lastStageLevel] = mul;
@@ -5964,11 +5959,7 @@ bool Game::loadExperienceStages()
 					stages[i] = mul;
 			}
 		}
-
-		q = q->next;
 	}
-
-	xmlFreeDoc(doc);
 	return true;
 }
 

@@ -138,8 +138,8 @@ class Item : virtual public Thing, public ItemAttributes
 		static Item* CreateItem(const uint16_t type, uint16_t amount = 0);
 		static Item* CreateItem(PropStream& propStream);
 
-		static bool loadItem(xmlNodePtr node, Container* parent);
-		static bool loadContainer(xmlNodePtr node, Container* parent);
+		static bool loadItem(pugi::xml_node& node, Container* parent);
+		static bool loadContainer(pugi::xml_node& node, Container* parent);
 
 		// Constructor for items
 		Item(const uint16_t type, uint16_t amount = 0);

@@ -243,7 +243,7 @@ class Items
 		bool reload();
 		int32_t loadFromOtb(std::string);
 		bool loadFromXml();
-		void parseItemNode(xmlNodePtr itemNode, uint32_t id);
+		void parseItemNode(pugi::xml_node& itemNode, uint32_t id);
 
 		void addItemType(ItemType* iType);
 		ItemType& getItemType(int32_t id);

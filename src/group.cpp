@@ -41,41 +41,36 @@ bool Groups::reload()
 
 bool Groups::loadFromXml()
 {
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "groups.xml").c_str());
-	if(!doc)
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_XML, "groups.xml").c_str());
+	
+	if(!result)
 	{
-		std::clog << "[Warning - Groups::loadFromXml] Cannot load groups file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		printXMLError("[Warning - Groups::loadFromXml] Cannot load groups file.", result);
 		return false;
 	}
 
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"groups"))
+	if(!doc.child("groups"))
 	{
-		std::clog << "[Error - Groups::loadFromXml] Malformed groups file." << std::endl;
-		xmlFreeDoc(doc);
+		printXMLError("[Error - Groups::loadFromXml] Malformed groups file.", result);
 		return false;
 	}
 
-	p = root->children;
-	while(p)
+	for(auto group : doc.child("groups").children())
 	{
-		parseGroupNode(p);
-		p = p->next;
+		parseGroupNode(group);
 	}
 
-	xmlFreeDoc(doc);
 	return true;
 }
 
-bool Groups::parseGroupNode(xmlNodePtr p)
+bool Groups::parseGroupNode(pugi::xml_node& node)
 {
-	if(xmlStrcmp(p->name, (const xmlChar*)"group"))
+	if(node.name() != "group"))
 		return false;
 
 	int32_t intValue;
-	if(!readXMLInteger(p, "id", intValue))
-	{
+	if(attr = node.attribute("id")	{
 		std::clog << "[Warning - Groups::parseGroupNode] Missing group id." << std::endl;
 		return false;
 	}
@@ -84,43 +79,44 @@ bool Groups::parseGroupNode(xmlNodePtr p)
 	int64_t int64Value;
 
 	Group* group = new Group(intValue);
-	if(readXMLString(p, "name", strValue))
+	if(attr = node.attribute("name"))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		group->setFullName(strValue);
 		group->setName(asLowerCaseString(strValue));
 	}
 
-	if(readXMLInteger64(p, "flags", int64Value))
-		group->setFlags(int64Value);
+	if(attr = node.attribute("flags"))
+		group->setFlags(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger64(p, "customFlags", int64Value))
-		group->setCustomFlags(int64Value);
+	if(attr = node.attribute("customFlags"))
+		group->setCustomFlags(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "access", intValue))
-		group->setAccess(intValue);
+	if(attr = node.attribute("access"))
+		group->setAccess(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "ghostAccess", intValue))
-		group->setGhostAccess(intValue);
+	if(attr = node.attribute("ghostAccess"))
+		group->setGhostAccess(pugi::cast<int>(attr.value()));
 	else
 		group->setGhostAccess(group->getAccess());
 
-	if(readXMLInteger(p, "violationReasons", intValue))
-		group->setViolationReasons(intValue);
+	if(attr = node.attribute("violationReasons"))
+		group->setViolationReasons(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "nameViolationFlags", intValue))
-		group->setNameViolationFlags(intValue);
+	if(attr = node.attribute("nameViolationFlags"))
+		group->setNameViolationFlags(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "statementViolationFlags", intValue))
-		group->setStatementViolationFlags(intValue);
+	if(attr = node.attribute("statementViolationFlags"))
+		group->setStatementViolationFlags(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "depotLimit", intValue))
-		group->setDepotLimit(intValue);
+	if(attr = node.attribute("depotLimit"))
+		group->setDepotLimit(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "maxVips", intValue))
-		group->setMaxVips(intValue);
+	if(attr = node.attribute("maxVips"))
+		group->setMaxVips(pugi::cast<int>(attr.value()));
 
-	if(readXMLInteger(p, "outfit", intValue))
-		group->setOutfit(intValue);
+	if(attr = node.attribute("outfit"))
+		group->setOutfit(pugi::cast<int>(attr.value()));
 
 	groupsMap[group->getId()] = group;
 	return true;

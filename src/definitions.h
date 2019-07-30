@@ -152,14 +152,6 @@
 	#define __USE_ZLIB__
 #endif
 
-#ifdef __MINGW32__
-	#define XML_GCC_FREE
-#endif
-
-#ifdef XML_GCC_FREE
-	#define xmlFree(s) free(s)
-#endif
-
 #ifdef __USE_MINIDUMP__
 	#ifndef __EXCEPTION_TRACER__
 		#define __EXCEPTION_TRACER__

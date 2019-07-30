@@ -117,7 +117,7 @@ class Chat
 
 		bool reload();
 		bool loadFromXml();
-		bool parseChannelNode(xmlNodePtr p);
+		bool parseChannelNode(pugi::xml_node& node);
 
 		ChatChannel* createChannel(Player* player, uint16_t channelId);
 		bool deleteChannel(Player* player, uint16_t channelId);

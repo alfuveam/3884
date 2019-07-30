@@ -32,42 +32,34 @@ bool BaseEvents::loadFromXml()
 	if(!getInterface().loadDirectory(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/lib/"))))
 		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot load " << scriptsName << "/lib/" << std::endl;
 
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/" + scriptsName + ".xml")).c_str());
-	if(!doc)
+	std::string filename = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/" + scriptsName + ".xml")).c_str();
+	pugi::xml_document doc;
+	pugi::xml_parser_result result = doc.load_file(filename);
+	
+	if(!result)
 	{
-		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot open " << scriptsName << ".xml file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		printXMLError("[Warning - BaseEvents::loadFromXml]", filename, doc);
 		return false;
 	}
 
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)scriptsName.c_str()))
-	{
-		std::clog << "[Error - BaseEvents::loadFromXml] Malformed " << scriptsName << ".xml file." << std::endl;
-		xmlFreeDoc(doc);
-		return false;
-	}
-
-	std::string scriptsPath = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/scripts/"));
-	p = root->children;
-	while(p)
-	{
-		parseEventNode(p, scriptsPath, false);
-		p = p->next;
-	}
-
-	xmlFreeDoc(doc);
 	m_loaded = true;
+
+	for(auto node : doc.child(scriptsName.c_str()).children()){	
+		pugi::xml_attribute scriptAttribute = node.attribute("value")	// getpath  to file or function in .xml 
+		if(scriptAttribute){
+			parseEventNode(node, scriptAttribute, false);
+		}
+	}
 	return m_loaded;
 }
 
-bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool override)
+bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, bool override)
 {
-	Event* event = getEvent((const char*)p->name);
+	Event* event = getEvent(node.name());
 	if(!event)
 		return false;
 
-	if(!event->configureEvent(p))
+	if(!event->configureEvent(node))
 	{
 		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot configure an event" << std::endl;
 		delete event;
@@ -76,59 +68,68 @@ bool BaseEvents::parseEventNode(xmlNodePtr p, std::string scriptsPath, bool over
 	}
 
 	bool success = false;
-	std::string strValue, tmpStrValue;
-	if(readXMLString(p, "event", strValue))
+	std::string strValue;
+	pugi::xml_attribute attr;
+	if((attr = node.attribute("event")))
 	{
-		tmpStrValue = asLowerCaseString(strValue);
-		if(tmpStrValue == "script")
+		strValue = pugi::cast<std::string>(attr.value());
+		if(strValue == "script")
 		{
-			bool file = readXMLString(p, "value", strValue);
+			bool file = node.attribute("value").as_bool();
 			if(!file)
-				parseXMLContentString(p->children, strValue);
+				strValue = pugi::cast<std::string>(attr.value());
 			else
 				strValue = scriptsPath + strValue;
 
-			success = event->checkScript(strValue, file) && event->loadScript(strValue, file);
+			success = event->loadScript(strValue, file);
 		}
-		else if(tmpStrValue == "buffer")
+		else if(strValue == "buffer")
 		{
-			if(!readXMLString(p, "value", strValue))
-				parseXMLContentString(p->children, strValue);
+			if(!(attr = node.attribute("value")))
+				strValue = pugi::cast<std::string>(attr.value());
 
-			success = event->checkBuffer(strValue) && event->loadBuffer(strValue);
+			success = event->loadBuffer(strValue);
 		}
-		else if(tmpStrValue == "function")
+		else if(strValue == "function")
 		{
-			if(readXMLString(p, "value", strValue))
+			if((attr = node.attribute("value")))
 				success = event->loadFunction(strValue);
 		}
 	}
-	else if(readXMLString(p, "script", strValue))
+	else if((attr = node.attribute("script")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		bool file = asLowerCaseString(strValue) != "cdata";
 		if(!file)
-			parseXMLContentString(p->children, strValue);
+			strValue = pugi::cast<std::string>(attr.value());
 		else
 			strValue = scriptsPath + strValue;
 
-		success = event->checkScript(strValue, file) && event->loadScript(strValue, file);
+		success = event->loadScript(strValue, file);
 	}
-	else if(readXMLString(p, "buffer", strValue))
+	else if((attr = node.attribute("buffer")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		if(asLowerCaseString(strValue) == "cdata")
-			parseXMLContentString(p->children, strValue);
+			strValue = pugi::cast<std::string>(attr.value());
 
-		success = event->checkBuffer(strValue) && event->loadBuffer(strValue);
-	}
-	else if(readXMLString(p, "function", strValue))
-		success = event->loadFunction(strValue);
-	else if(parseXMLContentString(p->children, strValue) && event->checkBuffer(strValue))
 		success = event->loadBuffer(strValue);
+	}
+	else if((attr = node.attribute("function")))
+		strValue = pugi::cast<std::string>(attr.value());
+		success = event->loadFunction(strValue);
+	else if(attr node.value()){
+		strValue = pugi::cast<std::string>(attr.value());
+		success = event->loadBuffer(strValue);
+	}
 
-	if(!override && readXMLString(p, "override", strValue) && booleanString(strValue))
-		override = true;
+	if(!override && (attr = node.attribute("override"))){
+		if(attr.value().as_bool){
+			override = true;
+		}
+	}		
 
-	if(success && !registerEvent(event, p, override) && event)
+	if(success && !registerEvent(event, node, override) && event)
 	{
 		delete event;
 		event = NULL;
@@ -163,11 +164,6 @@ bool Event::loadBuffer(const std::string& buffer)
 	m_scripted = EVENT_SCRIPT_BUFFER;
 	m_scriptData = buffer;
 	return true;
-}
-
-bool Event::checkBuffer(const std::string&)
-{
-	return true; //TODO
 }
 
 bool Event::loadScript(const std::string& script, bool file)
@@ -214,10 +210,10 @@ bool Event::loadScript(const std::string& script, bool file)
 	return true;
 }
 
-bool Event::checkScript(const std::string&, bool)
-{
-	return true; //TODO
-}
+// bool Event::checkScript(const std::string&, bool)
+// {
+// 	return true; //TODO
+// }
 
 CallBack::CallBack()
 {

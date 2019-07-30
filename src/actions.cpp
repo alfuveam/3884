@@ -82,15 +82,16 @@ Event* Actions::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
+bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 {
 	Action* action = dynamic_cast<Action*>(event);
 	if(!action)
 		return false;
 
-	std::string strValue;
-	if(readXMLString(p, "default", strValue) && booleanString(strValue))
+	pugi::xml_attribute attr;
+	if((attr = node.attribute("default")))
 	{
+		
 		if(!defaultAction)
 			defaultAction = action;
 		else if(override)
@@ -106,9 +107,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 
 	bool success = true;
 	std::string endValue;
-	if(readXMLString(p, "itemid", strValue))
+	if((attr = node.attribute("itemid")))
 	{
 		IntegerVec intVector;
+		strValue = pugi::cast<std::string>(attr.value())
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			std::clog << "[Warning - Actions::registerEvent] Invalid itemid - '" << strValue << "'" << std::endl;
@@ -145,8 +147,12 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 			useItemMap[intVector[i]] = new Action(action);
 		}
 	}
-	else if(readXMLString(p, "fromid", strValue) && readXMLString(p, "toid", endValue))
+	else if((attr = node.attribute("fromid")) && (attr = node.attribute("toid")))
 	{
+		pugi::xml_attribute toIdAttribute = node.attribute("toid")
+		strValue = pugi::cast<std::string>(attr.value())
+		endValue = pugi::cast<std::string>(toIdAttribute.value())
+
 		IntegerVec intVector = vectorAtoi(explodeString(strValue, ";")), endVector = vectorAtoi(explodeString(endValue, ";"));
 		if(intVector[0] && endVector[0] && intVector.size() == endVector.size())
 		{
@@ -178,9 +184,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 				"\", to item: \"" << endValue << "\")" << std::endl;
 	}
 
-	if(readXMLString(p, "uniqueid", strValue))
+	if((attr = node.attribute("uniqueid")))
 	{
 		IntegerVec intVector;
+		strValue = pugi::cast<std::string>(attr.value())
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			std::clog << "[Warning - Actions::registerEvent] Invalid uniqueid - '" << strValue << "'" << std::endl;
@@ -217,8 +224,11 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 			uniqueItemMap[intVector[i]] = new Action(action);
 		}
 	}
-	else if(readXMLString(p, "fromuid", strValue) && readXMLString(p, "touid", endValue))
+	else if((attr = node.attribute("fromuid")) && (attr = node.attribute("touid")))
 	{
+		pugi::xml_attribute toUidAttribute = node.attribute("touid")
+		strValue = pugi::cast<std::string>(attr.value())
+		endValue = pugi::cast<std::string>(toUidAttribute.value())
 		IntegerVec intVector = vectorAtoi(explodeString(strValue, ";")), endVector = vectorAtoi(explodeString(endValue, ";"));
 		if(intVector[0] && endVector[0] && intVector.size() == endVector.size())
 		{
@@ -250,9 +260,10 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 				"\", to unique: \"" << endValue << "\")" << std::endl;
 	}
 
-	if(readXMLString(p, "actionid", strValue))
+	if((attr = node.attribute("actionid")))
 	{
 		IntegerVec intVector;
+		strValue = pugi::cast<std::string>(attr.value());
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			std::clog << "[Warning - Actions::registerEvent] Invalid actionid - '" << strValue << "'" << std::endl;
@@ -289,8 +300,11 @@ bool Actions::registerEvent(Event* event, xmlNodePtr p, bool override)
 			actionItemMap[intVector[i]] = new Action(action);
 		}
 	}
-	else if(readXMLString(p, "fromaid", strValue) && readXMLString(p, "toaid", endValue))
+	else if((attr = node.attribute("fromaid")) && (attr = node.attribute("toaid")))
 	{
+		pugi::xml_attribute toAidAttribute = node.attribute("toaid")
+		strValue = pugi::cast<std::string>(attr.value())
+		endValue = pugi::cast<std::string>(toAidAttribute.value())		
 		IntegerVec intVector = vectorAtoi(explodeString(strValue, ";")), endVector = vectorAtoi(explodeString(endValue, ";"));
 		if(intVector[0] && endVector[0] && intVector.size() == endVector.size())
 		{
@@ -705,14 +719,16 @@ Event(copy)
 	checkLineOfSight = copy->checkLineOfSight;
 }
 
-bool Action::configureEvent(xmlNodePtr p)
+bool Action::configureEvent(pugi::xml_node& node)
 {
-	std::string strValue;
-	if(readXMLString(p, "allowfaruse", strValue) || readXMLString(p, "allowFarUse", strValue))
-		setAllowFarUse(booleanString(strValue));
-
-	if(readXMLString(p, "blockwalls", strValue) || readXMLString(p, "blockWalls", strValue))
-		setCheckLineOfSight(booleanString(strValue));
+	pugi::xml_attribute allowFarUseAttr = node.attribute("allowfaruse");
+	if (allowFarUseAttr) {
+		allowFarUse = allowFarUseAttr.as_bool();
+	}
+	pugi::xml_attribute blockWallsAttr = node.attribute("blockwalls");
+	if (blockWallsAttr) {
+		checkLineOfSight = blockWallsAttr.as_bool();
+	}
 
 	return true;
 }

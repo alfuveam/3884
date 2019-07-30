@@ -672,59 +672,55 @@ Houses::Houses()
 
 bool Houses::loadFromXml(std::string filename)
 {
-	xmlDocPtr doc = xmlParseFile(filename.c_str());
-	if(!doc)
+	pugi::xml_attribute attr;
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(filename.c_str());	
+	if(!result)
 	{
-		std::clog << "[Warning - Houses::loadFromXml] Cannot load houses file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		printXMLError("[Warning - Houses::loadFromXml] Cannot load houses file.", result);		
 		return false;
 	}
 
-	xmlNodePtr houseNode, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"houses"))
+	if(strcasecmp(node.name(), "houses") == 0)
 	{
-		std::clog << "[Error - Houses::loadFromXml] Malformed houses file." << std::endl;
-		xmlFreeDoc(doc);
+		printXMLError("[Error - Houses::loadFromXml] Malformed houses file.", result);
 		return false;
 	}
 
 	int32_t intValue;
 	std::string strValue;
 
-	houseNode = root->children;
-	while(houseNode)
+	for(auto houseNode : doc.child("houses").children())
 	{
-		if(xmlStrcmp(houseNode->name,(const xmlChar*)"house"))
+		if(strcasecmp(houseNode.name(), "house") == 0)
 		{
-			houseNode = houseNode->next;
 			continue;
 		}
 
 		int32_t houseId = 0;
-		if(!readXMLInteger(houseNode, "houseid", houseId))
+		if(!(attr = node.attribute("houseid")))
 		{
-			std::clog << "[Error - Houses::loadFromXml] Could not read houseId" << std::endl;
-			xmlFreeDoc(doc);
+			std::clog << "[Error - Houses::loadFromXml] Could not read houseId" << std::endl;			
 			return false;
 		}
 
+		houseId = pugi::cast<int>(attr.value())
 		House* house = Houses::getInstance()->getHouse(houseId);
 		if(!house)
 		{
 			std::clog << "[Error - Houses::loadFromXml] Unknown house with id: " << houseId << std::endl;
-			xmlFreeDoc(doc);
 			return false;
 		}
 
 		Position entry(0, 0, 0);
-		if(readXMLInteger(houseNode, "entryx", intValue))
-			entry.x = intValue;
+		if((attr = node.attribute("entryx")))
+			entry.x = pugi::cast<int>(attr.value());
 
-		if(readXMLInteger(houseNode, "entryy", intValue))
-			entry.y = intValue;
+		if((attr = node.attribute("entryy")))
+			entry.y = pugi::cast<int>(attr.value());
 
-		if(readXMLInteger(houseNode, "entryz", intValue))
-			entry.z = intValue;
+		if((attr = node.attribute("entryz")))
+			entry.z = pugi::cast<int>(attr.value());
 
 		house->setEntry(entry);
 		if(!entry.x || !entry.y)
@@ -733,29 +729,29 @@ bool Houses::loadFromXml(std::string filename)
 			std::clog << house->getName() << " (" << houseId << ")" << std::endl;
 		}
 
-		if(readXMLString(houseNode, "name", strValue))
-			house->setName(strValue);
+		if(attr = node.attribute("name"))
+			house->setName(pugi::cast<std::string>(attr.value()));
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_NAME);
 
-		if(readXMLInteger(houseNode, "townid", intValue))
-			house->setTownId(intValue);
+		if((attr = node.attribute("townid")))
+			house->setTownId(intValuepugi::cast<int>(attr.value());
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_TOWN);
 
-		if(readXMLInteger(houseNode, "size", intValue))
-			house->setSize(intValue);
+		if((attr = node.attribute("size")))
+			house->setSize(intValuepugi::cast<int>(attr.value());
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_SIZE);
 
-		if(readXMLString(houseNode, "guildhall", strValue))
-			house->setGuild(booleanString(strValue));
+		if(attr = node.attribute("guildhall"))
+			house->setGuild(pugi::cast<bool>(attr.value()));
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_GUILD);
 
 		uint32_t rent = 0;
-		if(readXMLInteger(houseNode, "rent", intValue))
-			rent = intValue;
+		if((attr = node.attribute("rent")))
+			rent = pugi::cast<int>(attr.value());
 
 		uint32_t price = house->getTilesCount() * g_config.getNumber(ConfigManager::HOUSE_PRICE);
 		if(g_config.getBool(ConfigManager::HOUSE_RENTASPRICE) && rent)
@@ -768,10 +764,8 @@ bool Houses::loadFromXml(std::string filename)
 			house->setRent(rent);
 
 		house->setOwner(0);
-		houseNode = houseNode->next;
 	}
 
-	xmlFreeDoc(doc);
 	return true;
 }
 

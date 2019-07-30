@@ -36,37 +36,36 @@ bool GameServers::reload()
 
 bool GameServers::loadFromXml(bool result)
 {
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "servers.xml").c_str());
-	if(!doc)
+	pugi::xml_document doc;
+	pugi::xml_attribute attr;
+	pugi::xml_parse_result result = doc.load_flile(getFilePath(FILE_TYPE_XML, "servers.xml").c_str());
+	
+	if(!result)
 	{
-		std::clog << "[Warning - GameServers::loadFromXml] Cannot load servers file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		printXMLError("[Warning - GameServers::loadFromXml] Cannot load servers file.");
 		return false;
 	}
 
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"servers"))
+	if(!doc.child("servers"))
 	{
-		std::clog << "[Error - GameServers::loadFromXml] Malformed servers file." << std::endl;
-		xmlFreeDoc(doc);
+		printXMLError("[Error - GameServers::loadFromXml] Malformed servers file.");
 		return false;
 	}
 
 	std::string strValue;
 	int32_t intValue;
-	p = root->children;
-	while(p)
+	for(auto serverNode : doc.child("servers").children())
 	{
-		if(xmlStrcmp(p->name, (const xmlChar*)"server"))
+		//	To enable servers
+		if(!g_config.getBool(ConfigManager::MULTISERVER))
 		{
-			p = p->next;
 			continue;
 		}
 
 		std::string name, address;
 		uint32_t id, versionMin, versionMax, port;
-		if(readXMLInteger(p, "id", intValue))
-			id = intValue;
+		if(attr = serverNode.attribute("id"))
+			id = pugi::cast<uint32_t>(attr.value());
 		else
 		{
 			std::clog << "[Error - GameServers::loadFromXml] Missing id, skipping" << std::endl;
@@ -81,40 +80,40 @@ bool GameServers::loadFromXml(bool result)
 			continue;
 		}
 
-		if(readXMLString(p, "name", strValue))
-			name = strValue;
+		if((attr = serverNode.attribute("name")))
+			name = pugi::cast<std::string>(attr.value());
 		else
 		{
 			name = "Server #" + std::to_string(id);
 			std::clog << "[Warning - GameServers::loadFromXml] Missing name for server " << id << ", using default" << std::endl;
 		}
 
-		if(readXMLInteger(p, "versionMin", intValue))
-			versionMin = intValue;
+		if(attr = serverNode.attribute("versionMin"))
+			versionMin = pugi::cast<uint32_t>(attr.value());
 		else
 		{
 			versionMin = CLIENT_VERSION_MIN;
 			std::clog << "[Warning - GameServers::loadFromXml] Missing versionMin for server " << id << ", using default" << std::endl;
 		}
 
-		if(readXMLInteger(p, "versionMax", intValue))
-			versionMax = intValue;
+		if(attr = serverNode.attribute("versionMax"))
+			versionMax = pugi::cast<uint32_t>(attr.value());
 		else
 		{
 			versionMax = CLIENT_VERSION_MAX;
 			std::clog << "[Warning - GameServers::loadFromXml] Missing versionMax for server " << id << ", using default" << std::endl;
 		}
 
-		if(readXMLString(p, "address", strValue) || readXMLString(p, "ip", strValue))
-			address = strValue;
+		if((attr = serverNode.attribute("address")) || (attr = serverNode.attribute("ip")))
+			address = pugi::cast<std::string>(attr.value());
 		else
 		{
 			address = "localhost";
 			std::clog << "[Warning - GameServers::loadFromXml] Missing address for server " << id << ", using default" << std::endl;
 		}
 
-		if(readXMLInteger(p, "port", intValue))
-			port = intValue;
+		if(attr = serverNode.attribute("port"))
+			port = pugi::cast<uint32_t>(attr.value());
 		else
 		{
 			port = 7171;
@@ -125,8 +124,6 @@ bool GameServers::loadFromXml(bool result)
 			serverList[id] = server;
 		else
 			std::clog << "[Error - GameServers::loadFromXml] Couldn't add server " << name << std::endl;
-
-		p = p->next;
 	}
 
 	if(result)
@@ -134,8 +131,7 @@ bool GameServers::loadFromXml(bool result)
 		std::clog << "> Servers loaded:" << std::endl;
 		for(GameServersMap::iterator it = serverList.begin(); it != serverList.end(); it++)
 			std::clog << it->second->getName() << " (" << it->second->getAddress() << ":" << it->second->getPort() << ")" << std::endl;
-	}
-	xmlFreeDoc(doc);
+	}	
 	return true;
 }
 

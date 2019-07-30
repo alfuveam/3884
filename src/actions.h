@@ -56,7 +56,7 @@ class Actions : public BaseEvents
 		virtual void clear();
 
 		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override);
 
 		virtual LuaInterface& getInterface() {return m_interface;}
 		LuaInterface m_interface;
@@ -90,7 +90,7 @@ class Action : public Event
 		Action(LuaInterface* _interface);
 		virtual ~Action() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool loadFunction(const std::string& functionName);
 
 		//scripting
@@ -98,10 +98,8 @@ class Action : public Event
 			const PositionEx& posTo, bool extendedUse, uint32_t creatureId);
 
 		bool getAllowFarUse() const {return allowFarUse;}
-		void setAllowFarUse(bool v) {allowFarUse = v;}
-
-		bool getCheckLineOfSight() const {return checkLineOfSight;}
-		void setCheckLineOfSight(bool v) {checkLineOfSight = v;}
+		
+		bool getCheckLineOfSight() const {return checkLineOfSight;}		
 
 		virtual ReturnValue canExecuteAction(const Player* player, const Position& toPos);
 		virtual bool hasOwnErrorHandler() {return false;}

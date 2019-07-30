@@ -54,7 +54,7 @@ Event* CreatureEvents::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool CreatureEvents::registerEvent(Event* event, xmlNodePtr, bool override)
+bool CreatureEvents::registerEvent(Event* event, pugi::xml_node&, bool override)
 {
 	CreatureEvent* creatureEvent = dynamic_cast<CreatureEvent*>(event);
 	if(!creatureEvent)
@@ -271,20 +271,25 @@ Event(_interface)
 	m_isLoaded = false;
 }
 
-bool CreatureEvent::configureEvent(xmlNodePtr p)
+bool CreatureEvent::configureEvent(pugi::xml_node& node)
 {
 	std::string str;
-	if(!readXMLString(p, "name", str))
+	pugi::xml_attribute attr;
+	if(!(attr = node.attribute("name")))
 	{
 		std::clog << "[Error - CreatureEvent::configureEvent] No name for creature event." << std::endl;
 		return false;
+	} else {
+		str = pugi::cast<std::string>(attr.value());
 	}
 
 	m_eventName = str;
-	if(!readXMLString(p, "type", str))
+	if(!(attr = node.attribute("type")))
 	{
 		std::clog << "[Error - CreatureEvent::configureEvent] No type for creature event." << std::endl;
 		return false;
+	} else {
+		str = pugi::cast<std::string>(attr.value());
 	}
 
 	std::string tmpStr = asLowerCaseString(str);

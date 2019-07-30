@@ -92,7 +92,7 @@ class Groups
 		}
 
 		bool loadFromXml();
-		bool parseGroupNode(xmlNodePtr p);
+		bool parseGroupNode(pugi::xml_node& node);
 
 		void clear();
 		bool reload();

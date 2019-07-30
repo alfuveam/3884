@@ -57,7 +57,7 @@ class GlobalEvents : public BaseEvents
 		virtual void clear();
 
 		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+		virtual bool registerEvent(Event* event, pugi::xml_node& node, bool override);
 
 		virtual LuaInterface& getInterface() {return m_interface;}
 		LuaInterface m_interface;
@@ -71,7 +71,7 @@ class GlobalEvent : public Event
 		GlobalEvent(LuaInterface* _interface);
 		virtual ~GlobalEvent() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& node);
 
 		int32_t executeRecord(uint32_t current, uint32_t old, Player* player);
 		int32_t executeEvent();
