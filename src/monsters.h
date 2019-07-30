@@ -137,12 +137,12 @@ class Monsters
 	private:
 		bool loaded;
 
-		bool loadLoot(xmlNodePtr, LootBlock&);
-		bool loadChildLoot(xmlNodePtr, LootBlock&);
+		bool loadLoot(pugi::xml_node&, LootBlock&);
+		bool loadChildLoot(pugi::xml_node&, LootBlock&);
 
 		ConditionDamage* getDamageCondition(ConditionType_t conditionType,
 			int32_t maxDamage, int32_t minDamage, int32_t startDamage, uint32_t tickInterval);
-		bool deserializeSpell(xmlNodePtr node, spellBlock_t& sb, const std::string& description = "");
+		bool deserializeSpell(pugi::xml_node& node, spellBlock_t& sb, const std::string& description = "");
 
 		typedef std::map<std::string, uint32_t> MonsterNameMap;
 		MonsterNameMap monsterNames;

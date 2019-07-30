@@ -77,7 +77,7 @@ class Outfits
 		}
 
 		bool loadFromXml();
-		bool parseOutfitNode(xmlNodePtr p);
+		bool parseOutfitNode(pugi::xml_node& p);
 
 		const OutfitMap& getOutfits(uint16_t sex) {return outfitsMap[sex];}
 

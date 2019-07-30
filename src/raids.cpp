@@ -33,29 +33,34 @@ Raids::Raids()
 	lastRaidEnd = checkRaidsEvent = 0;
 }
 
-bool Raids::parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t pathing)
-{
-	if(xmlStrcmp(raidNode->name, (const xmlChar*)"raid"))
+bool Raids::parseRaidNode(pugi::xml_node& raidNode, bool checkDuplicate, FileType_t pathing)
+{	
+	if(strcasecmp(raidNode.name(),"raid") == 0)
 		return false;
 
 	int32_t intValue;
 	std::string strValue;
-	if(!readXMLString(raidNode, "name", strValue))
+	if(!(attr = raidNode.attribute("name")))
 	{
 		std::clog << "[Error - Raids::parseRaidNode] name tag missing for raid." << std::endl;
 		return false;
+	}else{
+		strValue = raidNode.attribute("name")
 	}
 
 	std::string name = strValue;
-	if(!readXMLInteger(raidNode, "interval2", intValue) || intValue <= 0)
+	if(!(attr = raidNode.attribute("interval2")))
 	{
+		if(pugi::cast<int32_t>(attr.value()) < 0)
 		std::clog << "[Error - Raids::parseRaidNode] interval2 tag missing or divided by 0 for raid " << name << std::endl;
 		return false;
+	}else{
+		intValue = raidNode.attribute("interval2")
 	}
 
 	uint32_t interval = intValue * 60;
 	std::string file;
-	if(!readXMLString(raidNode, "file", strValue))
+	if(!(attr = raidNode.attribute("file")))
 	{
 		file = name + ".xml";
 		std::clog << "[Warning - Raids::parseRaidNode] file tag missing for raid " << name << ", using default: " << file << std::endl;
@@ -65,30 +70,30 @@ bool Raids::parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t p
 
 	file = getFilePath(pathing, "raids/" + file);
 	uint64_t margin = 0;
-	if(!readXMLInteger(raidNode, "margin", intValue))
+	if(!(attr = raidNode.attribute("margin")))
 		std::clog << "[Warning - Raids::parseRaidNode] margin tag missing for raid " << name << ", using default: " << margin << std::endl;
 	else
 		margin = intValue * 60 * 1000;
 
 	RefType_t refType = REF_NONE;
-	if(readXMLString(raidNode, "reftype", strValue) || readXMLString(raidNode, "refType", strValue))
+	if((attr = raidNode.attribute("reftype")) || (attr = raidNode.attribute("refType")))
 	{
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
 		if(tmpStrValue == "single")
 			refType = REF_SINGLE;
 		else if(tmpStrValue == "block")
 			refType = REF_BLOCK;
 		else if(tmpStrValue != "none")
-			std::clog << "[Warning - Raids::parseRaidNode] Unknown reftype \"" << strValue << "\" for raid " << name << std::endl;
+			std::clog << "[Warning - Raids::parseRaidNode] Unknown reftype \"" << pugi::cast<std::string>(attr.value()) << "\" for raid " << name << std::endl;
 	}
 
 	bool ref = false;
-	if(readXMLString(raidNode, "ref", strValue))
-		ref = booleanString(strValue);
+	if((attr = raidNode.attribute("ref")))
+		ref = booleanString(pugi::cast<std::string>(attr.value()));
 
 	bool enabled = true;
-	if(readXMLString(raidNode, "enabled", strValue))
-		enabled = booleanString(strValue);
+	if((attr = raidNode.attribute("enabled")))
+		enabled = booleanString(pugi::cast<std::string>(attr.value()));
 
 	Raid* raid = new Raid(name, interval, margin, refType, ref, enabled);
 	if(!raid || !raid->loadFromXml(file))
@@ -363,13 +368,11 @@ RaidEvent* Raid::getNextRaidEvent()
 
 bool RaidEvent::configureRaidEvent(xmlNodePtr eventNode)
 {
-	std::string strValue;
-	if(readXMLString(eventNode, "ref", strValue))
-		m_ref = booleanString(strValue);
+	if((attr = eventNode.attribute("ref")))
+		m_ref = booleanString(pugi::cast<std::string>(attr.value()));
 
-	int32_t intValue;
-	if(readXMLInteger(eventNode, "delay", intValue))
-		m_delay = std::max((int32_t)m_delay, intValue);
+	if((attr = eventNode.attribute("delay")))
+		m_delay = std::max((int32_t)m_delay, pugi::cast<int>(attr.value()));
 
 	return true;
 }
@@ -380,14 +383,16 @@ bool AnnounceEvent::configureRaidEvent(xmlNodePtr eventNode)
 		return false;
 
 	std::string strValue;
-	if(!readXMLString(eventNode, "message", strValue))
+	if((attr = eventNode.attribute("message")))
 	{
+		strValue = pugi::cast<std::string>(attr.value())
+	}else{
 		std::clog << "[Error - AnnounceEvent::configureRaidEvent] Message tag missing for announce event." << std::endl;
 		return false;
 	}
 
 	m_message = strValue;
-	if(readXMLString(eventNode, "type", strValue))
+	if((attr = eventNode.attribute("type")))
 	{
 		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "warning")
@@ -428,46 +433,50 @@ bool EffectEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 	int32_t intValue;
 	std::string strValue;
-	if(!readXMLInteger(eventNode, "id", intValue))
+	if(!(attr = eventNode.attribute("id")))
 	{
-		if(!readXMLString(eventNode, "name", strValue))
+		if((attr = eventNode.attribute("name")))
 		{
+			m_effect = getMagicEffect(pugi::cast<std::string>(attr.value()));
+		} else {
 			std::clog << "[Error - EffectEvent::configureRaidEvent] id (or name) tag missing for effect event." << std::endl;
 			return false;
 		}
-		else
-			m_effect = getMagicEffect(strValue);
-	}
-	else
+		
+	} else {
 		m_effect = (MagicEffect_t)intValue;
+	}
 
-	if(!readXMLString(eventNode, "pos", strValue))
+	if(!(attr = eventNode.attribute("pos")))
 	{
-		if(!readXMLInteger(eventNode, "x", intValue))
+		if((attr = eventNode.attribute("x")))
 		{
+			m_position.x = intValue;
+		} else {
 			std::clog << "[Error - EffectEvent::configureRaidEvent] x tag missing for effect event." << std::endl;
 			return false;
 		}
 
-		m_position.x = intValue;
-		if(!readXMLInteger(eventNode, "y", intValue))
+		if((attr = eventNode.attribute("y")))
 		{
+			m_position.y = intValue;
+		} else {
 			std::clog << "[Error - EffectEvent::configureRaidEvent] y tag missing for effect event." << std::endl;
 			return false;
 		}
 
-		m_position.y = intValue;
-		if(!readXMLInteger(eventNode, "z", intValue))
+		if((attr = eventNode.attribute("z")))
 		{
+			m_position.z = intValue;
+		} else {
 			std::clog << "[Error - EffectEvent::configureRaidEvent] z tag missing for effect event." << std::endl;
 			return false;
 		}
 
-		m_position.z = intValue;
 	}
 	else
 	{
-		IntegerVec posList = vectorAtoi(explodeString(strValue, ";"));
+		IntegerVec posList = vectorAtoi(explodeString(pugi::cast<std::string>(eventNode.value()), ";"));
 		if(posList.size() < 3)
 		{
 			std::clog << "[Error - EffectEvent::configureRaidEvent] Malformed pos tag for effect event." << std::endl;
@@ -493,52 +502,28 @@ bool ItemSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 	int32_t intValue;
 	std::string strValue;
-	if(!readXMLInteger(eventNode, "id", intValue))
+	if((attr = eventNode.attribute("id")))
 	{
-		if(!readXMLString(eventNode, "name", strValue))
+		m_itemId = intValue;
+	} else {
+		if((attr = eventNode.attribute("name")))
 		{
+			m_itemId = Item::items.getItemIdByName(pugi::cast<std::string>(attr.value()));
+		} else {
 			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] id (or name) tag missing for itemspawn event." << std::endl;
 			return false;
-		}
-		else
-			m_itemId = Item::items.getItemIdByName(strValue);
+		}		
 	}
-	else
-		m_itemId = intValue;
 
-	if(readXMLInteger(eventNode, "chance", intValue))
+	if((attr = eventNode.attribute("chance")))
 		m_chance = intValue;
 
-	if(readXMLInteger(eventNode, "subType", intValue))
+	if((attr = eventNode.attribute("subType")))
 		m_subType = intValue;
 
-	if(!readXMLString(eventNode, "pos", strValue))
+	if((attr = eventNode.attribute("pos")))
 	{
-		if(!readXMLInteger(eventNode, "x", intValue))
-		{
-			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] x tag missing for itemspawn event." << std::endl;
-			return false;
-		}
-
-		m_position.x = intValue;
-		if(!readXMLInteger(eventNode, "y", intValue))
-		{
-			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] y tag missing for itemspawn event." << std::endl;
-			return false;
-		}
-
-		m_position.y = intValue;
-		if(!readXMLInteger(eventNode, "z", intValue))
-		{
-			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] z tag missing for itemspawn event." << std::endl;
-			return false;
-		}
-
-		m_position.z = intValue;
-	}
-	else
-	{
-		IntegerVec posList = vectorAtoi(explodeString(strValue, ";"));
+		IntegerVec posList = vectorAtoi(explodeString(pugi::cast<std::string>(attr.value()), ";"));
 		if(posList.size() < 3)
 		{
 			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] Malformed pos tag for itemspawn event." << std::endl;
@@ -546,6 +531,32 @@ bool ItemSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 		}
 
 		m_position = Position(posList[0], posList[1], posList[2]);
+
+	} else {
+		if((attr = eventNode.attribute("x")))
+		{
+			m_position.x = intValue;
+		} else {
+			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] x tag missing for itemspawn event." << std::endl;
+			return false;
+		}
+
+		if((attr = eventNode.attribute("y")))
+		{
+			m_position.y = intValue;
+		} else {
+			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] y tag missing for itemspawn event." << std::endl;
+			return false;
+		}
+		
+		if((attr = eventNode.attribute("z")))
+		{
+			m_position.z = intValue;
+		} else {
+			std::clog << "[Error - ItemSpawnEvent::configureRaidEvent] z tag missing for itemspawn event." << std::endl;
+			return false;
+		}
+		
 	}
 
 	return true;
@@ -625,31 +636,31 @@ bool SingleSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 		return false;
 
 	std::string strValue;
-	if(!readXMLString(eventNode, "name", strValue))
+	if(!(attr = eventNode.attribute("name")))
 	{
 		std::clog << "[Error - SingleSpawnEvent::configureRaidEvent] name tag missing for singlespawn event." << std::endl;
 		return false;
 	}
 
 	m_monsterName = strValue;
-	if(!readXMLString(eventNode, "pos", strValue))
+	if(!(attr = eventNode.attribute("pos")))
 	{
 		int32_t intValue;
-		if(!readXMLInteger(eventNode, "x", intValue))
+		if(!(attr = eventNode.attribute("x")))
 		{
 			std::clog << "[Error - SingleSpawnEvent::configureRaidEvent] x tag missing for singlespawn event." << std::endl;
 			return false;
 		}
 
 		m_position.x = intValue;
-		if(!readXMLInteger(eventNode, "y", intValue))
+		if(!(attr = eventNode.attribute("y")))
 		{
 			std::clog << "[Error - SingleSpawnEvent::configureRaidEvent] y tag missing for singlespawn event." << std::endl;
 			return false;
 		}
 
 		m_position.y = intValue;
-		if(!readXMLInteger(eventNode, "z", intValue))
+		if(!(attr = eventNode.attribute("z")))
 		{
 			std::clog << "[Error - SingleSpawnEvent::configureRaidEvent] z tag missing for singlespawn event." << std::endl;
 			return false;
@@ -704,11 +715,11 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 	int32_t intValue;
 	std::string strValue;
-	if(readXMLInteger(eventNode, "radius", intValue))
+	if((attr = eventNode.attribute("radius")))
 	{
 		int32_t radius = intValue;
 		Position centerPos;
-		if(readXMLString(eventNode, "centerPosition", strValue) || readXMLString(eventNode, "centerpos", strValue))
+		if((attr = eventNode.attribute("centerPosition")) || (attr = eventNode.attribute("centerpos")))
 		{
 			IntegerVec posList = vectorAtoi(explodeString(strValue, ";"));
 			if(posList.size() < 3)
@@ -721,21 +732,21 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 		}
 		else
 		{
-			if(!readXMLInteger(eventNode, "centerx", intValue))
+			if(!(attr = eventNode.attribute("centerx")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] centerx tag missing for areaspawn event." << std::endl;
 				return false;
 			}
 
 			centerPos.x = intValue;
-			if(!readXMLInteger(eventNode, "centery", intValue))
+			if(!(attr = eventNode.attribute("centery")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] centery tag missing for areaspawn event." << std::endl;
 				return false;
 			}
 
 			centerPos.y = intValue;
-			if(!readXMLInteger(eventNode, "centerz", intValue))
+			if(!(attr = eventNode.attribute("centerz")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] centerz tag missing for areaspawn event." << std::endl;
 				return false;
@@ -754,7 +765,7 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 	}
 	else
 	{
-		if(readXMLString(eventNode, "fromPosition", strValue) || readXMLString(eventNode, "frompos", strValue))
+		if((attr = eventNode.attribute("fromPosition")) || (attr = eventNode.attribute("frompos")))
 		{
 			IntegerVec posList = vectorAtoi(explodeString(strValue, ";"));
 			if(posList.size() < 3)
@@ -767,21 +778,21 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 		}
 		else
 		{
-			if(!readXMLInteger(eventNode, "fromx", intValue))
+			if(!(attr = eventNode.attribute("fromx")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] fromx tag missing for areaspawn event." << std::endl;
 				return false;
 			}
 
 			m_fromPos.x = intValue;
-			if(!readXMLInteger(eventNode, "fromy", intValue))
+			if(!(attr = eventNode.attribute("fromy")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] fromy tag missing for areaspawn event." << std::endl;
 				return false;
 			}
 
 			m_fromPos.y = intValue;
-			if(!readXMLInteger(eventNode, "fromz", intValue))
+			if(!(attr = eventNode.attribute("fromz")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] fromz tag missing for areaspawn event." << std::endl;
 				return false;
@@ -790,7 +801,7 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 			m_fromPos.z = intValue;
 		}
 
-		if(readXMLString(eventNode, "toPosition", strValue) || readXMLString(eventNode, "topos", strValue))
+		if((attr = eventNode.attribute("toPosition")) || (attr = eventNode.attribute("topos")))
 		{
 			IntegerVec posList = vectorAtoi(explodeString(strValue, ";"));
 			if(posList.size() < 3)
@@ -803,21 +814,21 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 		}
 		else
 		{
-			if(!readXMLInteger(eventNode, "tox", intValue))
+			if(!(attr = eventNode.attribute("tox")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] tox tag missing for areaspawn event." << std::endl;
 				return false;
 			}
 
 			m_toPos.x = intValue;
-			if(!readXMLInteger(eventNode, "toy", intValue))
+			if(!(attr = eventNode.attribute("toy")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] toy tag missing for areaspawn event." << std::endl;
 				return false;
 			}
 
 			m_toPos.y = intValue;
-			if(!readXMLInteger(eventNode, "toz", intValue))
+			if(!(attr = eventNode.attribute("toz")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] toz tag missing for areaspawn event." << std::endl;
 				return false;
@@ -832,7 +843,7 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 	{
 		if(!xmlStrcmp(monsterNode->name, (const xmlChar*)"monster"))
 		{
-			if(!readXMLString(monsterNode, "name", strValue))
+			if(!(attr = monsterNode.attribute("name")))
 			{
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] name tag missing for monster node." << std::endl;
 				return false;
@@ -840,15 +851,15 @@ bool AreaSpawnEvent::configureRaidEvent(xmlNodePtr eventNode)
 
 			std::string name = strValue;
 			int32_t min = 0, max = 0;
-			if(readXMLInteger(monsterNode, "min", intValue) || readXMLInteger(monsterNode, "minamount", intValue))
+			if((monattr = sterNode.attribute("min")) || (monattr = sterNode.attribute("minamount")))
 				min = intValue;
 
-			if(readXMLInteger(monsterNode, "max", intValue) || readXMLInteger(monsterNode, "maxamount", intValue))
+			if((monattr = sterNode.attribute("max")) || (monattr = sterNode.attribute("maxamount")))
 				max = intValue;
 
 			if(!min && !max)
 			{
-				if(!readXMLInteger(monsterNode, "amount", intValue))
+				if(!(monattr = sterNode.attribute("amount")))
 				{
 					std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] amount tag missing for monster node." << std::endl;
 					return false;
@@ -941,7 +952,7 @@ bool ScriptEvent::configureRaidEvent(xmlNodePtr eventNode)
 		std::clog << "[Warning - ScriptEvent::configureRaidEvent] Cannot load " << scriptsName << "/lib/" << std::endl;
 
 	std::string strValue;
-	if(readXMLString(eventNode, "file", strValue))
+	if((attr = eventNode.attribute("file")))
 	{
 		if(!loadScript(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/scripts/" + strValue)), true))
 		{

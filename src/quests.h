@@ -102,7 +102,7 @@ class Quests
 		bool reload();
 
 		bool loadFromXml();
-		bool parseQuestNode(xmlNodePtr p, bool checkDuplicate);
+		bool parseQuestNode(pugi::xml_node& p, bool checkDuplicate);
 
 		uint16_t getQuestCount(Player* player);
 

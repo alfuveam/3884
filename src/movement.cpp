@@ -179,16 +179,17 @@ Event* MoveEvents::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
+bool MoveEvents::registerEvent(Event* event, pugi::xml_node& p, bool override)
 {
 	MoveEvent* moveEvent = dynamic_cast<MoveEvent*>(event);
 	if(!moveEvent)
 		return false;
 
+	pugi::xml_attribute attr;
+	pugi::xml_attribute _attr;
 	std::string strValue, endStrValue;
 	MoveEvent_t eventType = moveEvent->getEventType();
-	if((eventType == MOVE_EVENT_ADD_ITEM || eventType == MOVE_EVENT_REMOVE_ITEM) &&
-		readXMLString(p, "tileitem", strValue) && booleanString(strValue))
+	if((eventType == MOVE_EVENT_ADD_ITEM || eventType == MOVE_EVENT_REMOVE_ITEM) && (attr = p.attribute("tileitem")))
 	{
 		switch(eventType)
 		{
@@ -207,9 +208,9 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 	IntegerVec intVector, endIntVector;
 
 	bool success = true;
-	if(readXMLString(p, "itemid", strValue))
+	if((attr = p.attribute("itemid")))
 	{
-		strVector = explodeString(strValue, ";");
+		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), "-"));
@@ -245,8 +246,10 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 		}
 	}
 
-	if(readXMLString(p, "fromid", strValue) && readXMLString(p, "toid", endStrValue))
+	if((attr = p.attribute("fromid")) && (_attr = p.attribute("toid")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
+		endStrValue = pugi::cast<std::string>(_attr.value());
 		intVector = vectorAtoi(explodeString(strValue, ";"));
 		endIntVector = vectorAtoi(explodeString(endStrValue, ";"));
 		if(intVector[0] && endIntVector[0] && intVector.size() == endIntVector.size())
@@ -282,9 +285,9 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 			std::clog << "[Warning - MoveEvents::registerEvent] Malformed entry (from item: \"" << strValue << "\", to item: \"" << endStrValue << "\")" << std::endl;
 	}
 
-	if(readXMLString(p, "uniqueid", strValue))
+	if((attr = p.attribute("uniqueid")))
 	{
-		strVector = explodeString(strValue, ";");
+		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), "-"));
@@ -300,8 +303,10 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 		}
 	}
 
-	if(readXMLString(p, "fromuid", strValue) && readXMLString(p, "touid", endStrValue))
+	if((attr = p.attribute("fromuid")) && (_attr = p.attribute("touid")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
+		endStrValue = pugi::cast<std::string>(_attr.value());
 		intVector = vectorAtoi(explodeString(strValue, ";"));
 		endIntVector = vectorAtoi(explodeString(endStrValue, ";"));
 		if(intVector[0] && endIntVector[0] && intVector.size() == endIntVector.size())
@@ -317,9 +322,9 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 			std::clog << "[Warning - MoveEvents::registerEvent] Malformed entry (from unique: \"" << strValue << "\", to unique: \"" << endStrValue << "\")" << std::endl;
 	}
 
-	if(readXMLString(p, "actionid", strValue))
+	if((attr = p.attribute("actionid")))
 	{
-		strVector = explodeString(strValue, ";");
+		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), "-"));
@@ -335,8 +340,10 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 		}
 	}
 
-	if(readXMLString(p, "fromaid", strValue) && readXMLString(p, "toaid", endStrValue))
+	if((attr = p.attribute("fromaid")) && (_attr = p.attribute("toaid")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
+		endStrValue = pugi::cast<std::string>(_attr.value());
 		intVector = vectorAtoi(explodeString(strValue, ";"));
 		endIntVector = vectorAtoi(explodeString(endStrValue, ";"));
 		if(intVector[0] && endIntVector[0] && intVector.size() == endIntVector.size())
@@ -352,9 +359,9 @@ bool MoveEvents::registerEvent(Event* event, xmlNodePtr p, bool override)
 			std::clog << "[Warning - MoveEvents::registerEvent] Malformed entry (from action: \"" << strValue << "\", to action: \"" << endStrValue << "\")" << std::endl;
 	}
 
-	if(readXMLString(p, "pos", strValue) || readXMLString(p, "position", strValue))
+	if((attr = p.attribute("pos")) || (attr = p.attribute("position")))
 	{
-		strVector = explodeString(strValue, ";");
+		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), ","));
@@ -792,13 +799,16 @@ std::string MoveEvent::getScriptEventParams() const
 	return "";
 }
 
-bool MoveEvent::configureEvent(xmlNodePtr p)
+bool MoveEvent::configureEvent(pugi::xml_node& p)
 {
 	std::string strValue;
 	int32_t intValue;
-	if(readXMLString(p, "type", strValue) || readXMLString(p, "event", strValue))
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("type")) || (attr = p.attribute("event")))
 	{
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		strValue = pugi::cast<std::string>(attr.value());
+
+		std::string tmpStrValue = asLowerCaseString();
 		if(tmpStrValue == "stepin")
 			m_eventType = MOVE_EVENT_STEP_IN;
 		else if(tmpStrValue == "stepout")
@@ -819,8 +829,9 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 
 		if(m_eventType == MOVE_EVENT_EQUIP || m_eventType == MOVE_EVENT_DE_EQUIP)
 		{
-			if(readXMLString(p, "slot", strValue))
+			if((attr = p.attribute("slot")))
 			{
+				strValue = pugi::cast<std::string>(attr.value());
 				std::string tmpStrValue = asLowerCaseString(strValue);
 				if(tmpStrValue == "head")
 					slot = SLOTP_HEAD;
@@ -855,36 +866,33 @@ bool MoveEvent::configureEvent(xmlNodePtr p)
 			}
 
 			wieldInfo = 0;
-			if(readXMLInteger(p, "lvl", intValue) || readXMLInteger(p, "level", intValue))
+			if((p.attribute("lvl")) || (p.attribute("level")))
 			{
-	 			reqLevel = intValue;
+	 			reqLevel = pugi::cast<int32_t>(attr.value());
 				if(reqLevel > 0)
 					wieldInfo |= WIELDINFO_LEVEL;
 			}
 
-			if(readXMLInteger(p, "maglv", intValue) || readXMLInteger(p, "maglevel", intValue))
+			if((p.attribute("maglv")) || (p.attribute("maglevel")))
 			{
-	 			reqMagLevel = intValue;
+	 			reqMagLevel = pugi::cast<int32_t>(attr.value());
 				if(reqMagLevel > 0)
 					wieldInfo |= WIELDINFO_MAGLV;
 			}
 
-			if(readXMLString(p, "prem", strValue) || readXMLString(p, "premium", strValue))
+			if((attr = p.attribute("prem")) || (attr = p.attribute("premium")))
 			{
-				premium = booleanString(strValue);
+				premium = booleanString(pugi::cast<std::string>(attr.value()));
 				if(premium)
 					wieldInfo |= WIELDINFO_PREMIUM;
 			}
 
 			StringVec vocStringVec;
 			std::string error = "";
-			xmlNodePtr vocationNode = p->children;
-			while(vocationNode)
+			for(auto vocationNode : p.children())
 			{
 				if(!parseVocationNode(vocationNode, vocEquipMap, vocStringVec, error))
 					std::clog << "[Warning - MoveEvent::configureEvent] " << error << std::endl;
-
-				vocationNode = vocationNode->next;
 			}
 
 			if(!vocEquipMap.empty())

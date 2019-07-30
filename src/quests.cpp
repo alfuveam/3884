@@ -134,43 +134,38 @@ bool Quests::reload()
 
 bool Quests::loadFromXml()
 {
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML, "quests.xml").c_str());
-	if(!doc)
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_XML, "quests.xml").c_str());	
+	if(!result)
 	{
-		std::clog << "[Warning - Quests::loadFromXml] Cannot load quests file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		std::clog << "[Warning - Quests::loadFromXml] Cannot load quests file." << std::endl;		
 		return false;
 	}
 
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"quests"))
+	if(strcasecmp(doc.name(),"quests") == 0)
 	{
 		std::clog << "[Error - Quests::loadFromXml] Malformed quests file." << std::endl;
-		xmlFreeDoc(doc);
 		return false;
 	}
 
-	p = root->children;
-	while(p)
+	for(auto p : doc.children())
 	{
-		parseQuestNode(p, false);
-		p = p->next;
+		parseQuestNode(p, false);		
 	}
 
-	xmlFreeDoc(doc);
 	return true;
 }
 
-bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
-{
-	if(xmlStrcmp(p->name, (const xmlChar*)"quest"))
+bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
+{	
+	if(strcasecmp(p.name(),"quest") == 0)
 		return false;
 
 	int32_t intValue;
 	std::string strValue;
 
 	uint32_t id = m_lastId;
-	if(readXMLInteger(p, "id", intValue) && id > 0)
+	if(((attr = p.attribute("id")) && id > 0)
 	{
 		id = intValue;
 		if(id > m_lastId)
@@ -178,55 +173,55 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 	}
 
 	std::string name;
-	if(readXMLString(p, "name", strValue))
+	if((attr = p.attribute("name")))
 		name = strValue;
 
 	std::string startStorageId;
-	if(readXMLString(p, "startstorageid", strValue) || readXMLString(p, "storageId", strValue))
+	if((attr = p.attribute("startstorageid")) || (attr = p.attribute("storageId")))
 		startStorageId = strValue;
 
 	int32_t startStorageValue = 0;
-	if(readXMLInteger(p, "startstoragevalue", intValue) || readXMLInteger(p, "storageValue", intValue))
+	if(((attr = p.attribute("startstoragevalue")) || ((attr = p.attribute("storageValue")))
 		startStorageValue = intValue;
 
 	Quest* quest = new Quest(name, id, startStorageId, startStorageValue);
 	if(!quest)
 		return false;
-
-	for(xmlNodePtr missionNode = p->children; missionNode; missionNode = missionNode->next)
+	
+	for(auto missionNode : p.children())
 	{
-		if(xmlStrcmp(missionNode->name, (const xmlChar*)"mission"))
+		if(strcasecmp(missionNode.name(),"mission") == 0)
 			continue;
 
 		std::string missionName, missionState, storageId;
-		if(readXMLString(missionNode, "name", strValue))
+		if((attr = missionNode.attribute("name")))
 			missionName = strValue;
 
-		if(readXMLString(missionNode, "state", strValue) || readXMLString(missionNode, "description", strValue))
+		if((attr = missionNode.attribute("state")) || (attr = missionNode.attribute("description")))
 			missionState = strValue;
 
-		if(readXMLString(missionNode, "storageid", strValue) || readXMLString(missionNode, "storageId", strValue))
+		if((attr = missionNode.attribute("storageid")) || (attr = missionNode.attribute("storageId")))
 			storageId = strValue;
 
 		int32_t startValue = 0, endValue = 0;
-		if(readXMLInteger(missionNode, "startvalue", intValue) || readXMLInteger(missionNode, "startValue", intValue))
+		if(((attr = missionNode.attribute("startvalue")) || ((attr = missionNode.attribute("startValue")))
 			startValue = intValue;
 
-		if(readXMLInteger(missionNode, "endvalue", intValue) || readXMLInteger(missionNode, "endValue", intValue))
+		if(((attr = missionNode.attribute("endvalue")) || ((attr = missionNode.attribute("endValue")))
 			endValue = intValue;
 
 		if(Mission* mission = new Mission(missionName, missionState, storageId, startValue, endValue))
 		{
 			if(missionState.empty())
 			{
-				// parse sub-states only if main is not set
-				for(xmlNodePtr stateNode = missionNode->children; stateNode; stateNode = stateNode->next)
+				// parse sub-states only if main is not set				
+				for(auto stateNode : missionNode.children())
 				{
-					if(xmlStrcmp(stateNode->name, (const xmlChar*)"missionstate"))
+					if(strcasecmp(stateNode.name(),"missionstate") == 0)
 						continue;
 
 					uint32_t missionId;
-					if(!readXMLInteger(stateNode, "id", intValue))
+					if(!((attr = stateNode.attribute("id")))
 					{
 						std::clog << "[Warning - Quests::parseQuestNode] Missing missionId for mission state" << std::endl;
 						continue;
@@ -234,7 +229,7 @@ bool Quests::parseQuestNode(xmlNodePtr p, bool checkDuplicate)
 
 					missionId = intValue;
 					std::string description;
-					if(readXMLString(stateNode, "description", strValue))
+					if((attr = stateNode.attribute("description")))
 						description = strValue;
 
 					mission->newState(missionId, description);

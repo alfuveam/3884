@@ -61,7 +61,7 @@ class Raids
 		}
 
 		bool loadFromXml();
-		bool parseRaidNode(xmlNodePtr raidNode, bool checkDuplicate, FileType_t pathing);
+		bool parseRaidNode(pugi::xml_node& raidNode, bool checkDuplicate, FileType_t pathing);
 
 		bool startup();
 		void checkRaids();
@@ -141,7 +141,7 @@ class RaidEvent
 			m_ref(ref), m_raid(raid) {}
 		virtual ~RaidEvent() {}
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const {return false;}
 
 		uint32_t getDelay() const {return m_delay;}
@@ -165,7 +165,7 @@ class AnnounceEvent : public RaidEvent
 			m_messageType(MSG_EVENT_ADVANCE) {}
 		virtual ~AnnounceEvent() {}
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const;
 
 	private:
@@ -180,7 +180,7 @@ class EffectEvent : public RaidEvent
 			m_effect(MAGIC_EFFECT_NONE) {}
 		virtual ~EffectEvent() {}
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const;
 
 	private:
@@ -195,7 +195,7 @@ class ItemSpawnEvent : public RaidEvent
 			m_itemId(0), m_subType(-1), m_chance(MAX_ITEM_CHANCE) {}
 		virtual ~ItemSpawnEvent() {}
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const;
 
 	private:
@@ -212,7 +212,7 @@ class SingleSpawnEvent : public RaidEvent
 		SingleSpawnEvent(Raid* raid, bool ref): RaidEvent(raid, ref) {}
 		virtual ~SingleSpawnEvent() {}
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const;
 
 	private:
@@ -226,7 +226,7 @@ class AreaSpawnEvent : public RaidEvent
 		AreaSpawnEvent(Raid* raid, bool ref): RaidEvent(raid, ref) {}
 		virtual ~AreaSpawnEvent();
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const;
 
 		void addMonster(MonsterSpawn* _spawn);
@@ -244,10 +244,10 @@ class ScriptEvent : public RaidEvent, public Event
 			Event(&m_interface) {m_interface.initState();}
 		virtual ~ScriptEvent() {}
 
-		virtual bool configureRaidEvent(xmlNodePtr eventNode);
+		virtual bool configureRaidEvent(pugi::xml_node& eventNode);
 		virtual bool executeEvent() const;
 
-		virtual bool configureEvent(xmlNodePtr) {return false;}
+		virtual bool configureEvent(pugi::xml_node&) {return false;}
 		static LuaInterface m_interface;
 
 	protected:

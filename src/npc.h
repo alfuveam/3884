@@ -424,8 +424,8 @@ class Npc : public Creature
 		typedef std::map<std::string, std::string> ParametersMap;
 		ParametersMap m_parameters;
 
-		uint32_t loadParams(xmlNodePtr node);
-		ResponseList loadInteraction(xmlNodePtr node);
+		uint32_t loadParams(pugi::xml_node& node);
+		ResponseList loadInteraction(pugi::xml_node& node);
 
 		void addShopPlayer(Player* player);
 		void removeShopPlayer(const Player* player);
