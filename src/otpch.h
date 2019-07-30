@@ -19,9 +19,9 @@
 #include "definitions.h"
 
 //libxml
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/threads.h>
+#include <xmlmemory.h>
+#include <parser.h>
+#include <threads.h>
 
 //boost
 #include <boost/config.hpp>
