@@ -140,7 +140,7 @@ class Vocations
 
 		bool reload();
 		bool loadFromXml();
-		bool parseVocationNode(xmlNodePtr p);
+		bool parseVocationNode(pugi::xml_node& p);
 
 		Vocation* getVocation(uint32_t vocId);
 		int32_t getVocationId(const std::string& name);

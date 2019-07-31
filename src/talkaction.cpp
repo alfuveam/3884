@@ -82,30 +82,33 @@ Event* TalkActions::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool TalkActions::registerEvent(Event* event, xmlNodePtr p, bool override)
+bool TalkActions::registerEvent(Event* event, pugi::xml_node& p, bool override)
 {
 	TalkAction* talkAction = dynamic_cast<TalkAction*>(event);
 	if(!talkAction)
 		return false;
 
 	std::string strValue;
-	if(readXMLString(p, "default", strValue) && booleanString(strValue))
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("default")))
 	{
-		if(!defaultTalkAction)
-			defaultTalkAction = talkAction;
-		else if(override)
-		{
-			delete defaultTalkAction;
-			defaultTalkAction = talkAction;
-		}
-		else
-			std::clog << "[Warning - TalkAction::registerEvent] You cannot define more than one default talkAction." << std::endl;
+		if(booleanString(pugi::cast<std::string>(attr.value())){
+			if(!defaultTalkAction)
+				defaultTalkAction = talkAction;
+			else if(override)
+			{
+				delete defaultTalkAction;
+				defaultTalkAction = talkAction;
+			}
+			else
+				std::clog << "[Warning - TalkAction::registerEvent] You cannot define more than one default talkAction." << std::endl;
 
-		return true;
+			return true;
+			}
 	}
 
-	if(!readXMLString(p, "separator", strValue) || strValue.empty())
-		strValue = ";";
+	if(!(attr = p.attribute("separator")))
+		strValue = pugi::cast<std::string>(attr.value()) + ";";
 
 	StringVec strVector = explodeString(talkAction->getWords(), strValue);
 	for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
@@ -321,20 +324,26 @@ Event(copy)
 	m_exceptions = copy->m_exceptions;
 }
 
-bool TalkAction::configureEvent(xmlNodePtr p)
+bool TalkAction::configureEvent(pugi::xml_node& p)
 {
 	std::string strValue;
-	if(readXMLString(p, "words", strValue))
-		m_words = strValue;
-	else if(!readXMLString(p, "default", strValue) || !booleanString(strValue))
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("words")))
+		m_words = pugi::cast<std::string>(attr.value());
+	else if(!(attr = p.attribute("default")))
 	{
-		std::clog << "[Error - TalkAction::configureEvent] No words for TalkAction." << std::endl;
-		return false;
+		if(!booleanString(pugi::cast<std::string>(attr.value()))){
+			std::clog << "[Error - TalkAction::configureEvent] No words for TalkAction." << std::endl;
+			return false;
+		} else {
+			std::clog << "[Error - TalkAction::configureEvent] No words for TalkAction." << std::endl;
+			return false;
+		}
 	}
 
-	if(readXMLString(p, "filter", strValue))
+	if((attr = p.attribute("filter")))
 	{
-		std::string tmpStrValue = asLowerCaseString(strValue);
+		std::string tmpStrValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
 		if(tmpStrValue == "quotation")
 			m_filter = TALKFILTER_QUOTATION;
 		else if(tmpStrValue == "word")
@@ -342,27 +351,27 @@ bool TalkAction::configureEvent(xmlNodePtr p)
 		else if(tmpStrValue == "word-spaced")
 			m_filter = TALKFILTER_WORD_SPACED;
 		else
-			std::clog << "[Warning - TalkAction::configureEvent] Unknown filter for TalkAction: " << strValue << ", using default." << std::endl;
+			std::clog << "[Warning - TalkAction::configureEvent] Unknown filter for TalkAction: " << pugi::cast<std::string>(attr.value()) << ", using default." << std::endl;
 	}
 
 	int32_t intValue;
-	if(readXMLInteger(p, "access", intValue))
+	if((attr = p.attribute("access")))
 		m_access = intValue;
 
-	if(readXMLInteger(p, "channel", intValue))
+	if((attr = p.attribute("channel")))
 		m_channel = intValue;
 
-	if(readXMLString(p, "logged", strValue) || readXMLString(p, "log", strValue))
-		m_logged = booleanString(strValue);
+	if((attr = p.attribute("logged")) || (attr = p.attribute("log")))
+		m_logged = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "hidden", strValue) || readXMLString(p, "hide", strValue))
-		m_hidden = booleanString(strValue);
+	if((attr = p.attribute("hidden")) || (attr = p.attribute("hide")))
+		m_hidden = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "case-sensitive", strValue) || readXMLString(p, "casesensitive", strValue) || readXMLString(p, "sensitive", strValue))
-		m_sensitive = booleanString(strValue);
+	if((attr = p.attribute("case-sensitive")) || (attr = p.attribute("casesensitive")) || (attr = p.attribute("sensitive")))
+		m_sensitive = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "exception", strValue))
-		m_exceptions = explodeString(asLowerCaseString(strValue), ";");
+	if((attr = p.attribute("exception")))
+		m_exceptions = explodeString(asLowerCaseString(pugi::cast<std::string>(attr.value())), ";");
 
 	return true;
 }

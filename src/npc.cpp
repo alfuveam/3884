@@ -345,6 +345,7 @@ uint32_t Npc::loadParams(pugi::xml_node& node)
 {
 	std::string strValue;
 	uint32_t params = RESPOND_DEFAULT;
+	pugi::xml_attribute attr;
 	if(attr = node.attribute("param"))
 	{
 		StringVec paramList = explodeString(pugi::cast<std::string>(attr.value()), ";");
@@ -387,7 +388,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 {
 	std::string strValue;
 	int32_t intValue;
-
+	pugi::xml_attribute attr;
 	ResponseList _responseList;
 	for(auto node : p.children())
 	{
@@ -534,7 +535,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 						if(!strcasecmp(altKeyNode.name(),"text") == 0)
 						{
 							strValue = pugi::cast<std::string>(altKeyNode.value());
-							if(readXMLContentString(altKeyNode, strValue))
+							if(strValue.length() > 0)
 								prop.inputList.push_back(asLowerCaseString(strValue));
 						}
 					}
@@ -546,7 +547,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 						if(!strcasecmp(listNode.name(),"text") == 0)
 						{
 							strValue = pugi::cast<std::string>(listNode.value());
-							if(readXMLContentString(listNode, strValue))
+							if(strValue.length()))
 							{
 								ItemListMap::iterator it = itemListMap.find(strValue);
 								if(it != itemListMap.end())
@@ -777,7 +778,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 										action.actionType = ACTION_SCRIPT;
 										action.strValue = pugi::cast<std::string>(attr.value());
 									}
-									else if(parseXMLContentString(subNode->children, action.strValue))
+									else if((attr = subNode.children()))
 										action.actionType = ACTION_SCRIPT;
 								}
 								else if(tmpStrValue == "scriptparam")

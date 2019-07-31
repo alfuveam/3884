@@ -171,74 +171,72 @@ bool ScriptManager::reloadMods()
 bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 {
 	enabled = false;
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_MOD, file).c_str());
-	if(!doc)
+	pugi::xml_attribute attr;
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_MOD, file).c_str());	
+	if(!result)
 	{
-		std::clog << "[Error - ScriptManager::loadFromXml] Cannot load mod " << file << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		std::clog << "[Error - ScriptManager::loadFromXml] Cannot load mod " << file << std::endl;		
 		return false;
 	}
 
 	int32_t intValue;
 	std::string strValue;
 
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"mod"))
+	if(strcasecmp(doc.name(),"mod") == 0)
 	{
-		std::clog << "[Error - ScriptManager::loadFromXml] Malformed mod " << file << std::endl;
-		std::clog << getLastXMLError() << std::endl;
-
-		xmlFreeDoc(doc);
+		std::clog << "[Error - ScriptManager::loadFromXml] Malformed mod " << file << std::endl;		
 		return false;
 	}
 
-	if(!readXMLString(root, "name", strValue))
+	if(!(attr = root.attribute("name")))
 	{
-		std::clog << "[Warning - ScriptManager::loadFromXml] Empty name in mod " << file << std::endl;
-		xmlFreeDoc(doc);
+		std::clog << "[Warning - ScriptManager::loadFromXml] Empty name in mod " << file << std::endl;		
 		return false;
 	}
 
 	ModBlock mod;
 	mod.enabled = false;
-	if(readXMLString(root, "enabled", strValue) && booleanString(strValue))
-		mod.enabled = true;
+	if((attr = root.attribute("enabled")))
+		if(booleanString(pugi::cast<std::string>(attr.value())))
+			strValue = pugi::cast<std::string>(attr.value());
+			mod.enabled = true;
 
 	mod.file = file;
 	mod.name = strValue;
-	if(readXMLString(root, "author", strValue))
-		mod.author = strValue;
+	if((attr = root.attribute("author")))
+		mod.author = pugi::cast<std::string>(attr.value());
 
-	if(readXMLString(root, "version", strValue))
-		mod.version = strValue;
+	if((attr = root.attribute("version")))
+		mod.version = pugi::cast<std::string>(attr.value());
 
-	if(readXMLString(root, "contact", strValue))
-		mod.contact = strValue;
+	if((attr = root.attribute("contact")))
+		mod.contact = pugi::cast<std::string>(attr.value());
 
-	bool supported = true;
-	for(p = root->children; p; p = p->next)
+	bool supported = true;	
+	for(auto p : doc.children())
 	{
-		if(xmlStrcmp(p->name, (const xmlChar*)"server"))
+		if(strcasecmp(p.name(), "server") == 0)
 			continue;
 
-		supported = false;
-		for(xmlNodePtr versionNode = p->children; versionNode; versionNode = versionNode->next)
+		supported = false;		
+		for(auto versonNode : p.children())
 		{
 			std::string id = SOFTWARE_VERSION;
-			if(readXMLString(versionNode, "id", strValue))
-				id = asLowerCaseString(strValue);
+			if((attr = versionNode.attribute("id")))
+				id = asLowerCaseString(pugi::cast<std::string>(attr.value()));
 
 			IntegerVec protocol;
 			protocol.push_back(CLIENT_VERSION_MIN);
-			if(readXMLString(versionNode, "protocol", strValue))
-				protocol = vectorAtoi(explodeString(strValue, "-"));
+			if((attr = versionNode.attribute("protocol")))
+				protocol = vectorAtoi(explodeString(pugi::cast<std::string>(attr.value()), "-"));
 
 			int16_t patch = VERSION_PATCH, database = VERSION_DATABASE;
-			if(readXMLInteger(versionNode, "patch", intValue))
-				patch = intValue;
+			if((attr = v.attribute("patch")))
+				patch = pugi::cast<int32_t>(attr.value());
 
-			if(readXMLInteger(versionNode, "database", intValue))
-				database = intValue;
+			if((attr = v.attribute("database")))
+				database = pugi::cast<int32_t>(attr.value());
 
 			if(id == asLowerCaseString(SOFTWARE_VERSION) && patch >= VERSION_PATCH && database >= VERSION_DATABASE
 				&& protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX))
@@ -251,60 +249,60 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 
 	if(!supported)
 	{
-		std::clog << "[Warning - ScriptManager::loadFromXml] Your server is not supported by mod " << file << std::endl;
-		xmlFreeDoc(doc);
+		std::clog << "[Warning - ScriptManager::loadFromXml] Your server is not supported by mod " << file << std::endl;		
 		return false;
 	}
 
 	if(mod.enabled)
 	{
-		std::string scriptsPath = getFilePath(FILE_TYPE_MOD, "scripts/");
-		for(p = root->children; p; p = p->next)
+		std::string scriptsPath = getFilePath(FILE_TYPE_MOD, "scripts/");		
+		for(auto p : root.children())
 		{
-			if(!xmlStrcmp(p->name, (const xmlChar*)"quest"))
+			if(!strcasecmp(p.name(), "quest") == 0)
 				Quests::getInstance()->parseQuestNode(p, modsLoaded);
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"outfit"))
+			else if(!strcasecmp(p.name(), "outfit") == 0)
 				Outfits::getInstance()->parseOutfitNode(p);
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"vocation"))
+			else if(!strcasecmp(p.name(), "vocation") == 0)
 				Vocations::getInstance()->parseVocationNode(p); //duplicates checking is dangerous, shouldn't be performed until we find some good solution
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"group"))
+			else if(!strcasecmp(p.name(), "group") == 0)
 				Groups::getInstance()->parseGroupNode(p); //duplicates checking is dangerous, shouldn't be performed until we find some good solution
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"raid"))
+			else if(!strcasecmp(p.name(), "raid") == 0)
 				Raids::getInstance()->parseRaidNode(p, modsLoaded, FILE_TYPE_MOD);
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"spawn"))
+			else if(!strcasecmp(p.name(), "spawn") == 0)
 				Spawns::getInstance()->parseSpawnNode(p, modsLoaded);
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"channel"))
+			else if(!strcasecmp(p.name(), "channel") == 0)
 				g_chat.parseChannelNode(p); //TODO: duplicates (channel destructor needs to send closeChannel to users)
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"monster"))
+			else if(!strcasecmp(p.name(), "monster") == 0)
 			{
 				std::string path, name;
-				if((readXMLString(p, "file", path) || readXMLString(p, "path", path)) && readXMLString(p, "name", name))
+				if(((attr = p.attribute("file")) || (attr = p.attribute("path"))) && (attr = p.attribute("name")))
 					g_monsters.loadMonster(getFilePath(FILE_TYPE_MOD, "monster/" + path), name, true);
 			}
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"item"))
+			else if(!strcasecmp(p.name(), "item") == 0)
 			{
-				if(readXMLInteger(p, "id", intValue))
-					Item::items.parseItemNode(p, intValue); //duplicates checking isn't necessary here
+				if((attr = p.attribute("id")))
+					Item::items.parseItemNode(p, pugi::cast<int32_t>(attr.value())); //duplicates checking isn't necessary here
 			}
-			if(!xmlStrcmp(p->name, (const xmlChar*)"description") || !xmlStrcmp(p->name, (const xmlChar*)"info"))
+			if(!strcasecmp(p.name(), "description") == 0 || !strcasecmp(p.name(), "info") == 0)
 			{
-				if(parseXMLContentString(p->children, strValue))
+				if((attr = p.children()))
 				{
-					replaceString(strValue, "\t", "");
-					mod.description = strValue;
+					replaceString(pugi::cast<std::string>(attr.value()), "\t", "");
+					mod.description = pugi::cast<std::string>(attr.value());
 				}
 			}
-			else if(!xmlStrcmp(p->name, (const xmlChar*)"lib") || !xmlStrcmp(p->name, (const xmlChar*)"config"))
+			else if(!strcasecmp(p.name(), "lib") == 0 || !strcasecmp(p.name(), "config") == 0)
 			{
-				if(!readXMLString(p, "name", strValue))
+				if(!(attr = p.attribute("name")))
 				{
 					std::clog << "[Warning - ScriptManager::loadFromXml] Lib without name in mod " << file << std::endl;
 					continue;
 				}
 
+				strValue = pugi::cast<std::string>(attr.value());
 				toLowerCaseString(strValue);
 				std::string strLib;
-				if(parseXMLContentString(p->children, strLib))
+				if(attr = p.children())
 				{
 					LibMap::iterator it = libMap.find(strValue);
 					if(it == libMap.end())
@@ -343,6 +341,5 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 	enabled = mod.enabled;
 	modMap[mod.name] = mod;
 
-	xmlFreeDoc(doc);
 	return true;
 }

@@ -63,13 +63,8 @@ std::string asLowerCaseString(const std::string& source);
 std::string asUpperCaseString(const std::string& source);
 bool booleanString(std::string source);
 
-bool readXMLInteger(xmlNodePtr node, const char* tag, int32_t& value);
-bool readXMLInteger64(xmlNodePtr node, const char* tag, int64_t& value);
-bool readXMLFloat(xmlNodePtr node, const char* tag, float& value);
-bool readXMLString(xmlNodePtr node, const char* tag, std::string& value);
-bool readXMLContentString(xmlNodePtr node, std::string& value);
-bool parseXMLContentString(xmlNodePtr node, std::string& value);
-std::string getLastXMLError();
+void printXMLError(const std::string& where, const std::string& fileName, const pugi::xml_parse_result& result);
+bool parseVocationNode(pugi::xml_node& vocationNode, VocationMap& vocationMap, StringVec& vocStringMap, std::string& errorStr);
 bool utf8ToLatin1(char* intext, std::string& outtext);
 
 StringVec explodeString(const std::string& string, const std::string& separator, bool trim = true);
@@ -126,7 +121,6 @@ std::string getReason(int32_t reasonId);
 std::string getAction(ViolationAction_t actionId, bool ipBanishment);
 
 std::string parseVocationString(StringVec vocStringVec);
-bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, StringVec& vocStringMap, std::string& errorStr);
 bool parseIntegerVec(std::string str, IntegerVec& intVector);
 
 bool fileExists(const char* filename);

@@ -31,6 +31,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 	if(strcasecmp(p.name(),"outfit") == 0)
 		return false;
 
+	pugi::xml_attribute attr;
 	if(!(attr = p.attribute("id")))
 	{
 		std::clog << "[Error - Outfits::parseOutfitNode] Missing outfit id, skipping" << std::endl;

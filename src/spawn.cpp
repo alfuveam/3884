@@ -48,55 +48,57 @@ bool Spawns::loadFromXml(const std::string& _filename)
 {
 	if(isLoaded())
 		return true;
-
-	filename = _filename;
-	xmlDocPtr doc = xmlParseFile(filename.c_str());
-	if(!doc)
+		
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(filename.c_str());
+	if(!result)
 	{
-		std::clog << "[Warning - Spawns::loadFromXml] Cannot open spawns file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		std::clog << "[Warning - Spawns::loadFromXml] Cannot open spawns file." << std::endl;		
 		return false;
 	}
 
-	xmlNodePtr spawnNode, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"spawns"))
+	if(strcasecmp(doc.name(), "spawns") == 0)
 	{
 		std::clog << "[Error - Spawns::loadFromXml] Malformed spawns file." << std::endl;
-		xmlFreeDoc(doc);
 		return false;
 	}
-
-	for(spawnNode = root->children; spawnNode; spawnNode = spawnNode->next)
+	
+	for(auto spawnNode : doc.children())
 		parseSpawnNode(spawnNode, false);
 
-	xmlFreeDoc(doc);
 	loaded = true;
 	return true;
 }
 
-bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
-{
-	if(xmlStrcmp(p->name, (const xmlChar*)"spawn"))
+bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
+{	
+	if(strcasecmp(p.name(), "spawn") == 0)
 		return false;
 
 	int32_t intValue;
 	std::string strValue;
-
+	pugi::xml_attribute attr;
 	Position centerPos;
-	if(!readXMLString(p, "centerpos", strValue))
+	
+	if(!(attr = p.attribute("centerpos")))
 	{
-		if(!readXMLInteger(p, "centerx", intValue))
+		if((attr = p.attribute("centerx"))){
+			centerPos.x = pugi::cast<int32_t>(attr.value());
+		} else {
 			return false;
+		}
 
-		centerPos.x = intValue;
-		if(!readXMLInteger(p, "centery", intValue))
+		if((attr = p.attribute("centery"))){
+			centerPos.y = pugi::cast<int32_t>(attr.value());
+		} else {
 			return false;
+		}
 
-		centerPos.y = intValue;
-		if(!readXMLInteger(p, "centerz", intValue))
+		if((attr = p.attribute("centerz"))){
+			centerPos.z = pugi::cast<int32_t>(attr.value());
+		} else {
 			return false;
-
-		centerPos.z = intValue;
+		}
 	}
 	else
 	{
@@ -107,10 +109,13 @@ bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
 		centerPos = Position(posVec[0], posVec[1], posVec[2]);
 	}
 
-	if(!readXMLInteger(p, "radius", intValue))
+	int32_t radius;
+	if((attr = p.attribute("radius"))){
+	 	radius = pugi::cast<int32_t>(attr.value());
+	} else {
 		return false;
+	}
 
-	int32_t radius = intValue;
 	Spawn* spawn = new Spawn(centerPos, radius);
 	if(checkDuplicate)
 	{
@@ -122,63 +127,64 @@ bool Spawns::parseSpawnNode(xmlNodePtr p, bool checkDuplicate)
 	}
 
 	spawnList.push_back(spawn);
-	for(xmlNodePtr tmpNode = p->children; tmpNode; tmpNode = tmpNode->next)
+	
+	for(auto tmpNode : p.children())
 	{
-		if(!xmlStrcmp(tmpNode->name, (const xmlChar*)"monster"))
+		if(!strcasecmp(tmpNode.name(), "monster") == 0)
 		{
-			if(!readXMLString(tmpNode, "name", strValue))
+			if(!(attr = t.attribute("name")))
 				continue;
 
 			std::string name = strValue;
 			int32_t interval = MINSPAWN_INTERVAL / 1000;
-			if(readXMLInteger(tmpNode, "spawntime", intValue) || readXMLInteger(tmpNode, "interval", intValue))
+			if((attr = tmpNode.attribute("spawntime")) || (attr = tmpNode.attribute("interval")))
 			{
-				if(intValue <= interval)
+				if(pugi::cast<int32_t>(attr.value()) <= interval)
 				{
 					std::clog << "[Warning - Spawns::loadFromXml] " << name << " " << centerPos << " spawntime cannot"
 						<< " be less than " << interval << " seconds." << std::endl;
 					continue;
 				}
 
-				interval = intValue;
+				interval = pugi::cast<int32_t>(attr.value());
 			}
 
 			interval *= 1000;
 			Position placePos = centerPos;
-			if(readXMLInteger(tmpNode, "x", intValue))
-				placePos.x += intValue;
+			if((attr = tmpNode.attribute("x")))
+				placePos.x += pugi::cast<int32_t>(attr.value());
 
-			if(readXMLInteger(tmpNode, "y", intValue))
-				placePos.y += intValue;
+			if((attr = tmpNode.attribute("y")))
+				placePos.y += pugi::cast<int32_t>(attr.value());
 
-			if(readXMLInteger(tmpNode, "z", intValue))
-				placePos.z /*+*/= intValue;
+			if((attr = tmpNode.attribute("z")))
+				placePos.z /*+*/= pugi::cast<int32_t>(attr.value());
 
 			Direction direction = NORTH;
-			if(readXMLInteger(tmpNode, "direction", intValue) && direction >= EAST && direction <= WEST)
-				direction = (Direction)intValue;
+			if((attr = tmpNode.attribute("direction")) && direction >= EAST && direction <= WEST)
+				direction = (Direction)pugi::cast<int32_t>(attr.value());
 
 			spawn->addMonster(name, placePos, direction, interval);
 		}
-		else if(!xmlStrcmp(tmpNode->name, (const xmlChar*)"npc"))
+		else if(!strcasecmp(tmpNode.name(), "npc") == 0)
 		{
-			if(!readXMLString(tmpNode, "name", strValue))
+			if(!(attr = t.attribute("name")))
 				continue;
 
 			std::string name = strValue;
 			Position placePos = centerPos;
-			if(readXMLInteger(tmpNode, "x", intValue))
-				placePos.x += intValue;
+			if((attr = tmpNode.attribute("x")))
+				placePos.x += pugi::cast<int32_t>(attr.value());
 
-			if(readXMLInteger(tmpNode, "y", intValue))
-				placePos.y += intValue;
+			if((attr = tmpNode.attribute("y")))
+				placePos.y += pugi::cast<int32_t>(attr.value());
 
-			if(readXMLInteger(tmpNode, "z", intValue))
-				placePos.z /*+*/= intValue;
+			if((attr = tmpNode.attribute("z")))
+				placePos.z /*+*/= pugi::cast<int32_t>(attr.value());
 
 			Direction direction = NORTH;
-			if(readXMLInteger(tmpNode, "direction", intValue) && direction >= EAST && direction <= WEST)
-				direction = (Direction)intValue;
+			if((attr = tmpNode.attribute("direction")) && direction >= EAST && direction <= WEST)
+				direction = (Direction)pugi::cast<int32_t>(attr.value());
 
 			Npc* npc = Npc::createNpc(name);
 			if(!npc)

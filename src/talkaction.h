@@ -54,7 +54,7 @@ class TalkActions : public BaseEvents
 		virtual void clear();
 
 		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override);
 
 		virtual LuaInterface& getInterface() {return m_interface;}
 		LuaInterface m_interface;
@@ -68,7 +68,7 @@ class TalkAction : public Event
 		TalkAction(LuaInterface* _interface);
 		virtual ~TalkAction() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool loadFunction(const std::string& functionName);
 
 		int32_t executeSay(Creature* creature, const std::string& words, std::string param, uint16_t channel);

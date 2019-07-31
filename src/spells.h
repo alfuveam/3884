@@ -58,7 +58,7 @@ class Spells : public BaseEvents
 		virtual void clear();
 
 		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override);
 
 		virtual LuaInterface& getInterface() {return m_interface;}
 		LuaInterface m_interface;
@@ -91,7 +91,7 @@ class CombatSpell : public Event, public BaseSpell
 
 		virtual bool castSpell(Creature* creature);
 		virtual bool castSpell(Creature* creature, Creature* target);
-		virtual bool configureEvent(xmlNodePtr) {return true;}
+		virtual bool configureEvent(pugi::xml_node&) {return true;}
 
 		//scripting
 		bool executeCastSpell(Creature* creature, const LuaVariant& var);
@@ -114,7 +114,7 @@ class Spell : public BaseSpell
 		Spell();
 		virtual ~Spell() {}
 
-		bool configureSpell(xmlNodePtr xmlspell);
+		bool configureSpell(pugi::xml_node& xmlspell);
 		const std::string& getName() const {return name;}
 
 		void postSpell(Player* player) const;
@@ -176,7 +176,7 @@ class InstantSpell : public TalkAction, public Spell
 		InstantSpell(LuaInterface* _interface);
 		virtual ~InstantSpell() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool loadFunction(const std::string& functionName);
 
 		virtual bool castInstant(Player* player, const std::string& param);
@@ -218,7 +218,7 @@ class ConjureSpell : public InstantSpell
 		ConjureSpell(LuaInterface* _interface);
 		virtual ~ConjureSpell() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool loadFunction(const std::string& functionName);
 
 		virtual bool castInstant(Player* player, const std::string& param);
@@ -255,7 +255,7 @@ class RuneSpell : public Action, public Spell
 		RuneSpell(LuaInterface* _interface);
 		virtual ~RuneSpell() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool loadFunction(const std::string& functionName);
 
 		virtual ReturnValue canExecuteAction(const Player* player, const Position& toPos);

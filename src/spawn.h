@@ -40,7 +40,7 @@ class Spawns
 		bool isInZone(const Position& centerPos, int32_t radius, const Position& pos);
 
 		bool loadFromXml(const std::string& _filename);
-		bool parseSpawnNode(xmlNodePtr p, bool checkDuplicate);
+		bool parseSpawnNode(pugi::xml_node& p, bool checkDuplicate);
 
 		void startup();
 		void clear();

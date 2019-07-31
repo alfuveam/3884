@@ -118,7 +118,7 @@ Event* Weapons::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool Weapons::registerEvent(Event* event, xmlNodePtr, bool override)
+bool Weapons::registerEvent(Event* event, pugi::xml_node&, bool override)
 {
 	Weapon* weapon = dynamic_cast<Weapon*>(event);
 	if(!weapon)
@@ -172,61 +172,62 @@ Weapon::Weapon(LuaInterface* _interface):
 	params.combatType = COMBAT_PHYSICALDAMAGE;
 }
 
-bool Weapon::configureEvent(xmlNodePtr p)
+bool Weapon::configureEvent(pugi::xml_node& p)
 {
-	int32_t intValue, wieldInfo = 0;
-	std::string strValue;
-	if(!readXMLInteger(p, "id", intValue))
+	int32_t wieldInfo = 0;	
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("id")))
 	{
+		id = pugi::cast<int32_t>(attr.value());
+	} else {
 		std::clog << "Error: [Weapon::configureEvent] Weapon without id." << std::endl;
 		return false;
 	}
 
-	id = intValue;
-	if(readXMLInteger(p, "lv", intValue) || readXMLInteger(p, "lvl", intValue) || readXMLInteger(p, "level", intValue))
+	if((attr = p.attribute("lv")) || (attr = p.attribute("lvl")) || (attr = p.attribute("level")))
 	{
-	 	level = intValue;
+	 	level = pugi::cast<int32_t>(attr.value());
 		if(level > 0)
 			wieldInfo |= WIELDINFO_LEVEL;
 	}
 
-	if(readXMLInteger(p, "maglv", intValue) || readXMLInteger(p, "maglvl", intValue) || readXMLInteger(p, "maglevel", intValue))
+	if((attr = p.attribute("maglv")) || (attr = p.attribute("maglvl")) || (attr = p.attribute("maglevel")))
 	{
-	 	magLevel = intValue;
+	 	magLevel = pugi::cast<int32_t>(attr.value());
 		if(magLevel > 0)
 			wieldInfo |= WIELDINFO_MAGLV;
 	}
 
-	if(readXMLInteger(p, "mana", intValue))
-	 	mana = intValue;
+	if((attr = p.attribute("mana")))
+	 	mana = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "manapercent", intValue))
-	 	manaPercent = intValue;
+	if((attr = p.attribute("manapercent")))
+	 	manaPercent = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "soul", intValue))
-	 	soul = intValue;
+	if((attr = p.attribute("soul")))
+	 	soul = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "exhaust", intValue) || readXMLInteger(p, "exhaustion", intValue))
-		exhaustion = intValue;
+	if((attr = p.attribute("exhaust")) || (attr = p.attribute("exhaustion")))
+		exhaustion = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLString(p, "prem", strValue) || readXMLString(p, "premium", strValue))
+	if((attr = p.attribute("prem")) || (attr = p.attribute("premium")))
 	{
-		premium = booleanString(strValue);
+		premium = booleanString(pugi::cast<std::string>(attr.value()));
 		if(premium)
 			wieldInfo |= WIELDINFO_PREMIUM;
 	}
 
-	if(readXMLString(p, "enabled", strValue))
-		enabled = booleanString(strValue);
+	if((attr = p.attribute("enabled")))
+		enabled = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "unproperly", strValue))
-		wieldUnproperly = booleanString(strValue);
+	if((attr = p.attribute("unproperly")))
+		wieldUnproperly = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "swing", strValue))
-		swing = booleanString(strValue);
+	if((attr = p.attribute("swing")))
+		swing = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "type", strValue))
-		params.combatType = getCombatType(strValue);
+	if((attr = p.attribute("type")))
+		params.combatType = getCombatType(pugi::cast<std::string>(attr.value()));
 
 	std::string error;
 	StringVec vocStringVec;
@@ -954,17 +955,17 @@ WeaponWand::WeaponWand(LuaInterface* _interface):
 	params.blockedByShield = false;
 }
 
-bool WeaponWand::configureEvent(xmlNodePtr p)
+bool WeaponWand::configureEvent(pugi::xml_node& p)
 {
+	pugi::xml_attribute attr;
 	if(!Weapon::configureEvent(p))
 		return false;
 
-	int32_t intValue;
-	if(readXMLInteger(p, "min", intValue))
-		minChange = intValue;
+	if((attr = p.attribute("min")))
+		minChange = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "max", intValue))
-		maxChange = intValue;
+	if((attr = p.attribute("max")))
+		maxChange = pugi::cast<int32_t>(attr.value());
 
 	return true;
 }

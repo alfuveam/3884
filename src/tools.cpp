@@ -282,110 +282,6 @@ bool booleanString(std::string source)
 	return (source == "yes" || source == "true" || atoi(source.c_str()) > 0);
 }
 
-bool readXMLInteger(xmlNodePtr node, const char* tag, int32_t& value)
-{
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
-	if(!nodeValue)
-		return false;
-
-	value = atoi(nodeValue);
-	xmlFree(nodeValue);
-	return true;
-}
-
-bool readXMLInteger64(xmlNodePtr node, const char* tag, int64_t& value)
-{
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
-	if(!nodeValue)
-		return false;
-
-	value = atoll(nodeValue);
-	xmlFree(nodeValue);
-	return true;
-}
-
-bool readXMLFloat(xmlNodePtr node, const char* tag, float& value)
-{
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
-	if(!nodeValue)
-		return false;
-
-	value = atof(nodeValue);
-	xmlFree(nodeValue);
-	return true;
-}
-
-bool readXMLString(xmlNodePtr node, const char* tag, std::string& value)
-{
-	char* nodeValue = (char*)xmlGetProp(node, (xmlChar*)tag);
-	if(!nodeValue)
-		return false;
-
-	if(!utf8ToLatin1(nodeValue, value))
-		value = nodeValue;
-
-	xmlFree(nodeValue);
-	return true;
-}
-
-bool readXMLContentString(xmlNodePtr node, std::string& value)
-{
-	char* nodeValue = (char*)xmlNodeGetContent(node);
-	if(!nodeValue)
-		return false;
-
-	if(!utf8ToLatin1(nodeValue, value))
-		value = nodeValue;
-
-	xmlFree(nodeValue);
-	return true;
-}
-
-bool parseXMLContentString(xmlNodePtr node, std::string& value)
-{
-	bool result = false;
-	std::string compareValue;
-	while(node)
-	{
-		if(xmlStrcmp(node->name, (const xmlChar*)"text") && node->type != XML_CDATA_SECTION_NODE)
-		{
-			node = node->next;
-			continue;
-		}
-
-		if(!readXMLContentString(node, compareValue))
-		{
-			node = node->next;
-			continue;
-		}
-
-		trim_left(compareValue, "\r");
-		trim_left(compareValue, "\n");
-		trim_left(compareValue, " ");
-		if(compareValue.length() > value.length())
-		{
-			value = compareValue;
-			if(!result)
-				result = true;
-		}
-
-		node = node->next;
-	}
-
-	return result;
-}
-
-std::string getLastXMLError()
-{
-	std::stringstream ss;
-	xmlErrorPtr lastError = xmlGetLastError();
-	if(lastError->line)
-		ss << "Line: " << lastError->line << ", ";
-
-	ss << "Info: " << lastError->message << std::endl;
-	return ss.str();
-}
-
 bool utf8ToLatin1(char* intext, std::string& outtext)
 {
 	outtext = "";
@@ -1955,15 +1851,66 @@ std::string parseVocationString(StringVec vocStringVec)
 	return str;
 }
 
-bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, StringVec& vocStringVec, std::string& errorStr)
+void printXMLError(const std::string& where, const std::string& fileName, const pugi::xml_parse_result& result)
 {
-	if(xmlStrcmp(vocationNode->name,(const xmlChar*)"vocation"))
+	std::cout << '[' << where << "] Failed to load " << fileName << ": " << result.description() << std::endl;
+
+	FILE* file = fopen(fileName.c_str(), "rb");
+	if (!file) {
+		return;
+	}
+
+	char buffer[32768];
+	uint32_t currentLine = 1;
+	std::string line;
+
+	size_t offset = static_cast<size_t>(result.offset);
+	size_t lineOffsetPosition = 0;
+	size_t index = 0;
+	size_t bytes;
+	do {
+		bytes = fread(buffer, 1, 32768, file);
+		for (size_t i = 0; i < bytes; ++i) {
+			char ch = buffer[i];
+			if (ch == '\n') {
+				if ((index + i) >= offset) {
+					lineOffsetPosition = line.length() - ((index + i) - offset);
+					bytes = 0;
+					break;
+				}
+				++currentLine;
+				line.clear();
+			} else {
+				line.push_back(ch);
+			}
+		}
+		index += bytes;
+	} while (bytes == 32768);
+	fclose(file);
+
+	std::cout << "Line " << currentLine << ':' << std::endl;
+	std::cout << line << std::endl;
+	for (size_t i = 0; i < lineOffsetPosition; i++) {
+		if (line[i] == '\t') {
+			std::cout << '\t';
+		} else {
+			std::cout << ' ';
+		}
+	}
+	std::cout << '^' << std::endl;
+}
+
+bool parseVocationNode(pugi::xml_node& vocationNode, VocationMap& vocationMap, StringVec& vocStringVec, std::string& errorStr)
+{	
+	if(strcasecmp(vocationNode.name(),"vocation") == 0)
 		return true;
 
 	int32_t vocationId = -1;
-	std::string strValue, tmpStrValue;
-	if(readXMLString(vocationNode, "name", strValue))
+	std::string strValue;
+	pugi::xml_attribute attr;
+	if((attr = vocationNode.attribute("name")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		vocationId = Vocations::getInstance()->getVocationId(strValue);
 		if(vocationId != -1)
 		{
@@ -1978,9 +1925,10 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 			return false;
 		}
 	}
-	else if(readXMLString(vocationNode, "id", strValue))
+	else if((attr = vocationNode.attribute("id")))
 	{
 		IntegerVec intVector;
+		strValue = pugi::cast<std::string>(attr.value());
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			errorStr = "Invalid vocation id - '" + strValue + "'";
@@ -2012,7 +1960,7 @@ bool parseVocationNode(xmlNodePtr vocationNode, VocationMap& vocationMap, String
 		}
 	}
 
-	if(vocationId != -1 && (!readXMLString(vocationNode, "showInDescription", tmpStrValue) || booleanString(tmpStrValue)))
+	if(vocationId != -1 && (!(attr = vocationNode.attribute("showInDescription"))))		
 		vocStringVec.push_back(asLowerCaseString(strValue));
 
 	return true;

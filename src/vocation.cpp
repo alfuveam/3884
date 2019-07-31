@@ -36,132 +36,135 @@ bool Vocations::reload()
 	return loadFromXml();
 }
 
-bool Vocations::parseVocationNode(xmlNodePtr p)
+bool Vocations::parseVocationNode(pugi::xml_node& p)
 {
-	std::string strValue;
 	int32_t intValue;
-	float floatValue;
-	if(xmlStrcmp(p->name, (const xmlChar*)"vocation"))
+	pugi::xml_attribute attr;
+	
+	if((strcasecmp(p.name(), "vocation") == 0))
 		return false;
 
-	if(!readXMLInteger(p, "id", intValue))
+	if((attr = p.attribute("id")))
 	{
+		intValue = pugi::cast<int32_t>(attr.value());
+	} else {
 		std::clog << "[Error - Vocations::parseVocationNode] Missing vocation id." << std::endl;
 		return false;
 	}
 
 	Vocation* voc = new Vocation(intValue);
-	if(readXMLString(p, "name", strValue))
-		voc->setName(strValue);
+	if((attr = p.attribute("name")))
+		voc->setName(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "description", strValue))
-		voc->setDescription(strValue);
+	if((attr = p.attribute("description")))
+		voc->setDescription(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "needpremium", strValue))
-		voc->setNeedPremium(booleanString(strValue));
+	if((attr = p.attribute("needpremium")))
+		voc->setNeedPremium(booleanString(pugi::cast<std::string>(attr.value())));
 	
-	if(readXMLString(p, "accountmanager", strValue) || readXMLString(p, "manager", strValue))
-	    voc->setAsManagerOption(booleanString(strValue));
+	if((attr = p.attribute("accountmanager")) || (attr = p.attribute("manager")))
+	    voc->setAsManagerOption(booleanString(pugi::cast<std::string>(attr.value())));
 
-	if(readXMLInteger(p, "gaincap", intValue) || readXMLInteger(p, "gaincapacity", intValue))
-		voc->setGainCap(intValue);
+	if((attr = p.attribute("gaincap")) || (attr = p.attribute("gaincapacity")))
+		voc->setGainCap(pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainhp", intValue) || readXMLInteger(p, "gainhealth", intValue))
-		voc->setGain(GAIN_HEALTH, intValue);
+	if((attr = p.attribute("gainhp")) || (attr = p.attribute("gainhealth")))
+		voc->setGain(GAIN_HEALTH, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainmana", intValue))
-		voc->setGain(GAIN_MANA, intValue);
+	if((attr = p.attribute("gainmana")))
+		voc->setGain(GAIN_MANA, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainhpticks", intValue) || readXMLInteger(p, "gainhealthticks", intValue))
-		voc->setGainTicks(GAIN_HEALTH, intValue);
+	if((attr = p.attribute("gainhpticks")) || (attr = p.attribute("gainhealthticks")))
+		voc->setGainTicks(GAIN_HEALTH, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainhpamount", intValue) || readXMLInteger(p, "gainhealthamount", intValue))
-		voc->setGainAmount(GAIN_HEALTH, intValue);
+	if((attr = p.attribute("gainhpamount")) || (attr = p.attribute("gainhealthamount")))
+		voc->setGainAmount(GAIN_HEALTH, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainmanaticks", intValue))
-		voc->setGainTicks(GAIN_MANA, intValue);
+	if((attr = p.attribute("gainmanaticks")))
+		voc->setGainTicks(GAIN_MANA, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainmanaamount", intValue))
-		voc->setGainAmount(GAIN_MANA, intValue);
+	if((attr = p.attribute("gainmanaamount")))
+		voc->setGainAmount(GAIN_MANA, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLFloat(p, "manamultiplier", floatValue))
-		voc->setMultiplier(MULTIPLIER_MANA, floatValue);
+	if((attr = p.attribute("manamultiplier")))
+		voc->setMultiplier(MULTIPLIER_MANA, pugi::cast<float>(attr.value()));
 
-	if(readXMLInteger(p, "attackspeed", intValue))
-		voc->setAttackSpeed(intValue);
+	if((attr = p.attribute("attackspeed")))
+		voc->setAttackSpeed(pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "basespeed", intValue))
-		voc->setBaseSpeed(intValue);
+	if((attr = p.attribute("basespeed")))
+		voc->setBaseSpeed(pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "soulmax", intValue))
-		voc->setGain(GAIN_SOUL, intValue);
+	if((attr = p.attribute("soulmax")))
+		voc->setGain(GAIN_SOUL, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainsoulamount", intValue))
-		voc->setGainAmount(GAIN_SOUL, intValue);
+	if((attr = p.attribute("gainsoulamount")))
+		voc->setGainAmount(GAIN_SOUL, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "gainsoulticks", intValue))
-		voc->setGainTicks(GAIN_SOUL, intValue);
+	if((attr = p.attribute("gainsoulticks")))
+		voc->setGainTicks(GAIN_SOUL, pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLString(p, "attackable", strValue))
-		voc->setAttackable(booleanString(strValue));
+	if((attr = p.attribute("attackable")))
+		voc->setAttackable(booleanString(pugi::cast<std::string>(attr.value())));
 
-	if(readXMLInteger(p, "fromvoc", intValue) || readXMLInteger(p, "fromvocation", intValue))
-		voc->setFromVocation(intValue);
+	if((attr = p.attribute("fromvoc")) || (attr = p.attribute("fromvocation")))
+		voc->setFromVocation(pugi::cast<int32_t>(attr.value()));
 
-	if(readXMLInteger(p, "lessloss", intValue))
-		voc->setLessLoss(intValue);
+	if((attr = p.attribute("lessloss")))
+		voc->setLessLoss(pugi::cast<int32_t>(attr.value()));
 
 	for(xmlNodePtr configNode = p->children; configNode; configNode = configNode->next)
-	{
-		if(!xmlStrcmp(configNode->name, (const xmlChar*)"skill"))
+	
+		if(!(strcasecmp(configNode.name(), "skill") == 0))
 		{
-			if(readXMLFloat(configNode, "fist", floatValue))
-				voc->setSkillMultiplier(SKILL_FIST, floatValue);
+			if((attr = configNode.attribute("fist")))
+				voc->setSkillMultiplier(SKILL_FIST, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "fistBase", intValue))
-				voc->setSkillBase(SKILL_FIST, intValue);
+			if((attr = configNode.attribute("fistBase")))
+				voc->setSkillBase(SKILL_FIST, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "club", floatValue))
-				voc->setSkillMultiplier(SKILL_CLUB, floatValue);
+			if((attr = configNode.attribute("club")))
+				voc->setSkillMultiplier(SKILL_CLUB, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "clubBase", intValue))
-				voc->setSkillBase(SKILL_CLUB, intValue);
+			if((attr = configNode.attribute("clubBase")))
+				voc->setSkillBase(SKILL_CLUB, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "axe", floatValue))
-				voc->setSkillMultiplier(SKILL_AXE, floatValue);
+			if((attr = configNode.attribute("axe")))
+				voc->setSkillMultiplier(SKILL_AXE, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "axeBase", intValue))
-				voc->setSkillBase(SKILL_AXE, intValue);
+			if((attr = configNode.attribute("axeBase")))
+				voc->setSkillBase(SKILL_AXE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "sword", floatValue))
-				voc->setSkillMultiplier(SKILL_SWORD, floatValue);
+			if((attr = configNode.attribute("sword")))
+				voc->setSkillMultiplier(SKILL_SWORD, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "swordBase", intValue))
-				voc->setSkillBase(SKILL_SWORD, intValue);
+			if((attr = configNode.attribute("swordBase")))
+				voc->setSkillBase(SKILL_SWORD, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "distance", floatValue) || readXMLFloat(configNode, "dist", floatValue))
-				voc->setSkillMultiplier(SKILL_DIST, floatValue);
+			if((attr = configNode.attribute("distance")) || (attr = configNode.attribute("dist")))
+				voc->setSkillMultiplier(SKILL_DIST, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "distanceBase", intValue) || readXMLInteger(configNode, "distBase", intValue))
-				voc->setSkillBase(SKILL_DIST, intValue);
+			if((attr = configNode.attribute("distanceBase")) || (attr = configNode.attribute("distBase")))
+				voc->setSkillBase(SKILL_DIST, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "shielding", floatValue) || readXMLFloat(configNode, "shield", floatValue))
-				voc->setSkillMultiplier(SKILL_SHIELD, floatValue);
+			if((attr = configNode.attribute("shielding")) || (attr = configNode.attribute("shield")))
+				voc->setSkillMultiplier(SKILL_SHIELD, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "shieldingBase", intValue) || readXMLInteger(configNode, "shieldBase", intValue))
-				voc->setSkillBase(SKILL_SHIELD, intValue);
+			if((attr = configNode.attribute("shieldingBase")) || (attr = configNode.attribute("shieldBase")))
+				voc->setSkillBase(SKILL_SHIELD, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "fishing", floatValue) || readXMLFloat(configNode, "fish", floatValue))
-				voc->setSkillMultiplier(SKILL_FISH, floatValue);
+			if((attr = configNode.attribute("fishing")) || (attr = configNode.attribute("fish")))
+				voc->setSkillMultiplier(SKILL_FISH, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "fishingBase", intValue) || readXMLInteger(configNode, "fishBase", intValue))
-				voc->setSkillBase(SKILL_FISH, intValue);
+			if((attr = configNode.attribute("fishingBase")) || (attr = configNode.attribute("fishBase")))
+				voc->setSkillBase(SKILL_FISH, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLFloat(configNode, "experience", floatValue) || readXMLFloat(configNode, "exp", floatValue))
-				voc->setSkillMultiplier(SKILL__LEVEL, floatValue);
+			if((attr = configNode.attribute("experience")) || (attr = configNode.attribute("exp")))
+				voc->setSkillMultiplier(SKILL__LEVEL, pugi::cast<float>(attr.value()));
 
-			if(readXMLInteger(configNode, "id", intValue))
+			if((attr = configNode.attribute("id")))
 			{
+				intValue = pugi::cast<int32_t>(attr.value());
 				skills_t skill = (skills_t)intValue;
 				if(intValue < SKILL_FIRST || intValue >= SKILL__LAST)
 				{
@@ -169,222 +172,222 @@ bool Vocations::parseVocationNode(xmlNodePtr p)
 					continue;
 				}
 
-				if(readXMLInteger(configNode, "base", intValue))
+				if((attr = configNode.attribute("base")))
 					voc->setSkillBase(skill, intValue);
 
-				if(readXMLFloat(configNode, "multiplier", floatValue))
-					voc->setSkillMultiplier(skill, floatValue);
+				if((attr = configNode.attribute("multiplier")))
+					voc->setSkillMultiplier(skill, pugi::cast<float>(attr.value()));
 			}
-		}
-		else if(!xmlStrcmp(configNode->name, (const xmlChar*)"formula"))
+		
+		else if(!(strcasecmp(configNode.name(), "formula") == 0))
 		{
-			if(readXMLFloat(configNode, "meleeDamage", floatValue))
-				voc->setMultiplier(MULTIPLIER_MELEE, floatValue);
+			if((attr = configNode.attribute("meleeDamage")))
+				voc->setMultiplier(MULTIPLIER_MELEE, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "distDamage", floatValue) || readXMLFloat(configNode, "distanceDamage", floatValue))
-				voc->setMultiplier(MULTIPLIER_DISTANCE, floatValue);
+			if((attr = configNode.attribute("distDamage")) || (attr = configNode.attribute("distanceDamage")))
+				voc->setMultiplier(MULTIPLIER_DISTANCE, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "wandDamage", floatValue) || readXMLFloat(configNode, "rodDamage", floatValue))
-				voc->setMultiplier(MULTIPLIER_WAND, floatValue);
+			if((attr = configNode.attribute("wandDamage")) || (attr = configNode.attribute("rodDamage")))
+				voc->setMultiplier(MULTIPLIER_WAND, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "magDamage", floatValue) || readXMLFloat(configNode, "magicDamage", floatValue))
-				voc->setMultiplier(MULTIPLIER_MAGIC, floatValue);
+			if((attr = configNode.attribute("magDamage")) || (attr = configNode.attribute("magicDamage")))
+				voc->setMultiplier(MULTIPLIER_MAGIC, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "magHealingDamage", floatValue) || readXMLFloat(configNode, "magicHealingDamage", floatValue))
-				voc->setMultiplier(MULTIPLIER_HEALING, floatValue);
+			if((attr = configNode.attribute("magHealingDamage")) || (attr = configNode.attribute("magicHealingDamage")))
+				voc->setMultiplier(MULTIPLIER_HEALING, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "defense", floatValue))
-				voc->setMultiplier(MULTIPLIER_DEFENSE, floatValue);
+			if((attr = configNode.attribute("defense")))
+				voc->setMultiplier(MULTIPLIER_DEFENSE, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "magDefense", floatValue) || readXMLFloat(configNode, "magicDefense", floatValue))
-				voc->setMultiplier(MULTIPLIER_MAGICDEFENSE, floatValue);
+			if((attr = configNode.attribute("magDefense")) || (attr = configNode.attribute("magicDefense")))
+				voc->setMultiplier(MULTIPLIER_MAGICDEFENSE, pugi::cast<float>(attr.value()));
 
-			if(readXMLFloat(configNode, "armor", floatValue))
-				voc->setMultiplier(MULTIPLIER_ARMOR, floatValue);
-		}
-		else if(!xmlStrcmp(configNode->name, (const xmlChar*)"absorb"))
+			if((attr = configNode.attribute("armor")))
+				voc->setMultiplier(MULTIPLIER_ARMOR, pugi::cast<float>(attr.value()));
+		
+		else if(!(strcasecmp(configNode.name(), "absorb") == 0))
 		{
-			if(readXMLInteger(configNode, "percentAll", intValue))
+			if((attr = configNode.attribute("percentAll")))
 			{
 				for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-					voc->increaseAbsorb((CombatType_t)i, intValue);
+					voc->increaseAbsorb((CombatType_t)i, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "percentElements", intValue))
+			if((attr = configNode.attribute("percentElements")))
 			{
-				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_FIREDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_ICEDAMAGE, intValue);
+				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "percentMagic", intValue))
+			if((attr = configNode.attribute("percentMagic")))
 			{
-				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_FIREDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_ICEDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, intValue);
-				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, intValue);
+				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "percentEnergy", intValue))
-				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, intValue);
+			if((attr = configNode.attribute("percentEnergy")))
+				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentFire", intValue))
-				voc->increaseAbsorb(COMBAT_FIREDAMAGE, intValue);
+			if((attr = configNode.attribute("percentFire")))
+				voc->increaseAbsorb(COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentPoison", intValue) || readXMLInteger(configNode, "percentEarth", intValue))
-				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, intValue);
+			if((attr = configNode.attribute("percentPoison")) || (attr = configNode.attribute("percentEarth")))
+				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentIce", intValue))
-				voc->increaseAbsorb(COMBAT_ICEDAMAGE, intValue);
+			if((attr = configNode.attribute("percentIce")))
+				voc->increaseAbsorb(COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentHoly", intValue))
-				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, intValue);
+			if((attr = configNode.attribute("percentHoly")))
+				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentDeath", intValue))
-				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, intValue);
+			if((attr = configNode.attribute("percentDeath")))
+				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentLifeDrain", intValue))
-				voc->increaseAbsorb(COMBAT_LIFEDRAIN, intValue);
+			if((attr = configNode.attribute("percentLifeDrain")))
+				voc->increaseAbsorb(COMBAT_LIFEDRAIN, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentManaDrain", intValue))
-				voc->increaseAbsorb(COMBAT_MANADRAIN, intValue);
+			if((attr = configNode.attribute("percentManaDrain")))
+				voc->increaseAbsorb(COMBAT_MANADRAIN, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentDrown", intValue))
-				voc->increaseAbsorb(COMBAT_DROWNDAMAGE, intValue);
+			if((attr = configNode.attribute("percentDrown")))
+				voc->increaseAbsorb(COMBAT_DROWNDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentPhysical", intValue))
-				voc->increaseAbsorb(COMBAT_PHYSICALDAMAGE, intValue);
+			if((attr = configNode.attribute("percentPhysical")))
+				voc->increaseAbsorb(COMBAT_PHYSICALDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentHealing", intValue))
-				voc->increaseAbsorb(COMBAT_HEALING, intValue);
+			if((attr = configNode.attribute("percentHealing")))
+				voc->increaseAbsorb(COMBAT_HEALING, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentUndefined", intValue))
-				voc->increaseAbsorb(COMBAT_UNDEFINEDDAMAGE, intValue);
-		}
-		else if(!xmlStrcmp(configNode->name, (const xmlChar*)"reflect"))
+			if((attr = configNode.attribute("percentUndefined")))
+				voc->increaseAbsorb(COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
+		
+		else if(!(strcasecmp(configNode.name(), "reflect") == 0))
 		{
-			if(readXMLInteger(configNode, "percentAll", intValue))
+			if((attr = configNode.attribute("percentAll")))
 			{
 				for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-					voc->increaseReflect(REFLECT_PERCENT, (CombatType_t)i, intValue);
+					voc->increaseReflect(REFLECT_PERCENT, (CombatType_t)i, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "percentElements", intValue))
+			if((attr = configNode.attribute("percentElements")))
 			{
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, intValue);
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "percentMagic", intValue))
+			if((attr = configNode.attribute("percentMagic")))
 			{
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, intValue);
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "percentEnergy", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, intValue);
+			if((attr = configNode.attribute("percentEnergy")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentFire", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, intValue);
+			if((attr = configNode.attribute("percentFire")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentPoison", intValue) || readXMLInteger(configNode, "percentEarth", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, intValue);
+			if((attr = configNode.attribute("percentPoison")) || (attr = configNode.attribute("percentEarth")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentIce", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, intValue);
+			if((attr = configNode.attribute("percentIce")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentHoly", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, intValue);
+			if((attr = configNode.attribute("percentHoly")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentDeath", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, intValue);
+			if((attr = configNode.attribute("percentDeath")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentLifeDrain", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_LIFEDRAIN, intValue);
+			if((attr = configNode.attribute("percentLifeDrain")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_LIFEDRAIN, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentManaDrain", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_MANADRAIN, intValue);
+			if((attr = configNode.attribute("percentManaDrain")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_MANADRAIN, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentDrown", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DROWNDAMAGE, intValue);
+			if((attr = configNode.attribute("percentDrown")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DROWNDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentPhysical", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_PHYSICALDAMAGE, intValue);
+			if((attr = configNode.attribute("percentPhysical")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_PHYSICALDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentHealing", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HEALING, intValue);
+			if((attr = configNode.attribute("percentHealing")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HEALING, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "percentUndefined", intValue))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_UNDEFINEDDAMAGE, intValue);
+			if((attr = configNode.attribute("percentUndefined")))
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceAll", intValue))
+			if((attr = configNode.attribute("chanceAll")))
 			{
 				for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-					voc->increaseReflect(REFLECT_CHANCE, (CombatType_t)i, intValue);
+					voc->increaseReflect(REFLECT_CHANCE, (CombatType_t)i, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "chanceElements", intValue))
+			if((attr = configNode.attribute("chanceElements")))
 			{
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, intValue);
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "chanceMagic", intValue))
+			if((attr = configNode.attribute("chanceMagic")))
 			{
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, intValue);
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, intValue);
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
 			}
 
-			if(readXMLInteger(configNode, "chanceEnergy", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceEnergy")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceFire", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceFire")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chancePoison", intValue) || readXMLInteger(configNode, "chanceEarth", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, intValue);
+			if((attr = configNode.attribute("chancePoison")) || (attr = configNode.attribute("chanceEarth")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceIce", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceIce")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceHoly", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceHoly")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceDeath", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceDeath")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceLifeDrain", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_LIFEDRAIN, intValue);
+			if((attr = configNode.attribute("chanceLifeDrain")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_LIFEDRAIN, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceManaDrain", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_MANADRAIN, intValue);
+			if((attr = configNode.attribute("chanceManaDrain")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_MANADRAIN, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceDrown", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DROWNDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceDrown")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DROWNDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chancePhysical", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_PHYSICALDAMAGE, intValue);
+			if((attr = configNode.attribute("chancePhysical")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_PHYSICALDAMAGE, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceHealing", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HEALING, intValue);
+			if((attr = configNode.attribute("chanceHealing")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HEALING, pugi::cast<int32_t>(attr.value()));
 
-			if(readXMLInteger(configNode, "chanceUndefined", intValue))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_UNDEFINEDDAMAGE, intValue);
+			if((attr = configNode.attribute("chanceUndefined")))
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
 		}
 	}
 
@@ -394,26 +397,23 @@ bool Vocations::parseVocationNode(xmlNodePtr p)
 
 bool Vocations::loadFromXml()
 {
-	xmlDocPtr doc = xmlParseFile(getFilePath(FILE_TYPE_XML,"vocations.xml").c_str());
-	if(!doc)
+	pugi::xml_document doc;
+	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_XML,"vocations.xml").c_str());	
+	if(!result)
 	{
-		std::clog << "[Warning - Vocations::loadFromXml] Cannot load vocations file." << std::endl;
-		std::clog << getLastXMLError() << std::endl;
+		std::clog << "[Warning - Vocations::loadFromXml] Cannot load vocations file." << std::endl;		
 		return false;
 	}
-
-	xmlNodePtr p, root = xmlDocGetRootElement(doc);
-	if(xmlStrcmp(root->name,(const xmlChar*)"vocations"))
+	
+	if((strcasecmp(doc.name(),"vocations") == 0))
 	{
-		std::clog << "[Error - Vocations::loadFromXml] Malformed vocations file." << std::endl;
-		xmlFreeDoc(doc);
+		std::clog << "[Error - Vocations::loadFromXml] Malformed vocations file." << std::endl;		
 		return false;
 	}
-
-	for(p = root->children; p; p = p->next)
+	
+	for(auto p : doc.children())
 		parseVocationNode(p);
-
-	xmlFreeDoc(doc);
+	
 	return true;
 }
 
@@ -431,7 +431,7 @@ int32_t Vocations::getVocationId(const std::string& name)
 {
 	for(VocationsMap::iterator it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
 	{
-		if(!strcasecmp(it->second->getName().c_str(), name.c_str()))
+		if(!(strcasecmp(it->second->getName().c_str)(), name.c_str()))
 			return it->first;
 	}
 

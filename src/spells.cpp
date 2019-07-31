@@ -139,7 +139,7 @@ Event* Spells::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool Spells::registerEvent(Event* event, xmlNodePtr, bool override)
+bool Spells::registerEvent(Event* event, pugi::xml_node&, bool override)
 {
 	if(InstantSpell* instant = dynamic_cast<InstantSpell*>(event))
 	{
@@ -483,13 +483,13 @@ Spell::Spell()
 	learnable = false;
 }
 
-bool Spell::configureSpell(xmlNodePtr p)
+bool Spell::configureSpell(pugi::xml_node& p)
 {
-	int32_t intValue;
 	std::string strValue;
-	if(readXMLString(p, "name", strValue))
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("name")))
 	{
-		name = strValue;
+		name = pugi::cast<std::string>(attr.value());
 		const char* reservedList[] =
 		{
 			"melee", "physical", "poison", "earth", "fire", "ice", "freeze", "energy", "drown", "death", "curse", "holy",
@@ -513,50 +513,51 @@ bool Spell::configureSpell(xmlNodePtr p)
 		return false;
 	}
 
-	if(readXMLInteger(p, "lvl", intValue) || readXMLInteger(p, "level", intValue))
-	 	level = intValue;
+	if((attr = p.attribute("lvl")) || (attr = p.attribute("level")))
+	 	level = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "maglv", intValue) || readXMLInteger(p, "magiclevel", intValue))
-	 	magLevel = intValue;
+	if((attr = p.attribute("maglv")) || (attr = p.attribute("magiclevel")))
+	 	magLevel = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "mana", intValue))
-	 	mana = intValue;
+	if((attr = p.attribute("mana")))
+	 	mana = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "manapercent", intValue))
-	 	manaPercent = intValue;
+	if((attr = p.attribute("manapercent")))
+	 	manaPercent = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "soul", intValue))
-	 	soul = intValue;
+	if((attr = p.attribute("soul")))
+	 	soul = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "exhaustion", intValue))
-		exhaustion = intValue;
+	if((attr = p.attribute("exhaustion")))
+		exhaustion = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLString(p, "enabled", strValue))
-		enabled = booleanString(strValue);
+	if((attr = p.attribute("enabled")))
+		enabled = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "prem", strValue) || readXMLString(p, "premium", strValue))
-		premium = booleanString(strValue);
+	if((attr = p.attribute("prem")) || (attr = p.attribute("premium")))
+		premium = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "needtarget", strValue))
-		needTarget = booleanString(strValue);
+	if((attr = p.attribute("needtarget")))
+		needTarget = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "needweapon", strValue))
-		needWeapon = booleanString(strValue);
+	if((attr = p.attribute("needweapon")))
+		needWeapon = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "selftarget", strValue))
-		selfTarget = booleanString(strValue);
+	if((attr = p.attribute("selftarget")))
+		selfTarget = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "needlearn", strValue))
-		learnable = booleanString(strValue);
+	if((attr = p.attribute("needlearn")))
+		learnable = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLInteger(p, "range", intValue))
-		range = intValue;
+	if((attr = p.attribute("range")))
+		range = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLString(p, "blocking", strValue))
-		blockingCreature = blockingSolid = booleanString(strValue);
+	if((attr = p.attribute("blocking")))
+		blockingCreature = blockingSolid = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "blocktype", strValue))
+	if((attr = p.attribute("blocktype")))
 	{
+		strValue = pugi::cast<std::string>(attr.value());
 		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "all")
 			blockingCreature = blockingSolid = true;
@@ -568,17 +569,16 @@ bool Spell::configureSpell(xmlNodePtr p)
 			std::clog << "[Warning - Spell::configureSpell] Blocktype \"" <<strValue << "\" nao existe." << std::endl;
 	}
 
-	if(readXMLString(p, "aggressive", strValue))
-		isAggressive = booleanString(strValue);
+	if((attr = p.attribute("aggressive")))
+		isAggressive = booleanString(pugi::cast<std::string>(attr.value()));
 
 	std::string error = "";
-	xmlNodePtr vocationNode = p->children;
-	while(vocationNode)
+	
+	for(auto vocationNode: p.children())
 	{
 		if(!parseVocationNode(vocationNode, vocSpellMap, vocStringVec, error))
 			std::clog << "[Warning - Spell::configureSpell] " << error << std::endl;
-
-		vocationNode = vocationNode->next;
+		
 	}
 
 	return true;
@@ -1026,7 +1026,7 @@ InstantSpell::InstantSpell(LuaInterface* _interface) : TalkAction(_interface)
 	function = NULL;
 }
 
-bool InstantSpell::configureEvent(xmlNodePtr p)
+bool InstantSpell::configureEvent(pugi::xml_node&  p)
 {
 	if(!Spell::configureSpell(p))
 		return false;
@@ -1034,22 +1034,21 @@ bool InstantSpell::configureEvent(xmlNodePtr p)
 	if(!TalkAction::configureEvent(p))
 		return false;
 
-	std::string strValue;
-	if(readXMLString(p, "param", strValue) || readXMLString(p, "params", strValue))
- 		hasParam = booleanString(strValue);
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("param")) || (attr = p.attribute("params")))
+ 		hasParam = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "direction", strValue))
-		needDirection = booleanString(strValue);
+	if((attr = p.attribute("direction")))
+		needDirection = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "casterTargetOrDirection", strValue))
-		casterTargetOrDirection = booleanString(strValue);
+	if((attr = p.attribute("casterTargetOrDirection")))
+		casterTargetOrDirection = booleanString(pugi::cast<std::string>(attr.value()));
 
-	if(readXMLString(p, "blockwalls", strValue))
-		checkLineOfSight = booleanString(strValue);
+	if((attr = p.attribute("blockwalls")))
+		checkLineOfSight = booleanString(pugi::cast<std::string>(attr.value()));
 
-	int32_t intValue;
-	if(readXMLInteger(p, "limitRange", intValue))
-		limitRange = intValue;
+	if((attr = p.attribute("limitRange")))
+		limitRange = pugi::cast<int32_t>(attr.value());
 
 	return true;
 }
@@ -1482,17 +1481,17 @@ ConjureSpell::ConjureSpell(LuaInterface* _interface):
 	conjureReagentId = 0;
 }
 
-bool ConjureSpell::configureEvent(xmlNodePtr p)
+bool ConjureSpell::configureEvent(pugi::xml_node&  p)
 {
 	if(!InstantSpell::configureEvent(p))
 		return false;
 
-	int32_t intValue;
-	if(readXMLInteger(p, "conjureId", intValue))
-		conjureId = intValue;
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("conjureId")))
+		conjureId = pugi::cast<int32_t>(attr.value());
 
-	if(readXMLInteger(p, "conjureCount", intValue))
-		conjureCount = intValue;
+	if((attr = p.attribute("conjureCount")))
+		conjureCount = pugi::cast<int32_t>(attr.value());
 	else if(conjureId != 0)
 	{
 		//load the default charge from items.xml
@@ -1501,8 +1500,8 @@ bool ConjureSpell::configureEvent(xmlNodePtr p)
 			conjureCount = it.charges;
 	}
 
-	if(readXMLInteger(p, "reagentId", intValue))
-		conjureReagentId = intValue;
+	if((attr = p.attribute("reagentId")))
+		conjureReagentId = pugi::cast<int32_t>(attr.value());
 
 	return true;
 }
@@ -1642,7 +1641,7 @@ Action(_interface)
 	hasCharges = allowFarUse = true;
 }
 
-bool RuneSpell::configureEvent(xmlNodePtr p)
+bool RuneSpell::configureEvent(pugi::xml_node&  p)
 {
 	if(!Spell::configureSpell(p))
 		return false;
@@ -1650,18 +1649,17 @@ bool RuneSpell::configureEvent(xmlNodePtr p)
 	if(!Action::configureEvent(p))
 		return false;
 
-	int32_t intValue;
-	if(readXMLInteger(p, "id", intValue))
-		runeId = intValue;
+	pugi::xml_attribute attr;
+	if((attr = p.attribute("id")))
+		runeId = pugi::cast<int32_t>(attr.value());
 	else
 	{
 		std::clog << "Error: [RuneSpell::configureSpell] Rune spell without id." << std::endl;
 		return false;
 	}
 
-	std::string strValue;
-	if(readXMLString(p, "charges", strValue))
-		hasCharges = booleanString(strValue);
+	if((attr = p.attribute("charges")))
+		hasCharges = booleanString(pugi::cast<std::string>(attr.value()));
 
 	ItemType& it = Item::items.getItemType(runeId);
 	if(level && level != it.runeLevel)

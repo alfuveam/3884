@@ -163,7 +163,8 @@ bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 
 	int32_t intValue;
 	std::string strValue;
-
+	pugi::xml_attribute attr;
+	
 	uint32_t id = m_lastId;
 	if(((attr = p.attribute("id")) && id > 0)
 	{

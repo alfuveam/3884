@@ -49,7 +49,7 @@ class Weapons : public BaseEvents
 		virtual void clear();
 
 		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, xmlNodePtr p, bool override);
+		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override);
 
 		virtual LuaInterface& getInterface() {return m_interface;}
 		LuaInterface m_interface;
@@ -67,7 +67,7 @@ class Weapon : public Event
 		static bool useFist(Player* player, Creature* target);
 
 		virtual bool loadFunction(const std::string& functionName);
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool configureWeapon(const ItemType& it);
 
 		virtual int32_t playerWeaponCheck(Player* player, Creature* target) const;
@@ -159,7 +159,7 @@ class WeaponWand : public Weapon
 		WeaponWand(LuaInterface* _interface);
 		virtual ~WeaponWand() {}
 
-		virtual bool configureEvent(xmlNodePtr p);
+		virtual bool configureEvent(pugi::xml_node& p);
 		virtual bool configureWeapon(const ItemType& it);
 
 		virtual int32_t getWeaponDamage(const Player* player, const Creature* target, const Item* item, bool maxDamage = false) const;

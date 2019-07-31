@@ -77,7 +77,8 @@ bool Groups::parseGroupNode(pugi::xml_node& node)
 
 	std::string strValue;
 	int64_t int64Value;
-
+	pugi::xml_attribute attr;
+	
 	Group* group = new Group(intValue);
 	if(attr = node.attribute("name"))
 	{
