@@ -73,7 +73,7 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 		strValue = attr.as_string();
 		if(strValue == "script")
 		{
-			bool file;
+			bool file = false;
 			pugi::xml_attribute _attr;
 			if((_attr = node.attribute("value"))){
 				file = true;
