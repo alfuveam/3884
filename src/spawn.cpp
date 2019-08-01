@@ -165,7 +165,7 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 
 			spawn->addMonster(name, placePos, direction, interval);
 		}
-		else if(!strcasecmp(tmpNode.name(), "npc") == 0)
+		else if(strcasecmp(tmpNode.name(), "npc") != 0)
 		{
 			if(!(attr = tmpNode.attribute("name")))
 				continue;
