@@ -9,5 +9,5 @@ steps:
 
 - script: cd 3888 |
   mkdir build; cd build
-  cmake ..
+  cmake .. | 
   make
