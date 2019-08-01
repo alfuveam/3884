@@ -164,7 +164,7 @@ bool Npc::loadFromXml(const std::string& filename)
 		return false;
 	}
 	
-	if(!strcasecmp(doc.name(),"npc") == 0)
+	if(strcasecmp(doc.name(),"npc") != 0)
 	{
 		std::clog << "[Error - Npc::loadFromXml] Malformed npc file (" << filename << ")." << std::endl;
 		return false;
@@ -400,7 +400,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 				pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_OTHER, "npc/lib/" + strValue).c_str());
 				if(result)
 				{
-					if(!strcasecmp(doc.name(),"interaction") == 0)
+					if(strcasecmp(doc.name(),"interaction") != 0)
 					{
 						ResponseList includedResponses = loadInteraction(node);
 						_responseList.insert(_responseList.end(), includedResponses.begin(), includedResponses.end());
@@ -414,7 +414,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 				}
 			}
 		}		
-		else if(!strcasecmp(node.name(),"itemlist") == 0)
+		else if(strcasecmp(node.name(),"itemlist") != 0)
 		{
 			if((attr = node.attribute("listid")))
 			{
@@ -427,7 +427,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 					for(auto tmpNode : node.children())
 					{
-						if(!strcasecmp(tmpNode.name(),"item") == 0)
+						if(strcasecmp(tmpNode.name(),"item") != 0)
 						{
 							ListItem li;
 							if(!(attr = tmpNode.attribute("id")))
@@ -526,12 +526,12 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 			for(auto tmpNode : node.children())
 			{
-				if(!strcasecmp(tmpNode.name(),"keywords") == 0)
+				if(strcasecmp(tmpNode.name(),"keywords") != 0)
 				{
 					//alternative input keywords
 					for(auto altKeyNode : tmpNode.children())
 					{						
-						if(!strcasecmp(altKeyNode.name(),"text") == 0)
+						if(strcasecmp(altKeyNode.name(),"text") != 0)
 						{
 							strValue = pugi::cast<std::string>(altKeyNode.value());
 							if(strValue.length() > 0)
@@ -539,11 +539,11 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 						}
 					}
 				}				
-				else if(!strcasecmp(tmpNode.name(),"list") == 0)
+				else if(strcasecmp(tmpNode.name(),"list") != 0)
 				{
 					for(auto listNode : tmpNode.children())
 					{
-						if(!strcasecmp(listNode.name(),"text") == 0)
+						if(strcasecmp(listNode.name(),"text") != 0)
 						{
 							strValue = pugi::cast<std::string>(listNode.value());
 							if(strValue.length() == 0)
@@ -561,7 +561,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 			for(auto tmpNode : node.children())
 			{
-				if(!strcasecmp(tmpNode.name(),"response") == 0)
+				if(strcasecmp(tmpNode.name(),"response") != 0)
 				{
 					prop.output = prop.knowSpell = "";
 					prop.params = interactParams | loadParams(tmpNode);
@@ -597,7 +597,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 					
 					for(auto subNode : tmpNode.children())
 					{
-						if(!strcasecmp(tmpNode.name(),"action") == 0)
+						if(strcasecmp(tmpNode.name(),"action") != 0)
 						{
 							ResponseAction action;
 							if((attr = node.attribute("name")))
@@ -838,7 +838,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 							if(action.actionType != ACTION_NONE)
 								prop.actionList.push_back(action);
 						}						
-						else if(!strcasecmp(tmpNode.name(),"interact") == 0)
+						else if(strcasecmp(tmpNode.name(),"interact") != 0)
 						{
 							if(subResponseList.empty())
 							{
