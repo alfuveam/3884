@@ -50,7 +50,7 @@ bool Spawns::loadFromXml(const std::string& _filename)
 		return true;
 		
 	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file(filename.c_str());
+	pugi::xml_parse_result result = doc.load_file(_filename.c_str());
 	if(!result)
 	{
 		std::clog << "[Warning - Spawns::loadFromXml] Cannot open spawns file." << std::endl;		

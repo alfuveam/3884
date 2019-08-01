@@ -137,7 +137,7 @@ bool Raids::loadFromXml()
 		return false;
 	}
 
-	for(auto raidNode : doc.children())
+	for(auto raidNode : doc.child("raid").children())
 	{
 		parseRaidNode(raidNode, false, FILE_TYPE_OTHER);		
 	}

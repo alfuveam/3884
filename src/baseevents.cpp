@@ -44,19 +44,15 @@ bool BaseEvents::loadFromXml()
 
 	m_loaded = true;
 
-	for(auto node : doc.child(scriptsName.c_str()).children()){	
-		std::string scriptAttribute = node.attribute("value").value();	// getpath  to file or function in .xml 
-		if(!scriptAttribute.empty()){
-			parseEventNode(node, scriptAttribute, false);
-		}
+	std::string scriptsPath = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/scripts/"));	
+	for(auto node : doc.child(scriptsName.c_str()).children()){			
+		parseEventNode(node, scriptsPath, false);		
 	}
 	return m_loaded;
 }
 
 bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, bool override)
 {
-	std::cout << "valor" << std::endl;
-	std::cout << "node: " << node.name() << " - " << scriptsPath << std::endl;	
 	Event* event = getEvent(node.name());
 	if(!event)
 		return false;
@@ -78,12 +74,11 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 		if(strValue == "script")
 		{
 			bool file;
-			if(pugi::xml_attribute _attr = node.attribute("value")){
+			pugi::xml_attribute _attr;
+			if((_attr = node.attribute("value"))){
 				file = true;
-				strValue = _attr.as_string();				
-			} else {
-				strValue = scriptsPath + strValue;
-			}
+				strValue = scriptsPath + _attr.as_string();
+			} 
 
 			success = event->loadScript(strValue, file);
 		}
@@ -97,7 +92,7 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 		else if(strValue == "function")
 		{
 			if((attr = node.attribute("value")))
-				success = event->loadFunction(strValue);
+				success = event->loadFunction(attr.as_string());
 		}
 	}
 	else if((attr = node.attribute("script")))
@@ -123,7 +118,7 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 	{
 		strValue = attr.as_string();
 		success = event->loadFunction(strValue);
-	} else if(attr = node.value()) {
+	} else if((attr = node.value())) {
 		strValue = attr.as_string();
 		success = event->loadBuffer(strValue);
 	}

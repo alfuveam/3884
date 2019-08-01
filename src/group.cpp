@@ -65,10 +65,7 @@ bool Groups::loadFromXml()
 }
 
 bool Groups::parseGroupNode(pugi::xml_node& node)
-{	
-	if(strcasecmp(node.name(),"group") == 0)	
-		return false;
-
+{
 	pugi::xml_attribute attr;
 	std::string strValue;
 	int32_t intValue;

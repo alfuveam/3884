@@ -148,7 +148,7 @@ bool Quests::loadFromXml()
 		return false;
 	}
 
-	for(auto p : doc.children())
+	for(auto p : doc.child("quests").children())
 	{
 		parseQuestNode(p, false);		
 	}

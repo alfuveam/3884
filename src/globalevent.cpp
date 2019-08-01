@@ -61,26 +61,31 @@ Event* GlobalEvents::getEvent(const std::string& nodeName)
 bool GlobalEvents::registerEvent(Event* event, const pugi::xml_node&, bool override)
 {
 	GlobalEvent* globalEvent = dynamic_cast<GlobalEvent*>(event);
-	if(!globalEvent)
+	if(!globalEvent){
 		return false;
+	}
 
 	GlobalEventMap* map = &thinkMap;
 	if(globalEvent->getEventType() == GLOBALEVENT_TIMER)
+	{
 		map = &timerMap;
-	else if(globalEvent->getEventType() != GLOBALEVENT_NONE)
-		map = &serverMap;
-
-	GlobalEventMap::iterator it = map->find(globalEvent->getName());
-	if(it == map->end())
-	{
-		map->insert(std::make_pair(globalEvent->getName(), globalEvent));
-		return true;
 	}
-
-	if(override)
+	else if(globalEvent->getEventType() != GLOBALEVENT_NONE)
 	{
-		delete it->second;
-		it->second = globalEvent;
+		map = &serverMap;
+	}	
+
+	auto it = map->find(globalEvent->getName());	
+	if(it != map->end())
+	{
+		if(override)
+		{
+			delete it->second;
+			it->second = globalEvent;
+			return true;
+		}
+	} else {
+		map->insert(std::make_pair(globalEvent->getName(), globalEvent));
 		return true;
 	}
 
@@ -186,9 +191,10 @@ bool GlobalEvent::configureEvent(pugi::xml_node& node)
 {
 	pugi::xml_attribute attr;
 	std::string strValue;
-	if(!(attr = node.attribute("name")))
-	{
+	if((attr = node.attribute("name")))
+	{		
 		strValue = pugi::cast<std::string>(attr.value());
+	} else {
 		std::clog << "[Error - GlobalEvent::configureEvent] No name for a globalevent." << std::endl;
 		return false;
 	}

@@ -172,8 +172,8 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 {
 	enabled = false;
 	pugi::xml_attribute attr;
-	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_MOD, file).c_str());	
+	pugi::xml_document _doc;
+	pugi::xml_parse_result result = _doc.load_file(getFilePath(FILE_TYPE_MOD, file).c_str());	
 	if(!result)
 	{
 		std::clog << "[Error - ScriptManager::loadFromXml] Cannot load mod " << file << std::endl;		
@@ -182,13 +182,12 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 
 	std::string strValue;
 
-	if(strcasecmp(doc.name(),"mod") == 0)
+	if(strcasecmp(_doc.name(),"mod") == 0)
 	{
 		std::clog << "[Error - ScriptManager::loadFromXml] Malformed mod " << file << std::endl;		
 		return false;
 	}
-
-	if(!(attr = doc.attribute("name")))
+	if(strcasecmp(_doc.name(), "name") == 0)	
 	{
 		std::clog << "[Warning - ScriptManager::loadFromXml] Empty name in mod " << file << std::endl;		
 		return false;
@@ -196,6 +195,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 
 	ModBlock mod;
 	mod.enabled = false;
+	pugi::xml_node doc = _doc.child("mod");
 	if((attr = doc.attribute("enabled")))
 	{
 		if(booleanString(attr.as_string()))
@@ -214,47 +214,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 
 	if((attr = doc.attribute("contact")))
 		mod.contact = pugi::cast<std::string>(attr.value());
-
-	bool supported = true;	
-	for(auto p : doc.children())
-	{
-		if(strcasecmp(p.name(), "server") == 0)
-			continue;
-
-		supported = false;		
-		for(auto versionNode : p.children())
-		{
-			std::string id = SOFTWARE_VERSION;
-			if((attr = versionNode.attribute("id")))
-				id = asLowerCaseString(pugi::cast<std::string>(attr.value()));
-
-			IntegerVec protocol;
-			protocol.push_back(CLIENT_VERSION_MIN);
-			if((attr = versionNode.attribute("protocol")))
-				protocol = vectorAtoi(explodeString(pugi::cast<std::string>(attr.value()), "-"));
-
-			int16_t patch = VERSION_PATCH, database = VERSION_DATABASE;
-			if((attr = versionNode.attribute("patch")))
-				patch = pugi::cast<int32_t>(attr.value());
-
-			if((attr = versionNode.attribute("database")))
-				database = pugi::cast<int32_t>(attr.value());
-
-			if(id == asLowerCaseString(SOFTWARE_VERSION) && patch >= VERSION_PATCH && database >= VERSION_DATABASE
-				&& protocol[0] >= CLIENT_VERSION_MIN && (protocol.size() < 2 || protocol[1] <= CLIENT_VERSION_MAX))
-			{
-				supported = true;
-				break;
-			}
-		}
-	}
-
-	if(!supported)
-	{
-		std::clog << "[Warning - ScriptManager::loadFromXml] Your server is not supported by mod " << file << std::endl;		
-		return false;
-	}
-
+	
 	if(mod.enabled)
 	{
 		std::string scriptsPath = getFilePath(FILE_TYPE_MOD, "scripts/");		
