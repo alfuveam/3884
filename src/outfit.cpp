@@ -169,7 +169,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		
 		for(auto configNode : listNode.children())
 		{
-			if(!strcasecmp(configNode.name(),"reflect") == 0)
+			if(strcasecmp(configNode.name(),"reflect") != 0)
 			{
 				if((attr = configNode.attribute("percentAll")))
 				{
@@ -291,7 +291,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 				if((attr = configNode.attribute("chanceUndefined")))
 					outfit.reflect[REFLECT_CHANCE][COMBAT_UNDEFINEDDAMAGE] += pugi::cast<int32_t>(attr.value());
 			}			
-			else if(!strcasecmp(configNode.name(),"absorb") == 0)
+			else if(strcasecmp(configNode.name(),"absorb") != 0)
 			{
 				if((attr = configNode.attribute("percentAll")))
 				{
@@ -353,7 +353,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 				if((attr = configNode.attribute("percentUndefined")))
 					outfit.absorb[COMBAT_UNDEFINEDDAMAGE] += pugi::cast<int32_t>(attr.value());
 			}			
-			else if(!strcasecmp(configNode.name(),"skills") == 0)
+			else if(strcasecmp(configNode.name(),"skills") != 0)
 			{
 				if((attr = configNode.attribute("fist")))
 					outfit.skills[SKILL_FIST] += pugi::cast<int32_t>(attr.value());
@@ -429,7 +429,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 					outfit.skillsPercent[SKILL_DIST] += pugi::cast<int32_t>(attr.value());
 				}
 			}			
-			else if(!strcasecmp(configNode.name(),"stats") == 0)
+			else if(strcasecmp(configNode.name(),"stats") != 0)
 			{
 				if((attr = configNode.attribute("maxHealth")))
 					outfit.stats[STAT_MAXHEALTH] = pugi::cast<int32_t>(attr.value());
@@ -463,7 +463,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 					(attr = configNode.attribute("magicLevelPercent")))
 					outfit.statsPercent[STAT_MAGICLEVEL] = pugi::cast<int32_t>(attr.value());
 			}			
-			else if(!strcasecmp(configNode.name(),"suppress") == 0)
+			else if(strcasecmp(configNode.name(),"suppress") != 0)
 			{
 				if((attr = configNode.attribute("poison")))
 					if(booleanString(pugi::cast<std::string>(attr.value())))

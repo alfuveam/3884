@@ -129,7 +129,7 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 	
 	for(auto tmpNode : p.children())
 	{
-		if(!strcasecmp(tmpNode.name(), "monster") == 0)
+		if(strcasecmp(tmpNode.name(), "monster") != 0)
 		{
 			if(!(attr = tmpNode.attribute("name")))
 				continue;
