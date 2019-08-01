@@ -240,21 +240,24 @@ bool Chat::loadFromXml()
 
 bool Chat::parseChannelNode(pugi::xml_node& node)
 {
-	uint16_t intValue;
+	uint16_t intValue = 0;
+	uint16_t id = 0;
 	pugi::xml_attribute attr;
+	
 	if(strcasecmp(node.name(), "channel") == 0)
 		return false;
 
-	if(!(attr = node.attribute("id")))
+	if((attr = node.attribute("id")))
 	{
-		intValue = pugi::cast<uint16_t>(attr.value());
-		if(intValue <= CHANNEL_GUILD){
+		id = pugi::cast<uint16_t>(attr.value());
+		if(id <= CHANNEL_GUILD){
 			std::clog << "[Warning - Chat::loadFromXml] Invalid or not specified channel id." << std::endl;
 			return false;
 		}
+	} else {
+		std::clog << "[Warning - Chat::loadFromXml] Invalid channel id." << std::endl;
 	}
-
-	uint16_t id = intValue;
+	
 	std::string strValue;
 	if(m_normalChannels.find(id) != m_normalChannels.end() && !(attr = node.attribute("override")))
 	{
@@ -297,6 +300,7 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 	if((attr = node.attribute("muted")))
 	{
 		conditionId = 2;
+		intValue = attr.as_int();
 		uint16_t tmp = intValue * 1000;
 		if((attr = node.attribute("conditionId")))
 		{
