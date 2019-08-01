@@ -65,7 +65,6 @@ bool booleanString(std::string source);
 
 void printXMLError(const std::string& where, const std::string& fileName, const pugi::xml_parse_result& result);
 bool parseVocationNode(pugi::xml_node& vocationNode, VocationMap& vocationMap, StringVec& vocStringMap, std::string& errorStr);
-bool utf8ToLatin1(char* intext, std::string& outtext);
 
 StringVec explodeString(const std::string& string, const std::string& separator, bool trim = true);
 IntegerVec vectorAtoi(StringVec stringVector);

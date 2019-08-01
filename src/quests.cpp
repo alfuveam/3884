@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "quests.h"
-#include "tools.h"
+
 
 bool Mission::isStarted(Player* player)
 {
@@ -161,29 +161,27 @@ bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 	if(strcasecmp(p.name(),"quest") == 0)
 		return false;
 
-	int32_t intValue;
-	std::string strValue;
 	pugi::xml_attribute attr;
 	
 	uint32_t id = m_lastId;
-	if(((attr = p.attribute("id")) && id > 0)
-	{
-		id = intValue;
+	if((attr = p.attribute("id")))
+	{		
+		id = attr.as_int();
 		if(id > m_lastId)
 			m_lastId = id;
 	}
 
 	std::string name;
 	if((attr = p.attribute("name")))
-		name = strValue;
+		name = attr.as_string();
 
 	std::string startStorageId;
 	if((attr = p.attribute("startstorageid")) || (attr = p.attribute("storageId")))
-		startStorageId = strValue;
+		startStorageId = attr.as_string();
 
 	int32_t startStorageValue = 0;
-	if(((attr = p.attribute("startstoragevalue")) || ((attr = p.attribute("storageValue")))
-		startStorageValue = intValue;
+	if((attr = p.attribute("startstoragevalue")) || ((attr = p.attribute("storageValue"))))
+		startStorageValue = attr.as_int();
 
 	Quest* quest = new Quest(name, id, startStorageId, startStorageValue);
 	if(!quest)
@@ -196,20 +194,20 @@ bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 
 		std::string missionName, missionState, storageId;
 		if((attr = missionNode.attribute("name")))
-			missionName = strValue;
+			missionName = attr.as_string();
 
 		if((attr = missionNode.attribute("state")) || (attr = missionNode.attribute("description")))
-			missionState = strValue;
+			missionState = attr.as_string();
 
 		if((attr = missionNode.attribute("storageid")) || (attr = missionNode.attribute("storageId")))
-			storageId = strValue;
+			storageId = attr.as_string();
 
 		int32_t startValue = 0, endValue = 0;
-		if(((attr = missionNode.attribute("startvalue")) || ((attr = missionNode.attribute("startValue")))
-			startValue = intValue;
+		if((attr = missionNode.attribute("startvalue")) || ((attr = missionNode.attribute("startValue"))))
+			startValue = attr.as_int();
 
-		if(((attr = missionNode.attribute("endvalue")) || ((attr = missionNode.attribute("endValue")))
-			endValue = intValue;
+		if((attr = missionNode.attribute("endvalue")) || ((attr = missionNode.attribute("endValue"))))
+			endValue = attr.as_int();
 
 		if(Mission* mission = new Mission(missionName, missionState, storageId, startValue, endValue))
 		{
@@ -222,16 +220,17 @@ bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 						continue;
 
 					uint32_t missionId;
-					if(!((attr = stateNode.attribute("id")))
+					if((attr = stateNode.attribute("id")))
 					{
+						missionId = attr.as_int();
+					} else {
 						std::clog << "[Warning - Quests::parseQuestNode] Missing missionId for mission state" << std::endl;
 						continue;
-					}
+					 }
 
-					missionId = intValue;
 					std::string description;
 					if((attr = stateNode.attribute("description")))
-						description = strValue;
+						description = attr.as_string();
 
 					mission->newState(missionId, description);
 				}

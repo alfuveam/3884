@@ -248,4 +248,13 @@
 	#include <conio.h>
 #endif
 
+#ifdef __NO_BOOST_EXCEPTIONS__
+	#include <exception>
+
+	inline void boost::throw_exception(std::exception const & e)
+	{
+		std::clog << "Boost exception: " << e.what() << std::endl;
+	}
+#endif
+
 #endif

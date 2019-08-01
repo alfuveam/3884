@@ -18,7 +18,7 @@
 #ifndef __OUTPUT_MESSAGE__
 #define __OUTPUT_MESSAGE__
 
-#include "tools.h"
+
 
 #include "connection.h"
 #include "networkmessage.h"

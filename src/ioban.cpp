@@ -21,7 +21,7 @@
 #include "game.h"
 #include "player.h"
 
-#include "tools.h"
+
 #include "database.h"
 #include "iologindata.h"
 

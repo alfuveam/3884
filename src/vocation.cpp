@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "vocation.h"
-#include "tools.h"
+
 
 Vocation Vocations::defVoc = Vocation();
 
@@ -112,9 +112,9 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 
 	if((attr = p.attribute("lessloss")))
 		voc->setLessLoss(pugi::cast<int32_t>(attr.value()));
-
-	for(xmlNodePtr configNode = p->children; configNode; configNode = configNode->next)
 	
+	for(auto configNode : p.children())
+	{
 		if(!(strcasecmp(configNode.name(), "skill") == 0))
 		{
 			if((attr = configNode.attribute("fist")))
@@ -178,7 +178,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 				if((attr = configNode.attribute("multiplier")))
 					voc->setSkillMultiplier(skill, pugi::cast<float>(attr.value()));
 			}
-		
+		}
 		else if(!(strcasecmp(configNode.name(), "formula") == 0))
 		{
 			if((attr = configNode.attribute("meleeDamage")))
@@ -203,8 +203,8 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 				voc->setMultiplier(MULTIPLIER_MAGICDEFENSE, pugi::cast<float>(attr.value()));
 
 			if((attr = configNode.attribute("armor")))
-				voc->setMultiplier(MULTIPLIER_ARMOR, pugi::cast<float>(attr.value()));
-		
+				voc->setMultiplier(MULTIPLIER_ARMOR, pugi::cast<float>(attr.value()));		
+		}
 		else if(!(strcasecmp(configNode.name(), "absorb") == 0))
 		{
 			if((attr = configNode.attribute("percentAll")))
@@ -266,7 +266,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 
 			if((attr = configNode.attribute("percentUndefined")))
 				voc->increaseAbsorb(COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
-		
+		}
 		else if(!(strcasecmp(configNode.name(), "reflect") == 0))
 		{
 			if((attr = configNode.attribute("percentAll")))
@@ -411,7 +411,7 @@ bool Vocations::loadFromXml()
 		return false;
 	}
 	
-	for(auto p : doc.children())
+	for(auto p : doc.child("vocations").children())
 		parseVocationNode(p);
 	
 	return true;
@@ -431,7 +431,7 @@ int32_t Vocations::getVocationId(const std::string& name)
 {
 	for(VocationsMap::iterator it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
 	{
-		if(!(strcasecmp(it->second->getName().c_str)(), name.c_str()))
+		if(!(strcasecmp(it->second->getName().c_str(), name.c_str())))
 			return it->first;
 	}
 

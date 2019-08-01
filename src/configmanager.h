@@ -295,7 +295,6 @@ class ConfigManager
 #endif
 			BIND_ONLY_GLOBAL_ADDRESS,
 			UNIFIED_SPELLS,
-			MULTISERVER,
 			LOG_PLAYER,
 			ENABLE_CAST, //CAST
 			LAST_BOOL_CONFIG /* this must be the last one */

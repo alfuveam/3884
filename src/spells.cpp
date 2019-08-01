@@ -19,7 +19,7 @@
 #include "const.h"
 
 #include "spells.h"
-#include "tools.h"
+
 
 #include "house.h"
 #include "housetile.h"
@@ -139,7 +139,7 @@ Event* Spells::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool Spells::registerEvent(Event* event, pugi::xml_node&, bool override)
+bool Spells::registerEvent(Event* event, const pugi::xml_node&, bool override)
 {
 	if(InstantSpell* instant = dynamic_cast<InstantSpell*>(event))
 	{

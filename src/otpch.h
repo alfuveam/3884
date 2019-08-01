@@ -26,6 +26,7 @@
 #include <boost/bind.hpp>
 #include <boost/regex.hpp>
 #include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <string>
 #include <algorithm>
@@ -68,6 +69,9 @@
 
 #include <ctime>
 #include <cassert>
+
+#include "templates.h" // to pugi::cast
+#include "tools.h"
 
 #if BOOST_VERSION < 104400
 	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()

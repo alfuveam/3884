@@ -20,7 +20,7 @@
 
 #include "game.h"
 #include "configmanager.h"
-#include "tools.h"
+
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -118,7 +118,7 @@ Event* Weapons::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool Weapons::registerEvent(Event* event, pugi::xml_node&, bool override)
+bool Weapons::registerEvent(Event* event, const pugi::xml_node&, bool override)
 {
 	Weapon* weapon = dynamic_cast<Weapon*>(event);
 	if(!weapon)
@@ -232,13 +232,11 @@ bool Weapon::configureEvent(pugi::xml_node& p)
 	std::string error;
 	StringVec vocStringVec;
 
-	xmlNodePtr vocationNode = p->children;
-	while(vocationNode)
+	for(auto vocationNode : p.children())
 	{
 		if(!parseVocationNode(vocationNode, vocWeaponMap, vocStringVec, error))
 			std::clog << "[Warning - Weapon::configureEvent] " << error << std::endl;
-
-		vocationNode = vocationNode->next;
+		
 	}
 
 	if(!vocWeaponMap.empty())

@@ -18,7 +18,6 @@
 #ifndef __SPAWN__
 #define __SPAWN__
 
-#include "templates.h"
 #include "position.h"
 
 #include "tile.h"

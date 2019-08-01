@@ -41,27 +41,27 @@ bool Raids::parseRaidNode(pugi::xml_node& raidNode, bool checkDuplicate, FileTyp
 	int32_t intValue;
 	std::string strValue;
 	pugi::xml_attribute attr;
-	if(!(attr = raidNode.attribute("name")))
+	if((attr = raidNode.attribute("name")))
 	{
+		strValue = attr.as_string();
+	} else {
 		std::clog << "[Error - Raids::parseRaidNode] name tag missing for raid." << std::endl;
 		return false;
-	}else{
-		strValue = raidNode.attribute("name")
 	}
 
 	std::string name = strValue;
-	if(!(attr = raidNode.attribute("interval2")))
+	if((attr = raidNode.attribute("interval2")))
 	{
+		intValue = attr.as_int();
+	}else{
 		if(pugi::cast<int32_t>(attr.value()) < 0)
 		std::clog << "[Error - Raids::parseRaidNode] interval2 tag missing or divided by 0 for raid " << name << std::endl;
 		return false;
-	}else{
-		intValue = raidNode.attribute("interval2")
 	}
 
 	uint32_t interval = intValue * 60;
 	std::string file;
-s	if((attr = raidNode.attribute("file")))
+	if((attr = raidNode.attribute("file")))
 	{
 		file = pugi::cast<std::string>(attr.value());
 	} else {
@@ -376,7 +376,7 @@ bool AnnounceEvent::configureRaidEvent(pugi::xml_node& eventNode)
 	pugi::xml_attribute attr;
 	if((attr = eventNode.attribute("message")))
 	{
-		strValue = pugi::cast<std::string>(attr.value())
+		strValue = pugi::cast<std::string>(attr.value());
 	}else{
 		std::clog << "[Error - AnnounceEvent::configureRaidEvent] Message tag missing for announce event." << std::endl;
 		return false;
@@ -422,7 +422,6 @@ bool EffectEvent::configureRaidEvent(pugi::xml_node& eventNode)
 	if(!RaidEvent::configureRaidEvent(eventNode))
 		return false;
 
-	int32_t intValue;
 	std::string strValue;
 	pugi::xml_attribute attr;
 	if((attr = eventNode.attribute("id")))
@@ -489,7 +488,6 @@ bool ItemSpawnEvent::configureRaidEvent(pugi::xml_node& eventNode)
 	if(!RaidEvent::configureRaidEvent(eventNode))
 		return false;
 
-	int32_t intValue;
 	std::string strValue;
 	pugi::xml_attribute attr;
 	if((attr = eventNode.attribute("id")))
@@ -646,8 +644,7 @@ bool SingleSpawnEvent::configureRaidEvent(pugi::xml_node& eventNode)
 
 		m_position = Position(posList[0], posList[1], posList[2]);			
 		
-	} else {	
-		int32_t intValue;
+	} else {
 		if((attr = eventNode.attribute("x")))
 		{
 			m_position.x = pugi::cast<int32_t>(attr.value());
@@ -706,7 +703,6 @@ bool AreaSpawnEvent::configureRaidEvent(pugi::xml_node& eventNode)
 	if(!RaidEvent::configureRaidEvent(eventNode))
 		return false;
 
-	int32_t intValue;
 	std::string strValue;
 	pugi::xml_attribute attr;
 	if((attr = eventNode.attribute("radius")))
@@ -834,13 +830,13 @@ bool AreaSpawnEvent::configureRaidEvent(pugi::xml_node& eventNode)
 		}
 	}
 
-	for(auto monsterNode : eventNode.childrend())
+	for(auto monsterNode : eventNode.children())
 	{
 		if(strcasecmp(monsterNode.name(), "monster") != 0)
 		{
 			if((attr = monsterNode.attribute("name")))
 			{
-				strValue = pugi::cast<std::string>(attr.value())
+				strValue = pugi::cast<std::string>(attr.value());
 			} else {
 				std::clog << "[Error - AreaSpawnEvent::configureRaidEvent] name tag missing for monster node." << std::endl;
 				return false;
@@ -848,15 +844,15 @@ bool AreaSpawnEvent::configureRaidEvent(pugi::xml_node& eventNode)
 
 			std::string name = strValue;
 			int32_t min = 0, max = 0;
-			if((monattr = sterNode.attribute("min")) || (monattr = sterNode.attribute("minamount")))
+			if((attr = monsterNode.attribute("min")) || (attr = monsterNode.attribute("minamount")))
 				min = pugi::cast<int32_t>(attr.value());
 
-			if((monattr = sterNode.attribute("max")) || (monattr = sterNode.attribute("maxamount")))
+			if((attr = monsterNode.attribute("max")) || (attr = monsterNode.attribute("maxamount")))
 				max = pugi::cast<int32_t>(attr.value());
 
 			if(!min && !max)
 			{
-				if((monattr = sterNode.attribute("amount")))
+				if((attr = monsterNode.attribute("amount")))
 				{
 					min = max = pugi::cast<int32_t>(attr.value());
 				} else {
@@ -956,7 +952,7 @@ bool ScriptEvent::configureRaidEvent(pugi::xml_node& eventNode)
 			std::clog << "[Error - ScriptEvent::configureRaidEvent] Cannot load raid script file (" << pugi::cast<std::string>(attr.value()) << ")." << std::endl;
 			return false;
 		}
-	} else if(loadBuffer(eventNode.attribute("file").children())){
+	} else if(loadBuffer(eventNode.attribute("file").as_string())){
 		return true;
 	}
 

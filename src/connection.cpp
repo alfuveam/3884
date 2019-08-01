@@ -30,7 +30,7 @@
 
 #include "server.h"
 #include "configmanager.h"
-#include "tools.h"
+
 #include "textlogger.h"
 
 extern ConfigManager g_config;

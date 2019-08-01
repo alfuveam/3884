@@ -19,7 +19,6 @@
 #define __GAME__
 
 #include "enums.h"
-#include "templates.h"
 #include "server.h"
 #include "scheduler.h"
 

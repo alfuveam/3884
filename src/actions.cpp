@@ -19,7 +19,6 @@
 #include "const.h"
 
 #include "actions.h"
-#include "tools.h"
 
 #include "player.h"
 #include "monster.h"
@@ -82,7 +81,7 @@ Event* Actions::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
+bool Actions::registerEvent(Event* event, const pugi::xml_node& node, bool override)
 {
 	Action* action = dynamic_cast<Action*>(event);
 	if(!action)
@@ -106,11 +105,11 @@ bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 	}
 
 	bool success = true;
-	std::string endValue;
+	std::string endValue, strValue;
 	if((attr = node.attribute("itemid")))
 	{
 		IntegerVec intVector;
-		strValue = pugi::cast<std::string>(attr.value())
+		strValue = attr.as_string();
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			std::clog << "[Warning - Actions::registerEvent] Invalid itemid - '" << strValue << "'" << std::endl;
@@ -148,10 +147,10 @@ bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 		}
 	}
 	else if((attr = node.attribute("fromid")) && (attr = node.attribute("toid")))
-	{
-		pugi::xml_attribute toIdAttribute = node.attribute("toid")
-		strValue = pugi::cast<std::string>(attr.value())
-		endValue = pugi::cast<std::string>(toIdAttribute.value())
+	{		
+		pugi::xml_attribute toIdAttribute = node.attribute("toid");
+		strValue = attr.as_string();
+		endValue = toIdAttribute.as_string();
 
 		IntegerVec intVector = vectorAtoi(explodeString(strValue, ";")), endVector = vectorAtoi(explodeString(endValue, ";"));
 		if(intVector[0] && endVector[0] && intVector.size() == endVector.size())
@@ -187,7 +186,7 @@ bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 	if((attr = node.attribute("uniqueid")))
 	{
 		IntegerVec intVector;
-		strValue = pugi::cast<std::string>(attr.value())
+		strValue = attr.as_string();
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			std::clog << "[Warning - Actions::registerEvent] Invalid uniqueid - '" << strValue << "'" << std::endl;
@@ -226,9 +225,9 @@ bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 	}
 	else if((attr = node.attribute("fromuid")) && (attr = node.attribute("touid")))
 	{
-		pugi::xml_attribute toUidAttribute = node.attribute("touid")
-		strValue = pugi::cast<std::string>(attr.value())
-		endValue = pugi::cast<std::string>(toUidAttribute.value())
+		pugi::xml_attribute toUidAttribute = node.attribute("touid");
+		strValue = attr.as_string();
+		endValue = toUidAttribute.as_string();
 		IntegerVec intVector = vectorAtoi(explodeString(strValue, ";")), endVector = vectorAtoi(explodeString(endValue, ";"));
 		if(intVector[0] && endVector[0] && intVector.size() == endVector.size())
 		{
@@ -263,7 +262,7 @@ bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 	if((attr = node.attribute("actionid")))
 	{
 		IntegerVec intVector;
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			std::clog << "[Warning - Actions::registerEvent] Invalid actionid - '" << strValue << "'" << std::endl;
@@ -302,9 +301,9 @@ bool Actions::registerEvent(Event* event, pugi::xml_node& node, bool override)
 	}
 	else if((attr = node.attribute("fromaid")) && (attr = node.attribute("toaid")))
 	{
-		pugi::xml_attribute toAidAttribute = node.attribute("toaid")
-		strValue = pugi::cast<std::string>(attr.value())
-		endValue = pugi::cast<std::string>(toAidAttribute.value())		
+		pugi::xml_attribute toAidAttribute = node.attribute("toaid");
+		strValue = attr.as_string();
+		endValue = toAidAttribute.as_string();
 		IntegerVec intVector = vectorAtoi(explodeString(strValue, ";")), endVector = vectorAtoi(explodeString(endValue, ";"));
 		if(intVector[0] && endVector[0] && intVector.size() == endVector.size())
 		{

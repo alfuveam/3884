@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-#include "tools.h"
+
 
 #include <cryptopp/sha.h>
 #include <cryptopp/md5.h>
@@ -280,33 +280,6 @@ bool booleanString(std::string source)
 {
 	toLowerCaseString(source);
 	return (source == "yes" || source == "true" || atoi(source.c_str()) > 0);
-}
-
-bool utf8ToLatin1(char* intext, std::string& outtext)
-{
-	outtext = "";
-	if(!intext)
-		return false;
-
-	int32_t inlen = strlen(intext);
-	if(!inlen)
-		return false;
-
-	int32_t outlen = inlen * 2;
-	uint8_t* outbuf = new uint8_t[outlen];
-
-	int32_t res = UTF8Toisolat1(outbuf, &outlen, (uint8_t*)intext, &inlen);
-	if(res < 0)
-	{
-		delete[] outbuf;
-		return false;
-	}
-
-	outbuf[outlen] = '\0';
-	outtext = (char*)outbuf;
-
-	delete[] outbuf;
-	return true;
 }
 
 StringVec explodeString(const std::string& string, const std::string& separator, bool trim/* = true*/)

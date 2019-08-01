@@ -25,7 +25,7 @@
 
 #include "game.h"
 #include "chat.h"
-#include "tools.h"
+
 
 #include "rsa.h"
 
@@ -51,17 +51,8 @@
 #include "monsters.h"
 
 #include "admin.h"
-#include "exception.h"
 #include "textlogger.h"
 
-#ifdef __NO_BOOST_EXCEPTIONS__
-	#include <exception>
-
-	inline void boost::throw_exception(std::exception const & e)
-	{
-		std::clog << "Boost exception: " << e.what() << std::endl;
-	}
-#endif
 
 RSA g_RSA;
 ConfigManager g_config;

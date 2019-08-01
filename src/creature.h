@@ -18,8 +18,6 @@
 #ifndef __CREATURE__
 #define __CREATURE__
 
-#include "templates.h"
-
 #include "const.h"
 #include "enums.h"
 

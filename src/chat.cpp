@@ -217,22 +217,22 @@ bool Chat::reload()
 
 bool Chat::loadFromXml()
 {
-	std::string filename = getFilePath(FILE_TYPE_XML, "channels.xml").c_str();
+	std::string filename = getFilePath(FILE_TYPE_XML, "channels.xml");
 	pugi::xml_document doc;
-	pugi::xml_parser_result result = doc.load_file(filename);
+	pugi::xml_parse_result result = doc.load_file(filename.c_str());
 	
 	if(!result)
 	{
-		printXMLError("[Warning - Chat::loadFromXml]", filename, doc);
+		printXMLError("[Warning - Chat::loadFromXml]", filename, result);
 		return false;
 	}
 
 	if(doc.attribute("channels")){
-		printXMLError("[Warning - Chat::loadFromXml]", filename, doc);
+		printXMLError("[Warning - Chat::loadFromXml]", filename, result);
 		return false;
 	}
 
-	for(auto node : doc.children()){
+	for(auto node : doc.child("channels").children()){
 		parseChannelNode(node);
 	}
 	return true;
@@ -242,23 +242,27 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 {
 	uint16_t intValue;
 	pugi::xml_attribute attr;
-	if(node.attribute("channel"))
+	if(strcasecmp(node.name(), "channel") == 0)
 		return false;
 
 	if(!(attr = node.attribute("id")))
 	{
 		intValue = pugi::cast<uint16_t>(attr.value());
-		if(intValue <= CHANNEL_GUILD)
+		if(intValue <= CHANNEL_GUILD){
 			std::clog << "[Warning - Chat::loadFromXml] Invalid or not specified channel id." << std::endl;
 			return false;
+		}
 	}
 
 	uint16_t id = intValue;
 	std::string strValue;
-	if(m_normalChannels.find(id) != m_normalChannels.end() && (!(attr = node.attribute("override"))))
+	if(m_normalChannels.find(id) != m_normalChannels.end() && !(attr = node.attribute("override")))
 	{
-		std::clog << "[Warning - Chat::loadFromXml] Duplicated channel with id: " << id << "." << std::endl;
-		return false;
+		if(!booleanString(attr.as_string()))
+		{
+			std::clog << "[Warning - Chat::loadFromXml] Duplicated channel with id: " << id << "." << std::endl;
+			return false;
+		}
 	}
 
 	if(!(attr = node.attribute("name")))
@@ -296,7 +300,7 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 		uint16_t tmp = intValue * 1000;
 		if((attr = node.attribute("conditionId")))
 		{
-			conditionId = pugi::cast<uint16_t>(attr.value();
+			conditionId = pugi::cast<uint16_t>(attr.value());
 			if(conditionId < 2)
 				std::clog << "[Warning - Chat::parseChannelNode] Using reserved muted condition sub id (" << conditionId << ")" << std::endl;
 		}
@@ -304,25 +308,25 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 		if((condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MUTED, tmp, 0, false, conditionId)))
 		{
 			if((attr = node.attribute("conditionMessage")))
-				conditionMessage = pugi::cast<std::string>(attr.value();
+				conditionMessage = pugi::cast<std::string>(attr.value());
 		}
 		else
 			conditionId = -1;
 	}
 
-	// StringVec vocStringVec;
-	// VocationMap vocMap;
+	StringVec vocStringVec;
+	VocationMap vocMap;
+	std::string error;
+	
+	for(auto tmpNode : node.children())
+	{
+		if(!parseVocationNode(tmpNode, vocMap, vocStringVec, error))
+			std::clog << "[Warning - Chat::loadFromXml] " << error << std::endl;
+	}
 
-	// std::string error;
-	// for(xmlNodePtr tmpNode = p->children; tmpNode; tmpNode = tmpNode->next)
-	// {
-	// 	if(!parseVocationNode(tmpNode, vocMap, vocStringVec, error))
-	// 		std::clog << "[Warning - Chat::loadFromXml] " << error << std::endl;
-	// }
-
-	// VocationMap* vocationMap = NULL;
-	// if(!vocMap.empty())
-	// 	vocationMap = new VocationMap(vocMap);
+	VocationMap* vocationMap = NULL;
+	if(!vocMap.empty())
+		vocationMap = new VocationMap(vocMap);
 
 	switch(id)
 	{

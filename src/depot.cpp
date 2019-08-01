@@ -17,7 +17,7 @@
 
 #include "otpch.h"
 #include "depot.h"
-#include "tools.h"
+
 
 Depot::Depot(uint16_t type):
 	Container(type)

@@ -18,7 +18,7 @@
 #include "otpch.h"
 #include "house.h"
 
-#include "tools.h"
+
 #include "database.h"
 #include "beds.h"
 #include "town.h"
@@ -677,17 +677,16 @@ bool Houses::loadFromXml(std::string filename)
 	pugi::xml_parse_result result = doc.load_file(filename.c_str());	
 	if(!result)
 	{
-		printXMLError("[Warning - Houses::loadFromXml] Cannot load houses file.", result);		
+		printXMLError("[Warning - Houses::loadFromXml] Cannot load houses file.", filename, result);
 		return false;
 	}
 
-	if(strcasecmp(node.name(), "houses") == 0)
+	if(strcasecmp(doc.name(), "houses") == 0)
 	{
-		printXMLError("[Error - Houses::loadFromXml] Malformed houses file.", result);
+		printXMLError("[Error - Houses::loadFromXml] Malformed houses file.", filename, result);
 		return false;
 	}
-
-	int32_t intValue;
+	
 	std::string strValue;
 
 	for(auto houseNode : doc.child("houses").children())
@@ -698,13 +697,13 @@ bool Houses::loadFromXml(std::string filename)
 		}
 
 		int32_t houseId = 0;
-		if(!(attr = node.attribute("houseid")))
+		if(!(attr = houseNode.attribute("houseid")))
 		{
 			std::clog << "[Error - Houses::loadFromXml] Could not read houseId" << std::endl;			
 			return false;
 		}
 
-		houseId = pugi::cast<int>(attr.value())
+		houseId = pugi::cast<int>(attr.value());
 		House* house = Houses::getInstance()->getHouse(houseId);
 		if(!house)
 		{
@@ -713,13 +712,13 @@ bool Houses::loadFromXml(std::string filename)
 		}
 
 		Position entry(0, 0, 0);
-		if((attr = node.attribute("entryx")))
+		if((attr = houseNode.attribute("entryx")))
 			entry.x = pugi::cast<int>(attr.value());
 
-		if((attr = node.attribute("entryy")))
+		if((attr = houseNode.attribute("entryy")))
 			entry.y = pugi::cast<int>(attr.value());
 
-		if((attr = node.attribute("entryz")))
+		if((attr = houseNode.attribute("entryz")))
 			entry.z = pugi::cast<int>(attr.value());
 
 		house->setEntry(entry);
@@ -729,28 +728,28 @@ bool Houses::loadFromXml(std::string filename)
 			std::clog << house->getName() << " (" << houseId << ")" << std::endl;
 		}
 
-		if(attr = node.attribute("name"))
+		if((attr = houseNode.attribute("name")))
 			house->setName(pugi::cast<std::string>(attr.value()));
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_NAME);
 
-		if((attr = node.attribute("townid")))
-			house->setTownId(intValuepugi::cast<int>(attr.value());
+		if((attr = houseNode.attribute("townid")))
+			house->setTownId(pugi::cast<int>(attr.value()));
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_TOWN);
 
-		if((attr = node.attribute("size")))
-			house->setSize(intValuepugi::cast<int>(attr.value());
+		if((attr = houseNode.attribute("size")))
+			house->setSize(pugi::cast<int>(attr.value()));
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_SIZE);
 
-		if(attr = node.attribute("guildhall"))
+		if((attr = houseNode.attribute("guildhall")))
 			house->setGuild(pugi::cast<bool>(attr.value()));
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_GUILD);
 
 		uint32_t rent = 0;
-		if((attr = node.attribute("rent")))
+		if((attr = houseNode.attribute("rent")))
 			rent = pugi::cast<int>(attr.value());
 
 		uint32_t price = house->getTilesCount() * g_config.getNumber(ConfigManager::HOUSE_PRICE);

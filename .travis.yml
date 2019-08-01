@@ -20,7 +20,7 @@ addons:
       - liblua5.2-dev
       - libluajit-5.1-dev
       - libmysqlclient-dev
-      - libxml2-dev 
+      - libpugixml-dev 
       - libsqlite3-dev
       - unixodbc-dev
       - libpq-dev

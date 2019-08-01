@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "outfit.h"
-#include "tools.h"
+
 
 #include "player.h"
 #include "condition.h"
@@ -32,14 +32,18 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		return false;
 
 	pugi::xml_attribute attr;
-	if(!(attr = p.attribute("id")))
+	int32_t idOutfit;
+	if((attr = p.attribute("id")))
 	{
+		idOutfit = attr.as_int();
+	} else {
 		std::clog << "[Error - Outfits::parseOutfitNode] Missing outfit id, skipping" << std::endl;
 		return false;
+
 	}
 
 	Outfit newOutfit;
-	newOutfit.outfitId = pugi::cast<int32_t>(attr.value());
+	newOutfit.outfitId = idOutfit;
 
 	if((attr = p.attribute("default")))
 		newOutfit.isDefault = booleanString(pugi::cast<std::string>(attr.value()));
@@ -602,7 +606,7 @@ bool Outfits::loadFromXml()
 		return false;
 	}
 
-	for(auto p : doc.children())
+	for(auto p : doc.child("outfits").children())
 	{
 		parseOutfitNode(p);		
 	}

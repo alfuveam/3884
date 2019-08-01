@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "baseevents.h"
-#include "tools.h"
+
 
 bool BaseEvents::loadFromXml()
 {
@@ -32,21 +32,21 @@ bool BaseEvents::loadFromXml()
 	if(!getInterface().loadDirectory(getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/lib/"))))
 		std::clog << "[Warning - BaseEvents::loadFromXml] Cannot load " << scriptsName << "/lib/" << std::endl;
 
-	std::string filename = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/" + scriptsName + ".xml")).c_str();
+	std::string filename = getFilePath(FILE_TYPE_OTHER, std::string(scriptsName + "/" + scriptsName + ".xml"));
 	pugi::xml_document doc;
-	pugi::xml_parser_result result = doc.load_file(filename);
+	pugi::xml_parse_result result = doc.load_file(filename.c_str());
 	
 	if(!result)
 	{
-		printXMLError("[Warning - BaseEvents::loadFromXml]", filename, doc);
+		printXMLError("[Warning - BaseEvents::loadFromXml]", filename, result);
 		return false;
 	}
 
 	m_loaded = true;
 
 	for(auto node : doc.child(scriptsName.c_str()).children()){	
-		pugi::xml_attribute scriptAttribute = node.attribute("value")	// getpath  to file or function in .xml 
-		if(scriptAttribute){
+		std::string scriptAttribute = node.attribute("value").value();	// getpath  to file or function in .xml 
+		if(!scriptAttribute.empty()){
 			parseEventNode(node, scriptAttribute, false);
 		}
 	}
@@ -55,6 +55,8 @@ bool BaseEvents::loadFromXml()
 
 bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, bool override)
 {
+	std::cout << "valor" << std::endl;
+	std::cout << "node: " << node.name() << " - " << scriptsPath << std::endl;	
 	Event* event = getEvent(node.name());
 	if(!event)
 		return false;
@@ -72,21 +74,23 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 	pugi::xml_attribute attr;
 	if((attr = node.attribute("event")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		if(strValue == "script")
 		{
-			bool file = node.attribute("value").as_bool();
-			if(!file)
-				strValue = pugi::cast<std::string>(attr.value());
-			else
+			bool file;
+			if(pugi::xml_attribute _attr = node.attribute("value")){
+				file = true;
+				strValue = _attr.as_string();				
+			} else {
 				strValue = scriptsPath + strValue;
+			}
 
 			success = event->loadScript(strValue, file);
 		}
 		else if(strValue == "buffer")
 		{
 			if(!(attr = node.attribute("value")))
-				strValue = pugi::cast<std::string>(attr.value());
+				strValue = attr.as_string();
 
 			success = event->loadBuffer(strValue);
 		}
@@ -98,10 +102,10 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 	}
 	else if((attr = node.attribute("script")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		bool file = asLowerCaseString(strValue) != "cdata";
 		if(!file)
-			strValue = pugi::cast<std::string>(attr.value());
+			strValue = attr.as_string();
 		else
 			strValue = scriptsPath + strValue;
 
@@ -109,22 +113,23 @@ bool BaseEvents::parseEventNode(pugi::xml_node& node, std::string scriptsPath, b
 	}
 	else if((attr = node.attribute("buffer")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		if(asLowerCaseString(strValue) == "cdata")
-			strValue = pugi::cast<std::string>(attr.value());
+			strValue = attr.as_string();
 
 		success = event->loadBuffer(strValue);
 	}
 	else if((attr = node.attribute("function")))
-		strValue = pugi::cast<std::string>(attr.value());
+	{
+		strValue = attr.as_string();
 		success = event->loadFunction(strValue);
-	else if(attr node.value()){
-		strValue = pugi::cast<std::string>(attr.value());
+	} else if(attr = node.value()) {
+		strValue = attr.as_string();
 		success = event->loadBuffer(strValue);
 	}
 
 	if(!override && (attr = node.attribute("override"))){
-		if(attr.value().as_bool){
+		if(attr.as_bool()){
 			override = true;
 		}
 	}		

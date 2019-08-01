@@ -15,7 +15,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   luajit-dev \
   make \
   mariadb-connector-c-dev \
-  libxml2-dev \
+  pugixml-dev \
   sqlite-dev \
   sqlite-libs \
   unixodbc-dev \
@@ -39,7 +39,7 @@ RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/test
   luajit \
   crypto++ \
   mariadb-connector-c \
-  libxml2 \
+  pugixml \
   sqlite-dev \
   sqlite-libs \
   unixodbc-dev \

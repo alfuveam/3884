@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "group.h"
-#include "tools.h"
+
 #include "configmanager.h"
 
 extern ConfigManager g_config;
@@ -46,13 +46,13 @@ bool Groups::loadFromXml()
 	
 	if(!result)
 	{
-		printXMLError("[Warning - Groups::loadFromXml] Cannot load groups file.", result);
+		printXMLError("[Warning - Groups::loadFromXml] Cannot load groups file.", "groups.xml", result);
 		return false;
 	}
 
 	if(!doc.child("groups"))
 	{
-		printXMLError("[Error - Groups::loadFromXml] Malformed groups file.", result);
+		printXMLError("[Error - Groups::loadFromXml] Malformed groups file.", "groups.xml", result);
 		return false;
 	}
 
@@ -65,58 +65,58 @@ bool Groups::loadFromXml()
 }
 
 bool Groups::parseGroupNode(pugi::xml_node& node)
-{
-	if(node.name() != "group"))
+{	
+	if(strcasecmp(node.name(),"group") == 0)	
 		return false;
 
+	pugi::xml_attribute attr;
+	std::string strValue;
 	int32_t intValue;
-	if(attr = node.attribute("id")	{
+	if((attr = node.attribute("id")))	{
+		intValue = pugi::cast<int32_t>(attr.value());
+	} else {
 		std::clog << "[Warning - Groups::parseGroupNode] Missing group id." << std::endl;
 		return false;
 	}
-
-	std::string strValue;
-	int64_t int64Value;
-	pugi::xml_attribute attr;
 	
 	Group* group = new Group(intValue);
-	if(attr = node.attribute("name"))
+	if((attr = node.attribute("name")))
 	{
 		strValue = pugi::cast<std::string>(attr.value());
 		group->setFullName(strValue);
 		group->setName(asLowerCaseString(strValue));
 	}
 
-	if(attr = node.attribute("flags"))
+	if((attr = node.attribute("flags")))
 		group->setFlags(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("customFlags"))
+	if((attr = node.attribute("customFlags")))
 		group->setCustomFlags(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("access"))
+	if((attr = node.attribute("access")))
 		group->setAccess(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("ghostAccess"))
+	if((attr = node.attribute("ghostAccess")))
 		group->setGhostAccess(pugi::cast<int>(attr.value()));
 	else
 		group->setGhostAccess(group->getAccess());
 
-	if(attr = node.attribute("violationReasons"))
+	if((attr = node.attribute("violationReasons")))
 		group->setViolationReasons(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("nameViolationFlags"))
+	if((attr = node.attribute("nameViolationFlags")))
 		group->setNameViolationFlags(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("statementViolationFlags"))
+	if((attr = node.attribute("statementViolationFlags")))
 		group->setStatementViolationFlags(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("depotLimit"))
+	if((attr = node.attribute("depotLimit")))
 		group->setDepotLimit(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("maxVips"))
+	if((attr = node.attribute("maxVips")))
 		group->setMaxVips(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("outfit"))
+	if((attr = node.attribute("outfit")))
 		group->setOutfit(pugi::cast<int>(attr.value()));
 
 	groupsMap[group->getId()] = group;

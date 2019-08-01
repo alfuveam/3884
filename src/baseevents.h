@@ -37,7 +37,7 @@ class BaseEvents
 		virtual std::string getScriptBaseName() const = 0;
 		virtual void clear() = 0;
 
-		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override) = 0;
+		virtual bool registerEvent(Event* event, const pugi::xml_node& p, bool override) = 0;
 		virtual Event* getEvent(const std::string& nodeName) = 0;
 
 		virtual LuaInterface& getInterface() = 0;

@@ -17,7 +17,7 @@
 
 #ifndef __NPC__
 #define __NPC__
-#include "templates.h"
+
 #include "const.h"
 
 #include "creature.h"

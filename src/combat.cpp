@@ -19,7 +19,7 @@
 #include "const.h"
 
 #include "combat.h"
-#include "tools.h"
+
 
 #include "game.h"
 #include "configmanager.h"

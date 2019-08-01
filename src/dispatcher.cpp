@@ -19,7 +19,6 @@
 #include "dispatcher.h"
 
 #include "outputmessage.h"	
-#include "exception.h"
 
 #include "game.h"
 

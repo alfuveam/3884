@@ -113,7 +113,7 @@ bool Item::loadItem(pugi::xml_node& node, Container* parent)
 	if(!item)
 		return false;
 
-	if(attr = node.attribute("attributes"))
+	if((attr = node.attribute("attributes")))
 	{
 		StringVec v, _attr = explodeString(pugi::cast<std::string>(attr.value()), ";");
 		for(StringVec::iterator it = _attr.begin(); it != _attr.end(); ++it)
@@ -141,8 +141,8 @@ bool Item::loadItem(pugi::xml_node& node, Container* parent)
 		|| (attr = node.attribute("uid")))
 		item->setUniqueId(pugi::cast<int>(attr.value()));
 
-	if(attr = node.attribute("text"))
-		item->setText(pugi::cast<std::string>(attr.value());
+	if((attr = node.attribute("text")))
+		item->setText(pugi::cast<std::string>(attr.value()));
 
 	if(item->getContainer())
 		loadContainer(node, item->getContainer());

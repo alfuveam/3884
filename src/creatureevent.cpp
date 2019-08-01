@@ -19,7 +19,7 @@
 
 #include "creatureevent.h"
 #include "player.h"
-#include "tools.h"
+
 
 CreatureEvents::CreatureEvents():
 m_interface("CreatureScript Interface")
@@ -54,7 +54,7 @@ Event* CreatureEvents::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool CreatureEvents::registerEvent(Event* event, pugi::xml_node&, bool override)
+bool CreatureEvents::registerEvent(Event* event, const pugi::xml_node&, bool override)
 {
 	CreatureEvent* creatureEvent = dynamic_cast<CreatureEvent*>(event);
 	if(!creatureEvent)

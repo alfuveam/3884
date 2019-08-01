@@ -19,7 +19,7 @@
 
 #include "admin.h"
 #include "rsa.h"
-#include "tools.h"
+
 
 #include "configmanager.h"
 #include "game.h"
@@ -616,7 +616,7 @@ Item* Admin::createMail(const std::string xmlData, std::string& name, uint32_t& 
 
 	int32_t itemId = ITEM_PARCEL;
 	if(attr = node.attribute("to"))
-		name = pugi::cast<std::string>(attr.value());
+		name = attr.as_string());
 
 	if(attr = node.attribute("town"))
 	{

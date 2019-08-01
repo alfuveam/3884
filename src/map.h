@@ -17,7 +17,7 @@
 
 #ifndef __MAP__
 #define __MAP__
-#include "tools.h"
+
 
 #include "fileloader.h"
 #include "position.h"

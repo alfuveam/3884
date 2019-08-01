@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "movement.h"
-#include "tools.h"
+
 
 #include "creature.h"
 #include "player.h"
@@ -179,7 +179,7 @@ Event* MoveEvents::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool MoveEvents::registerEvent(Event* event, pugi::xml_node& p, bool override)
+bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool override)
 {
 	MoveEvent* moveEvent = dynamic_cast<MoveEvent*>(event);
 	if(!moveEvent)
@@ -802,13 +802,12 @@ std::string MoveEvent::getScriptEventParams() const
 bool MoveEvent::configureEvent(pugi::xml_node& p)
 {
 	std::string strValue;
-	int32_t intValue;
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("type")) || (attr = p.attribute("event")))
 	{
 		strValue = pugi::cast<std::string>(attr.value());
 
-		std::string tmpStrValue = asLowerCaseString();
+		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "stepin")
 			m_eventType = MOVE_EVENT_STEP_IN;
 		else if(tmpStrValue == "stepout")

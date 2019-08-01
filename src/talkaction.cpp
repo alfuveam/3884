@@ -43,7 +43,7 @@
 #include "configmanager.h"
 #include "game.h"
 #include "chat.h"
-#include "tools.h"
+
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -82,7 +82,7 @@ Event* TalkActions::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool TalkActions::registerEvent(Event* event, pugi::xml_node& p, bool override)
+bool TalkActions::registerEvent(Event* event, const pugi::xml_node& p, bool override)
 {
 	TalkAction* talkAction = dynamic_cast<TalkAction*>(event);
 	if(!talkAction)
@@ -92,7 +92,7 @@ bool TalkActions::registerEvent(Event* event, pugi::xml_node& p, bool override)
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("default")))
 	{
-		if(booleanString(pugi::cast<std::string>(attr.value())){
+		if(booleanString(attr.as_string())){
 			if(!defaultTalkAction)
 				defaultTalkAction = talkAction;
 			else if(override)
@@ -354,12 +354,11 @@ bool TalkAction::configureEvent(pugi::xml_node& p)
 			std::clog << "[Warning - TalkAction::configureEvent] Unknown filter for TalkAction: " << pugi::cast<std::string>(attr.value()) << ", using default." << std::endl;
 	}
 
-	int32_t intValue;
 	if((attr = p.attribute("access")))
-		m_access = intValue;
+		m_access = attr.as_int();
 
 	if((attr = p.attribute("channel")))
-		m_channel = intValue;
+		m_channel = attr.as_int();
 
 	if((attr = p.attribute("logged")) || (attr = p.attribute("log")))
 		m_logged = booleanString(pugi::cast<std::string>(attr.value()));
@@ -1392,7 +1391,7 @@ bool TalkAction::software(Creature* creature, const std::string&, const std::str
 		<< "Compiler: " << BOOST_COMPILER << std::endl
 		<< "Boost: " << BOOST_VERSION << std::endl
 		<< "ASIO: " << BOOST_ASIO_VERSION << std::endl
-		<< "XML: " << XML_DEFAULT_VERSION << std::endl
+		<< "XML: " << PUGIXML_VERSION << std::endl
 		<< "Lua: " << LUA_VERSION << std::endl;
 
 	player->sendTextMessage(MSG_STATUS_CONSOLE_BLUE, s.str());

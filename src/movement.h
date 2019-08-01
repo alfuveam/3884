@@ -79,7 +79,7 @@ class MoveEvents : public BaseEvents
 		virtual void clear();
 
 		virtual Event* getEvent(const std::string& nodeName);
-		virtual bool registerEvent(Event* event, pugi::xml_node& p, bool override);
+		virtual bool registerEvent(Event* event, const pugi::xml_node& p, bool override);
 
 		virtual LuaInterface& getInterface() {return m_interface;}
 		MoveEventScript m_interface;

@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "spawn.h"
-#include "tools.h"
+
 
 #include "player.h"
 #include "npc.h"
@@ -75,7 +75,6 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 	if(strcasecmp(p.name(), "spawn") == 0)
 		return false;
 
-	int32_t intValue;
 	std::string strValue;
 	pugi::xml_attribute attr;
 	Position centerPos;
@@ -132,7 +131,7 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 	{
 		if(!strcasecmp(tmpNode.name(), "monster") == 0)
 		{
-			if(!(attr = t.attribute("name")))
+			if(!(attr = tmpNode.attribute("name")))
 				continue;
 
 			std::string name = strValue;
@@ -168,7 +167,7 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 		}
 		else if(!strcasecmp(tmpNode.name(), "npc") == 0)
 		{
-			if(!(attr = t.attribute("name")))
+			if(!(attr = tmpNode.attribute("name")))
 				continue;
 
 			std::string name = strValue;

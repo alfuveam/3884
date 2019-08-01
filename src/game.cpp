@@ -50,15 +50,10 @@
 #include "scriptmanager.h"
 #include "spells.h"
 #include "talkaction.h"
-#include "weapons.h"
 
 #include "vocation.h"
 #include "group.h"
 #include "textlogger.h"
-
-#ifdef __EXCEPTION_TRACER__
-	#include "exception.h"
-#endif
 
 extern ConfigManager g_config;
 extern Actions* g_actions;
@@ -68,7 +63,6 @@ extern Chat g_chat;
 extern TalkActions* g_talkActions;
 extern Spells* g_spells;
 extern MoveEvents* g_moveEvents;
-extern Weapons* g_weapons;
 extern CreatureEvents* g_creatureEvents;
 extern GlobalEvents* g_globalEvents;
 
@@ -5875,12 +5869,12 @@ bool Game::loadExperienceStages()
 
 	if(!doc.child("stages"))
 	{
-		printXMLError("[Error - Game::loadExperienceStages] Malformed stages file", result);		
+		printXMLError("[Error - Game::loadExperienceStages] Malformed stages file", "data/XML/stages.xml", result);		
 		return false;
 	}
 
-	int32_t intValue, low = 0, high = 0;
-	float floatValue, mul = 1.0f, defStageMultiplier;
+	int32_t low = 0, high = 0;
+	float mul = 1.0f, defStageMultiplier;
 	std::string strValue;
 
 	lastStageLevel = 0;
@@ -5895,7 +5889,6 @@ bool Game::loadExperienceStages()
 				if(!parseIntegerVec(pugi::cast<std::string>(attr.value()), intVector) || std::find(intVector.begin(),
 					intVector.end(), g_config.getNumber(ConfigManager::WORLD_ID)) == intVector.end())
 				{
-					q = q->next;
 					continue;
 				}
 			}

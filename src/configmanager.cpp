@@ -19,7 +19,7 @@
 
 #include "configmanager.h"
 #include "house.h"
-#include "tools.h"
+
 
 ConfigManager::ConfigManager()
 {
@@ -313,7 +313,6 @@ bool ConfigManager::load()
 	m_confBool[ADDONS_PREMIUM] = getGlobalBool("addonsOnlyPremium", true);
 	m_confNumber[ACCOUNT_SIZE] = getGlobalNumber("accountSize", 15);
 	m_confBool[UNIFIED_SPELLS] = getGlobalBool("unifiedSpells", true);
-	m_confBool[MULTISERVER] = getGlobalBool("enableMultiServer", false);	
 #ifdef __WAR_SYSTEM__
 	m_confBool[OPTIONAL_WAR_ATTACK_ALLY] = getGlobalBool("optionalWarAttackableAlly", false);
 #endif

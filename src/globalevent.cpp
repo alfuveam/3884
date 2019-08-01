@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "globalevent.h"
-#include "tools.h"
+
 #include "player.h"
 
 GlobalEvents::GlobalEvents():
@@ -58,7 +58,7 @@ Event* GlobalEvents::getEvent(const std::string& nodeName)
 	return NULL;
 }
 
-bool GlobalEvents::registerEvent(Event* event, pugi::xml_node&, bool override)
+bool GlobalEvents::registerEvent(Event* event, const pugi::xml_node&, bool override)
 {
 	GlobalEvent* globalEvent = dynamic_cast<GlobalEvent*>(event);
 	if(!globalEvent)
@@ -252,7 +252,7 @@ bool GlobalEvent::configureEvent(pugi::xml_node& node)
 	}
 
 	int32_t intValue;
-	if(attr = node.attribute("interval"))
+	if((attr = node.attribute("interval")))
 	{
 		intValue = pugi::cast<int32_t>(attr.value());
 		m_interval = std::max((int32_t)SCHEDULER_MINTICKS, intValue);

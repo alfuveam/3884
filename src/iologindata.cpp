@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "iologindata.h"
-#include "tools.h"
+
 
 #ifdef __LOGIN_SERVER__
 	#include "gameservers.h"

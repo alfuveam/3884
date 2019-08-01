@@ -24,7 +24,7 @@
 
 #include "game.h"
 #include "configmanager.h"
-#include "tools.h"
+
 
 extern Game g_game;
 extern ConfigManager g_config;
