@@ -1532,7 +1532,7 @@ bool Monsters::loadChildLoot(pugi::xml_node& node, LootBlock& parentBlock)
 
 	for(auto p : node.children())
 	{
-		if(!strcasecmp(node.name(),"inside") == 0)
+		if(strcasecmp(node.name(),"inside") != 0)
 		{			
 			for(auto insideNode : node.children())
 			{

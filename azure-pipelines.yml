@@ -6,8 +6,7 @@ pool:
 
 steps:
 - script: brew install boost luajit mysql-connector-c pugixml sqlite libpq cryptopp
-
-- script: cd 3888 |
-  mkdir build; cd build
-  cmake .. | 
-  make
+- script: cd 3888
+- script: mkdir build; cd build
+- script: cmake .. 
+- script: make
