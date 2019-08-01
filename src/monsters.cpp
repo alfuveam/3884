@@ -348,7 +348,7 @@ bool Monsters::deserializeSpell(pugi::xml_node& node, spellBlock_t& sb, const st
 		sb.combatSpell = true;
 		if((attr = node.attribute("length")))
 		{
-			int32_t length = intValue;
+			int32_t length = attr.as_int();
 			if(length > 0)
 			{
 				int32_t spread = 3;

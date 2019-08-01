@@ -398,7 +398,7 @@ bool Items::loadFromXml()
 			lastId = attr.as_string();
 			parseItemNode(itemNode, pugi::cast<int32_t>(attr.value()));
 		}
-		else if(attr = itemNode.attribute("fromid") && (_attr = itemNode.attribute("toid")))
+		else if((attr = itemNode.attribute("fromid")) && (_attr = itemNode.attribute("toid")))
 		{
 			lastId = pugi::cast<std::string>(attr.value());
 			strValue = pugi::cast<std::string>(attr.value());
