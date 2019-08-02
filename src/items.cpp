@@ -440,7 +440,7 @@ bool Items::loadFromXml()
 	}
 
 	
-	for(auto paletteNode : paletteDoc.children())
+	for(auto paletteNode : paletteDoc.child("randomization").children())
 	{
 		if(strcasecmp(paletteNode.name(), "config") == 0)
 		{

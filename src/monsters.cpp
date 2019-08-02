@@ -212,6 +212,7 @@ bool Monsters::loadFromXml(bool reloading /*= false*/)
 {
 	loaded = false;
 	pugi::xml_attribute attr;
+	pugi::xml_attribute _attr;
 	pugi::xml_document doc;
 	pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_OTHER, "monster/monsters.xml").c_str());
 	if(!result)
@@ -226,19 +227,13 @@ bool Monsters::loadFromXml(bool reloading /*= false*/)
 		return false;
 	}
 
-	for(auto p : doc.children())
-	{
-		if(strcasecmp(p.name(), "monster") == 0)
+	for(auto p : doc.child("monsters").children())
+	{	
+		std::string file;
+		if((attr = p.attribute("file")) && (_attr = p.attribute("name")))
 		{
-			std::clog << "[Warning - Monsters::loadFromXml] Unknown node name (" << p.name() << ")." << std::endl;			
-			continue;
-		}
-
-		std::string file, name;
-		if((attr = doc.attribute("file")) && (attr = doc.attribute("name")))
-		{
-			file = getFilePath(FILE_TYPE_OTHER, "monster/" + file);
-			loadMonster(file, name, reloading);
+			file = getFilePath(FILE_TYPE_OTHER, (std::string)"monster/" + attr.as_string());
+			loadMonster(file, _attr.as_string(), reloading);
 		}
 	}
 	loaded = true;
@@ -904,8 +899,8 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 		mType = new MonsterType();
 	
 	pugi::xml_attribute attr;
-	pugi::xml_document doc;	
-	pugi::xml_parse_result result = doc.load_file(file.c_str());
+	pugi::xml_document _doc;	
+	pugi::xml_parse_result result = _doc.load_file(file.c_str());
 	if(!result)
 	{
 		std::clog << "[Warning - Monsters::loadMonster] Cannot load monster (" << monsterName << ") file (" << file << ")." << std::endl;		
@@ -913,7 +908,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 	}
 
 	monsterLoad = true;	
-	if(strcasecmp(doc.name(),"monster") == 0)
+	if(strcasecmp(_doc.name(),"monster") == 0)
 	{
 		std::clog << "[Error - Monsters::loadMonster] Malformed monster (" << monsterName << ") file (" << file << ")." << std::endl;		
 		return false;
@@ -921,6 +916,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 	int32_t intValue;
 	std::string strValue;
+	pugi::xml_node doc = _doc.child("monster");
 	if((attr = doc.attribute("name")))
 		mType->name = attr.as_string();
 	else

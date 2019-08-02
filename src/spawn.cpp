@@ -63,7 +63,7 @@ bool Spawns::loadFromXml(const std::string& _filename)
 		return false;
 	}
 	
-	for(auto spawnNode : doc.children())
+	for(auto spawnNode : doc.child("spawns").children())
 		parseSpawnNode(spawnNode, false);
 
 	loaded = true;
@@ -72,9 +72,6 @@ bool Spawns::loadFromXml(const std::string& _filename)
 
 bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 {	
-	if(strcasecmp(p.name(), "spawn") == 0)
-		return false;
-
 	std::string strValue;
 	pugi::xml_attribute attr;
 	Position centerPos;
@@ -129,12 +126,15 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 	
 	for(auto tmpNode : p.children())
 	{
-		if(strcasecmp(tmpNode.name(), "monster") != 0)
+		if(strcasecmp(tmpNode.name(), "monster") == 0)
 		{
-			if(!(attr = tmpNode.attribute("name")))
+			std::string name;
+			if((attr = tmpNode.attribute("name"))){
+				name = attr.as_string();
+			} else {
 				continue;
+			}
 
-			std::string name = strValue;
 			int32_t interval = MINSPAWN_INTERVAL / 1000;
 			if((attr = tmpNode.attribute("spawntime")) || (attr = tmpNode.attribute("interval")))
 			{
@@ -165,12 +165,15 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 
 			spawn->addMonster(name, placePos, direction, interval);
 		}
-		else if(strcasecmp(tmpNode.name(), "npc") != 0)
+		else if(strcasecmp(tmpNode.name(), "npc") == 0)
 		{
-			if(!(attr = tmpNode.attribute("name")))
+			std::string name;
+			if((attr = tmpNode.attribute("name"))){
+				name = attr.as_string();
+			} else {
 				continue;
-
-			std::string name = strValue;
+			}				
+			
 			Position placePos = centerPos;
 			if((attr = tmpNode.attribute("x")))
 				placePos.x += attr.as_int();
@@ -389,7 +392,7 @@ bool Spawn::addMonster(const std::string& _name, const Position& _pos, Direction
 		return false;
 	}
 
-	MonsterType* mType = g_monsters.getMonsterType(_name);
+	MonsterType* mType = g_monsters.getMonsterType((_name));
 	if(!mType)
 	{
 		std::clog << "[Spawn::addMonster] Cannot find \"" << _name << "\"" << std::endl;

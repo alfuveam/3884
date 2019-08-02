@@ -251,7 +251,7 @@ bool Raid::loadFromXml(const std::string& _filename)
 	}
 
 	std::string strValue;
-	for(auto eventNode : doc.children())
+	for(auto eventNode : doc.child("raid").children())
 	{
 		RaidEvent* event;
 		if(strcasecmp(eventNode.name(), "announce") != 0)

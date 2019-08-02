@@ -163,13 +163,7 @@ bool Npc::loadFromXml(const std::string& filename)
 		std::clog << "[Warning - Npc::loadFromXml] Cannot load npc file (" << filename << ")." << std::endl;		
 		return false;
 	}
-	
-	if(strcasecmp(doc.name(),"npc") != 0)
-	{
-		std::clog << "[Error - Npc::loadFromXml] Malformed npc file (" << filename << ")." << std::endl;
-		return false;
-	}
-	
+		
 	std::string strValue, scriptfile;
 	if((attr = doc.attribute("script")))
 		scriptfile = attr.as_string();

@@ -41,9 +41,6 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 	int32_t intValue;
 	pugi::xml_attribute attr;
 	
-	if((strcasecmp(p.name(), "vocation") == 0))
-		return false;
-
 	if((attr = p.attribute("id")))
 	{
 		intValue = attr.as_int();
