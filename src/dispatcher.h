@@ -23,9 +23,9 @@
 class Task
 {
 	public:
-		Task(const boost::function<void (void)>& f): m_expiration(
+		Task(const std::function<void (void)>& f): m_expiration(
 			boost::date_time::not_a_date_time), m_f(f) {}
-		Task(uint32_t ms, const boost::function<void (void)>& f): m_expiration(
+		Task(uint32_t ms, const std::function<void (void)>& f): m_expiration(
 			boost::get_system_time() + boost::posix_time::milliseconds(ms)), m_f(f) {}
 
 		virtual ~Task() {}
@@ -42,14 +42,14 @@ class Task
 
 	protected:
 		boost::system_time m_expiration;
-		boost::function<void (void)> m_f;
+		std::function<void (void)> m_f;
 };
 
-inline Task* createTask(boost::function<void (void)> f)
+inline Task* createTask(std::function<void (void)> f)
 {
 	return new Task(f);
 }
-inline Task* createTask(uint32_t expiration, boost::function<void (void)> f)
+inline Task* createTask(uint32_t expiration, std::function<void (void)> f)
 {
 	return new Task(expiration, f);
 }

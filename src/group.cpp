@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "group.h"
-
+#include "tools.h"
 #include "configmanager.h"
 
 extern ConfigManager g_config;
@@ -70,7 +70,7 @@ bool Groups::parseGroupNode(pugi::xml_node& node)
 	std::string strValue;
 	int32_t intValue;
 	if((attr = node.attribute("id")))	{
-		intValue = pugi::cast<int32_t>(attr.value());
+		intValue = attr.as_int();
 	} else {
 		std::clog << "[Warning - Groups::parseGroupNode] Missing group id." << std::endl;
 		return false;
@@ -79,42 +79,42 @@ bool Groups::parseGroupNode(pugi::xml_node& node)
 	Group* group = new Group(intValue);
 	if((attr = node.attribute("name")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		group->setFullName(strValue);
 		group->setName(asLowerCaseString(strValue));
 	}
 
 	if((attr = node.attribute("flags")))
-		group->setFlags(pugi::cast<int>(attr.value()));
+		group->setFlags(attr.as_int());
 
 	if((attr = node.attribute("customFlags")))
-		group->setCustomFlags(pugi::cast<int>(attr.value()));
+		group->setCustomFlags(attr.as_int());
 
 	if((attr = node.attribute("access")))
-		group->setAccess(pugi::cast<int>(attr.value()));
+		group->setAccess(attr.as_int());
 
 	if((attr = node.attribute("ghostAccess")))
-		group->setGhostAccess(pugi::cast<int>(attr.value()));
+		group->setGhostAccess(attr.as_int());
 	else
 		group->setGhostAccess(group->getAccess());
 
 	if((attr = node.attribute("violationReasons")))
-		group->setViolationReasons(pugi::cast<int>(attr.value()));
+		group->setViolationReasons(attr.as_int());
 
 	if((attr = node.attribute("nameViolationFlags")))
-		group->setNameViolationFlags(pugi::cast<int>(attr.value()));
+		group->setNameViolationFlags(attr.as_int());
 
 	if((attr = node.attribute("statementViolationFlags")))
-		group->setStatementViolationFlags(pugi::cast<int>(attr.value()));
+		group->setStatementViolationFlags(attr.as_int());
 
 	if((attr = node.attribute("depotLimit")))
-		group->setDepotLimit(pugi::cast<int>(attr.value()));
+		group->setDepotLimit(attr.as_int());
 
 	if((attr = node.attribute("maxVips")))
-		group->setMaxVips(pugi::cast<int>(attr.value()));
+		group->setMaxVips(attr.as_int());
 
 	if((attr = node.attribute("outfit")))
-		group->setOutfit(pugi::cast<int>(attr.value()));
+		group->setOutfit(attr.as_int());
 
 	groupsMap[group->getId()] = group;
 	return true;

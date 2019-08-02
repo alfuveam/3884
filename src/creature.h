@@ -20,6 +20,7 @@
 
 #include "const.h"
 #include "enums.h"
+#include "templates.h"
 
 #include "map.h"
 #include "condition.h"

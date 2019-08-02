@@ -65,18 +65,4 @@ class AutoId
 		static boost::recursive_mutex lock;
 };
 
-// pugxml cast
-namespace pugi {
-	template<typename T>
-	T cast(const pugi::char_t* str)
-	{
-		T value;
-		try {
-			value = boost::lexical_cast<T>(str);
-		} catch (boost::bad_lexical_cast&) {
-			value = T();
-		}
-		return value;
-	}
-}
 #endif

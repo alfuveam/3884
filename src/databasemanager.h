@@ -17,6 +17,7 @@
 
 #ifndef __DATABASE_MANAGER__
 #define __DATABASE_MANAGER__
+
 #include "database.h"
 
 class DatabaseManager

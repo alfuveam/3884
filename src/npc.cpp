@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "npc.h"
-
+#include "tools.h"
 
 #include "luascript.h"
 #include "position.h"
@@ -172,30 +172,30 @@ bool Npc::loadFromXml(const std::string& filename)
 	
 	std::string strValue, scriptfile;
 	if((attr = doc.attribute("script")))
-		scriptfile = pugi::cast<std::string>(attr.value());
+		scriptfile = attr.as_string();
 
 	if((attr = doc.attribute("name")))
-		name = pugi::cast<std::string>(attr.value());
+		name = attr.as_string();
 
 	nameDescription = name;
 	if((attr = doc.attribute("namedescription")) || (attr = doc.attribute("nameDescription")))
-		nameDescription = pugi::cast<std::string>(attr.value());
+		nameDescription = attr.as_string();
 
 	if((attr = doc.attribute("hidename")) || (attr = doc.attribute("hideName")))
-		hideName = booleanString(pugi::cast<std::string>(attr.value()));
+		hideName = booleanString(attr.as_string());
 
 	if((attr = doc.attribute("hidehealth")) || (attr = doc.attribute("hideHealth")))
-		hideHealth = booleanString(pugi::cast<std::string>(attr.value()));
+		hideHealth = booleanString(attr.as_string());
 
 	baseSpeed = 110;
 	if((attr = doc.attribute("speed")))
-		baseSpeed = pugi::cast<int32_t>(attr.value());
+		baseSpeed = attr.as_int();
 
 	if((attr = doc.attribute("attackable")))
-		attackable = booleanString(pugi::cast<std::string>(attr.value()));
+		attackable = booleanString(attr.as_string());
 
 	if((attr = doc.attribute("walkable")))
-		walkable = booleanString(pugi::cast<std::string>(attr.value()));
+		walkable = booleanString(attr.as_string());
 
 	if((attr = doc.attribute("autowalk")))
 	{
@@ -204,31 +204,31 @@ bool Npc::loadFromXml(const std::string& filename)
 	}
 
 	if((attr = doc.attribute("walkinterval")))
-		walkTicks = pugi::cast<int32_t>(attr.value());
+		walkTicks = attr.as_int();
 
 	if((attr = doc.attribute("floorchange")))
-		floorChange = booleanString(pugi::cast<std::string>(attr.value()));
+		floorChange = booleanString(attr.as_string());
 
 	if((attr = doc.attribute("skull")))
-		setSkull(getSkulls(pugi::cast<std::string>(attr.value())));
+		setSkull(getSkulls(attr.as_string()));
 
 	if((attr = doc.attribute("shield")))
-		setShield(getShields(pugi::cast<std::string>(attr.value())));
+		setShield(getShields(attr.as_string()));
 
 	if((attr = doc.attribute("emblem")))
-		setEmblem(getEmblems(pugi::cast<std::string>(attr.value())));
+		setEmblem(getEmblems(attr.as_string()));
 
 	for(auto p : doc.children())
 	{
 		if(strcasecmp(p.name(),"health") == 0)
 		{
 			if((attr = p.attribute("now")))
-				health = pugi::cast<int32_t>(attr.value());
+				health = attr.as_int();
 			else
 				health = 100;
 
 			if((attr = p.attribute("max")))
-				healthMax = pugi::cast<int32_t>(attr.value());
+				healthMax = attr.as_int();
 			else
 				healthMax = 100;
 		}
@@ -236,24 +236,24 @@ bool Npc::loadFromXml(const std::string& filename)
 		{
 			if((attr = p.attribute("type")))
 			{
-				defaultOutfit.lookType = pugi::cast<int32_t>(attr.value());
+				defaultOutfit.lookType = attr.as_int();
 				if((attr = p.attribute("head")))
-					defaultOutfit.lookHead = pugi::cast<int32_t>(attr.value());
+					defaultOutfit.lookHead = attr.as_int();
 
 				if((attr = p.attribute("body")))
-					defaultOutfit.lookBody = pugi::cast<int32_t>(attr.value());
+					defaultOutfit.lookBody = attr.as_int();
 
 				if((attr = p.attribute("legs")))
-					defaultOutfit.lookLegs = pugi::cast<int32_t>(attr.value());
+					defaultOutfit.lookLegs = attr.as_int();
 
 				if((attr = p.attribute("feet")))
-					defaultOutfit.lookFeet = pugi::cast<int32_t>(attr.value());
+					defaultOutfit.lookFeet = attr.as_int();
 
 				if((attr = p.attribute("addons")))
-					defaultOutfit.lookAddons = pugi::cast<int32_t>(attr.value());
+					defaultOutfit.lookAddons = attr.as_int();
 			}
 			else if((attr = p.attribute("typeex")))
-				defaultOutfit.lookTypeEx = pugi::cast<int32_t>(attr.value());
+				defaultOutfit.lookTypeEx = attr.as_int();
 
 			currentOutfit = defaultOutfit;
 		}
@@ -267,26 +267,26 @@ bool Npc::loadFromXml(const std::string& filename)
 						continue;
 
 					Voice voice;
-					voice.text = pugi::cast<std::string>(attr.value());
+					voice.text = attr.as_string();
 					if((attr = q.attribute("interval2")))
-						voice.interval = pugi::cast<int32_t>(attr.value());
+						voice.interval = attr.as_int();
 					else
 						voice.interval = 60;
 
 					if((attr = q.attribute("margin")))
-						voice.margin = pugi::cast<int32_t>(attr.value());
+						voice.margin = attr.as_int();
 					else
 						voice.margin = 0;
 
 					voice.type = SPEAK_SAY;
 					if((attr = q.attribute("type")))
-						voice.type = (SpeakClasses)pugi::cast<int32_t>(attr.value());
+						voice.type = (SpeakClasses)attr.as_int();
 					else if((attr = q.attribute("yell")))
-						if(booleanString(pugi::cast<std::string>(attr.value())))
+						if(booleanString(attr.as_string()))
 							voice.type = SPEAK_YELL;
 
 					if((attr = q.attribute("randomspectator")) || (attr = q.attribute("randomSpectator")))
-						voice.randomSpectator = booleanString(pugi::cast<std::string>(attr.value()));
+						voice.randomSpectator = booleanString(attr.as_string());
 					else
 						voice.randomSpectator = false;
 
@@ -314,16 +314,16 @@ bool Npc::loadFromXml(const std::string& filename)
 		else if(strcasecmp(p.name(),"interaction") == 0)
 		{
 			if((attr = p.attribute("talkradius")))
-				talkRadius = pugi::cast<int32_t>(attr.value());
+				talkRadius = attr.as_int();
 
 			if((attr = p.attribute("idletime")))
-				idleTime = pugi::cast<int32_t>(attr.value());
+				idleTime = attr.as_int();
 
 			if((attr = p.attribute("idleinterval")))
-				idleInterval = pugi::cast<int32_t>(attr.value());
+				idleInterval = attr.as_int();
 
 			if((attr = p.attribute("defaultpublic")))
-				defaultPublic = pugi::cast<int32_t>(attr.value()) != 0;
+				defaultPublic = attr.as_int() != 0;
 
 			responseList = loadInteraction(p);
 		}
@@ -348,7 +348,7 @@ uint32_t Npc::loadParams(pugi::xml_node& node)
 	pugi::xml_attribute attr;
 	if((attr = node.attribute("param")))
 	{
-		StringVec paramList = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		StringVec paramList = explodeString(attr.as_string(), ";");
 		for(StringVec::iterator it = paramList.begin(); it != paramList.end(); ++it)
 		{
 			std::string tmpParam = asLowerCaseString(*it);
@@ -395,7 +395,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 		{
 			if((attr = node.attribute("file")))
 			{
-				strValue = pugi::cast<std::string>(attr.value());
+				strValue = attr.as_string();
 				pugi::xml_document doc;
 				pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_OTHER, "npc/lib/" + strValue).c_str());
 				if(result)
@@ -418,7 +418,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 		{
 			if((attr = node.attribute("listid")))
 			{
-				strValue = pugi::cast<std::string>(attr.value());
+				strValue = attr.as_string();
 				ItemListMap::iterator it = itemListMap.find(strValue);
 				if(it == itemListMap.end())
 				{
@@ -436,17 +436,17 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 								continue;
 							}
 
-							li.itemId = pugi::cast<int32_t>(attr.value());
+							li.itemId = attr.as_int();
 							const ItemType& it = Item::items[li.itemId];
 
 							if((attr = tmpNode.attribute("sellprice")))
-								li.sellPrice = pugi::cast<int32_t>(attr.value());
+								li.sellPrice = attr.as_int();
 
 							if((attr = tmpNode.attribute("buyprice")))
-								li.buyPrice = pugi::cast<int32_t>(attr.value());
+								li.buyPrice = attr.as_int();
 
 							if((attr = tmpNode.attribute("keywords")))
-								li.keywords = pugi::cast<std::string>(attr.value());
+								li.keywords = attr.as_string();
 							else
 							{
 								std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Missing list item keywords" << std::endl;								
@@ -455,7 +455,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 							//optional
 							if((attr = tmpNode.attribute("subtype")))
-								li.subType = pugi::cast<int32_t>(attr.value());
+								li.subType = attr.as_int();
 							else
 							{
 								if(it.stackable)
@@ -465,10 +465,10 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 							}
 
 							if((attr = tmpNode.attribute("name")))
-								li.name = pugi::cast<std::string>(attr.value());
+								li.name = attr.as_string();
 
 							if((attr = tmpNode.attribute("pname")))
-								li.pluralName = pugi::cast<std::string>(attr.value());
+								li.pluralName = attr.as_string();
 
 							list.push_back(li);
 						}
@@ -483,10 +483,10 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 			NpcResponse::ResponseProperties prop;
 			prop.publicize = defaultPublic;
 			if((attr = node.attribute("keywords")))
-				prop.inputList.push_back(asLowerCaseString(pugi::cast<std::string>(attr.value())));
+				prop.inputList.push_back(asLowerCaseString(attr.as_string()));
 			else if((attr = node.attribute("event")))
 			{
-				strValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
+				strValue = asLowerCaseString(attr.as_string());
 				if(strValue == "onbusy")
 					hasBusyReply = true;
 
@@ -495,21 +495,21 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 			}
 
 			if((attr = node.attribute("topic")))
-				prop.topic = pugi::cast<int32_t>(attr.value());
+				prop.topic = attr.as_int();
 
 			if((attr = node.attribute("focus")))
-				prop.focusStatus = pugi::cast<int32_t>(attr.value());
+				prop.focusStatus = attr.as_int();
 
 			if((attr = node.attribute("storageId")))
-				prop.storageId = pugi::cast<std::string>(attr.value());
+				prop.storageId = attr.as_string();
 
 			if((attr = node.attribute("storageValue")))
-				prop.storageValue = pugi::cast<std::string>(attr.value());
+				prop.storageValue = attr.as_string();
 
 			uint32_t interactParams = loadParams(node);
 			if((attr = node.attribute("storageComp")))
 			{
-				std::string tmpStrValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
+				std::string tmpStrValue = asLowerCaseString(attr.as_string());
 				if(tmpStrValue == "equal")
 					prop.storageComp = STORAGE_EQUAL;
 				if(tmpStrValue == "notequal")
@@ -531,21 +531,21 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 					//alternative input keywords
 					for(auto altKeyNode : tmpNode.children())
 					{						
-						if(strcasecmp(altKeyNode.name(),"text") != 0)
+						if((attr = altKeyNode.attribute("text")))
 						{
-							strValue = pugi::cast<std::string>(altKeyNode.value());
+							strValue = attr.as_string();
 							if(strValue.length() > 0)
 								prop.inputList.push_back(asLowerCaseString(strValue));
 						}
 					}
 				}				
-				else if(strcasecmp(tmpNode.name(),"list") != 0)
+				else if((attr = tmpNode.attribute("list")))
 				{
 					for(auto listNode : tmpNode.children())
 					{
-						if(strcasecmp(listNode.name(),"text") != 0)
+						if((attr = listNode.attribute("text")))
 						{
-							strValue = pugi::cast<std::string>(listNode.value());
+							strValue = attr.as_string();
 							if(strValue.length() == 0)
 							{
 								ItemListMap::iterator it = itemListMap.find(strValue);
@@ -568,30 +568,30 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 					ScriptVars scriptVars;
 					if((attr = node.attribute("knowspell")))
-						prop.knowSpell = pugi::cast<std::string>(attr.value());
+						prop.knowSpell = attr.as_string();
 
 					if((attr = node.attribute("text")))
 					{
 						prop.responseType = RESPONSE_DEFAULT;
-						prop.output = pugi::cast<std::string>(attr.value());
+						prop.output = attr.as_string();
 					}
 					else if((attr = node.attribute("function")))
 					{
 						prop.responseType = RESPONSE_SCRIPT;
-						prop.output = pugi::cast<std::string>(attr.value());
+						prop.output = attr.as_string();
 					}
 
 					if((attr = node.attribute("public")))
-						prop.publicize = (pugi::cast<int32_t>(attr.value()) == 1);
+						prop.publicize = (attr.as_int() == 1);
 
 					if((attr = node.attribute("b1")))
-						scriptVars.b1 = (pugi::cast<int32_t>(attr.value()) == 1);
+						scriptVars.b1 = (attr.as_int() == 1);
 
 					if((attr = node.attribute("b2")))
-						scriptVars.b2 = (pugi::cast<int32_t>(attr.value()) == 1);
+						scriptVars.b2 = (attr.as_int() == 1);
 
 					if((attr = node.attribute("b3")))
-						scriptVars.b3 = (pugi::cast<int32_t>(attr.value()) == 1);
+						scriptVars.b3 = (attr.as_int() == 1);
 
 					ResponseList subResponseList;
 					
@@ -602,13 +602,13 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 							ResponseAction action;
 							if((attr = node.attribute("name")))
 							{
-								std::string tmpStrValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
+								std::string tmpStrValue = asLowerCaseString(attr.as_string());
 								if(tmpStrValue == "topic")
 								{
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETTOPIC;
-										action.intValue = pugi::cast<int32_t>(attr.value());
+										action.intValue = attr.as_int();
 									}
 								}
 								else if(tmpStrValue == "price")
@@ -616,8 +616,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETPRICE;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "amount")
@@ -625,8 +625,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETAMOUNT;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "item")
@@ -634,7 +634,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETITEM;
-										action.intValue = pugi::cast<int32_t>(attr.value());
+										action.intValue = attr.as_int();
 									}
 								}
 								else if(tmpStrValue == "subtype")
@@ -642,7 +642,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETSUBTYPE;
-										action.intValue = pugi::cast<int32_t>(attr.value());
+										action.intValue = attr.as_int();
 									}
 								}
 								else if(tmpStrValue == "spell")
@@ -650,9 +650,9 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETSPELL;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										if(pugi::cast<std::string>(attr.value()) != "|SPELL|" && !g_spells->getInstantSpellByName(pugi::cast<std::string>(attr.value())))
-											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << pugi::cast<std::string>(attr.value()) << std::endl;
+										action.strValue = attr.as_string();
+										if(strcasecmp(attr.as_string(), "|SPELL|") != 0 && !g_spells->getInstantSpellByName(attr.as_string()))
+											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << attr.as_string() << std::endl;
 									}
 								}
 								else if(tmpStrValue == "listname")
@@ -660,7 +660,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETLISTNAME;
-										action.strValue = pugi::cast<std::string>(attr.value());
+										action.strValue = attr.as_string();
 									}
 								}
 								else if(tmpStrValue == "listpname")
@@ -668,7 +668,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETLISTPNAME;
-										action.strValue = pugi::cast<std::string>(attr.value());
+										action.strValue = attr.as_string();
 									}
 								}
 								else if(tmpStrValue == "teachspell")
@@ -676,9 +676,9 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_TEACHSPELL;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										if(pugi::cast<std::string>(attr.value()) != "|SPELL|" && !g_spells->getInstantSpellByName(pugi::cast<std::string>(attr.value())))
-											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << pugi::cast<std::string>(attr.value()) << std::endl;
+										action.strValue = attr.as_string();
+										if(strcasecmp(attr.as_string(), "|SPELL|") != 0 && !g_spells->getInstantSpellByName(attr.as_string()))
+											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << attr.as_string() << std::endl;
 									}
 								}
 								else if(tmpStrValue == "unteachspell")
@@ -686,9 +686,9 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_UNTEACHSPELL;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										if(pugi::cast<std::string>(attr.value()) != "|SPELL|" && !g_spells->getInstantSpellByName(pugi::cast<std::string>(attr.value())))
-											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << pugi::cast<std::string>(attr.value()) << std::endl;
+										action.strValue = attr.as_string();
+										if(strcasecmp(attr.as_string(), "|SPELL|") != 0 && !g_spells->getInstantSpellByName(attr.as_string()))
+											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << attr.as_string() << std::endl;
 									}
 								}
 								else if(tmpStrValue == "sell")
@@ -696,8 +696,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SELLITEM;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "buy")
@@ -705,8 +705,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_BUYITEM;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "takemoney")
@@ -714,8 +714,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_TAKEMONEY;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "givemoney")
@@ -723,8 +723,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_GIVEMONEY;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "level")
@@ -732,8 +732,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETLEVEL;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "giveitem")
@@ -741,8 +741,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_GIVEITEM;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "takeitem")
@@ -750,8 +750,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_TAKEITEM;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "effect")
@@ -759,7 +759,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETEFFECT;
-										action.intValue = getMagicEffect(pugi::cast<std::string>(attr.value()));
+										action.intValue = getMagicEffect(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "idle")
@@ -767,7 +767,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if(((attr = node.attribute("value"))))
 									{
 										action.actionType = ACTION_SETIDLE;
-										action.intValue = pugi::cast<int32_t>(attr.value());
+										action.intValue = attr.as_int();
 									}
 								}
 								else if(tmpStrValue == "script")
@@ -775,7 +775,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SCRIPT;
-										action.strValue = pugi::cast<std::string>(attr.value());
+										action.strValue = attr.as_string();
 									}
 									else if((attr = subNode.child("script"))) //??
 									{
@@ -787,7 +787,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SCRIPTPARAM;
-										action.strValue = pugi::cast<std::string>(attr.value());
+										action.strValue = attr.as_string();
 									}
 								}
 								else if(tmpStrValue == "storage")
@@ -797,13 +797,13 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 										action.actionType = ACTION_SETSTORAGE;
 										std::stringstream s;
 
-										s << time(NULL) + atoi(pugi::cast<std::string>(attr.value()).c_str());
+										s << time(NULL) + atoi(attr.as_string());
 										action.strValue = s.str();
 									}
 									else if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETSTORAGE;
-										action.strValue = pugi::cast<std::string>(attr.value());
+										action.strValue = attr.as_string();
 									}
 								}
 								else if(tmpStrValue == "addqueue")
@@ -811,8 +811,8 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_ADDQUEUE;
-										action.strValue = pugi::cast<std::string>(attr.value());
-										action.intValue = atoi(pugi::cast<std::string>(attr.value()).c_str());
+										action.strValue = attr.as_string();
+										action.intValue = atoi(attr.as_string());
 									}
 								}
 								else if(tmpStrValue == "teleport")
@@ -820,20 +820,20 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									if((attr = node.attribute("value")))
 									{
 										action.actionType = ACTION_SETTELEPORT;
-										action.strValue = pugi::cast<std::string>(attr.value());
+										action.strValue = attr.as_string();
 										action.pos = Position();
 
-										IntegerVec posList = vectorAtoi(explodeString(pugi::cast<std::string>(attr.value()), ";"));
+										IntegerVec posList = vectorAtoi(explodeString(attr.as_string(), ";"));
 										if(posList.size() > 2)
 											action.pos = Position(posList[0], posList[1], posList[2]);
 									}
 								}
 								else
-									std::clog << "[Warning - Npc::loadInteraction] Unknown action " << pugi::cast<std::string>(attr.value()) << std::endl;
+									std::clog << "[Warning - Npc::loadInteraction] Unknown action " << attr.as_string() << std::endl;
 							}
 
 							if((attr = node.attribute("key")))
-								action.key = pugi::cast<std::string>(attr.value());
+								action.key = attr.as_string();
 
 							if(action.actionType != ACTION_NONE)
 								prop.actionList.push_back(action);

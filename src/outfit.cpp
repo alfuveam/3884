@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "outfit.h"
-
+#include "tools.h"
 
 #include "player.h"
 #include "condition.h"
@@ -46,7 +46,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 	newOutfit.outfitId = idOutfit;
 
 	if((attr = p.attribute("default")))
-		newOutfit.isDefault = booleanString(pugi::cast<std::string>(attr.value()));
+		newOutfit.isDefault = booleanString(attr.as_string());
 
 	if(!(attr = p.attribute("name")))
 	{
@@ -55,32 +55,32 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		ss >> newOutfit.name;
 	}
 	else
-		newOutfit.name = pugi::cast<std::string>(attr.value());
+		newOutfit.name = attr.as_string();
 
 	bool override = false;
 	if((attr = p.attribute("override")))
-		if(booleanString(pugi::cast<std::string>(attr.value())))
+		if(booleanString(attr.as_string()))
 			override = true;
 
 	if((attr = p.attribute("access")))
-		newOutfit.accessLevel = pugi::cast<int32_t>(attr.value());
+		newOutfit.accessLevel = attr.as_int();
 
 	if((attr = p.attribute("quest")))
 	{
-		newOutfit.storageId = pugi::cast<std::string>(attr.value());
+		newOutfit.storageId = attr.as_string();
 		newOutfit.storageValue = "1";
 	}
 	else
 	{
 		if((attr = p.attribute("storageId")))
-			newOutfit.storageId = pugi::cast<std::string>(attr.value());
+			newOutfit.storageId = attr.as_string();
 
 		if((attr = p.attribute("storageValue")))
-			newOutfit.storageValue = pugi::cast<std::string>(attr.value());
+			newOutfit.storageValue = attr.as_string();
 	}
 
 	if((attr = p.attribute("premium")))
-		newOutfit.isPremium = booleanString(pugi::cast<std::string>(attr.value()));
+		newOutfit.isPremium = booleanString(attr.as_string());
 	
 	for(auto listNode : p.children())
 	{		
@@ -94,7 +94,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 			continue;
 		}
 
-		outfit.lookType = pugi::cast<int32_t>(attr.value());
+		outfit.lookType = attr.as_int();
 		if(!(attr = listNode.attribute("gender")) && !(attr = listNode.attribute("type")) && !(attr = listNode.attribute("sex")))
 		{
 			std::clog << "[Error - Outfits::parseOutfitNode] Missing gender(s) for an outfit with id " << outfit.outfitId
@@ -103,7 +103,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		}
 
 		IntegerVec intVector;
-		if(!parseIntegerVec(pugi::cast<std::string>(attr.value()), intVector))
+		if(!parseIntegerVec(attr.as_string(), intVector))
 		{
 			std::clog << "[Error - Outfits::parseOutfitNode] Invalid gender(s) for an outfit with id " << outfit.outfitId
 				<< " and looktype " << outfit.lookType << std::endl;
@@ -111,17 +111,17 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		}
 
 		if((attr = listNode.attribute("addons")))
-			outfit.addons = pugi::cast<int32_t>(attr.value());
+			outfit.addons = attr.as_int();
 
 		if((attr = listNode.attribute("name")))
-			outfit.name = pugi::cast<std::string>(attr.value());
+			outfit.name = attr.as_string();
 
 		if((attr = listNode.attribute("premium")))
-			outfit.isPremium = booleanString(pugi::cast<std::string>(attr.value()));
+			outfit.isPremium = booleanString(attr.as_string());
 
 		if((attr = listNode.attribute("requirement")))
 		{
-			std::string tmpStrValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
+			std::string tmpStrValue = asLowerCaseString(attr.as_string());
 			if(tmpStrValue == "none")
 				outfit.requirement = REQUIREMENT_NONE;
 			else if(tmpStrValue == "first")
@@ -135,37 +135,37 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		}
 
 		if((attr = listNode.attribute("manaShield")))
-			outfit.manaShield = booleanString(pugi::cast<std::string>(attr.value()));
+			outfit.manaShield = booleanString(attr.as_string());
 
 		if((attr = listNode.attribute("invisible")))
-			outfit.invisible = booleanString(pugi::cast<std::string>(attr.value()));
+			outfit.invisible = booleanString(attr.as_string());
 
 		if((attr = listNode.attribute("healthGain")))
 		{
-			outfit.healthGain = pugi::cast<int32_t>(attr.value());
+			outfit.healthGain = attr.as_int();
 			outfit.regeneration = true;
 		}
 
 		if((attr = listNode.attribute("healthTicks")))
 		{
-			outfit.healthTicks = pugi::cast<int32_t>(attr.value());
+			outfit.healthTicks = attr.as_int();
 			outfit.regeneration = true;
 		}
 
 		if((attr = listNode.attribute("manaGain")))
 		{
-			outfit.manaGain = pugi::cast<int32_t>(attr.value());
+			outfit.manaGain = attr.as_int();
 			outfit.regeneration = true;
 		}
 
 		if((attr = listNode.attribute("manaTicks")))
 		{
-			outfit.manaTicks = pugi::cast<int32_t>(attr.value());
+			outfit.manaTicks = attr.as_int();
 			outfit.regeneration = true;
 		}
 
 		if((attr = listNode.attribute("speed")))
-			outfit.speed = pugi::cast<int32_t>(attr.value());
+			outfit.speed = attr.as_int();
 		
 		for(auto configNode : listNode.children())
 		{
@@ -174,387 +174,387 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 				if((attr = configNode.attribute("percentAll")))
 				{
 					for(uint32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-						outfit.reflect[REFLECT_PERCENT][(CombatType_t)i] += pugi::cast<int32_t>(attr.value());
+						outfit.reflect[REFLECT_PERCENT][(CombatType_t)i] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("percentElements")))
 				{
-					outfit.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("percentMagic")))
 				{
-					outfit.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_HOLYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_PERCENT][COMBAT_DEATHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_HOLYDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_PERCENT][COMBAT_DEATHDAMAGE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("percentEnergy")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_ENERGYDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentFire")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_FIREDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentPoison")) || (attr = configNode.attribute("percentEarth")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_EARTHDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentIce")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_ICEDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentHoly")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_HOLYDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_HOLYDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentDeath")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_DEATHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_DEATHDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentLifeDrain")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_LIFEDRAIN] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_LIFEDRAIN] += attr.as_int();
 
 				if((attr = configNode.attribute("percentManaDrain")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_MANADRAIN] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_MANADRAIN] += attr.as_int();
 
 				if((attr = configNode.attribute("percentDrown")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_DROWNDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_DROWNDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentPhysical")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_PHYSICALDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_PHYSICALDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentHealing")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_HEALING] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_HEALING] += attr.as_int();
 
 				if((attr = configNode.attribute("percentUndefined")))
-					outfit.reflect[REFLECT_PERCENT][COMBAT_UNDEFINEDDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_PERCENT][COMBAT_UNDEFINEDDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceAll")))
 				{
 					for(uint32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-						outfit.reflect[REFLECT_CHANCE][(CombatType_t)i] += pugi::cast<int32_t>(attr.value());
+						outfit.reflect[REFLECT_CHANCE][(CombatType_t)i] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("chanceElements")))
 				{
-					outfit.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("chanceMagic")))
 				{
-					outfit.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_HOLYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.reflect[REFLECT_CHANCE][COMBAT_DEATHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_HOLYDAMAGE] += attr.as_int();
+					outfit.reflect[REFLECT_CHANCE][COMBAT_DEATHDAMAGE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("chanceEnergy")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_ENERGYDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceFire")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_FIREDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chancePoison")) || (attr = configNode.attribute("chanceEarth")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_EARTHDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceIce")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_ICEDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceHoly")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_HOLYDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_HOLYDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceDeath")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_DEATHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_DEATHDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceLifeDrain")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_LIFEDRAIN] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_LIFEDRAIN] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceManaDrain")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_MANADRAIN] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_MANADRAIN] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceDrown")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_DROWNDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_DROWNDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chancePhysical")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_PHYSICALDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_PHYSICALDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceHealing")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_HEALING] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_HEALING] += attr.as_int();
 
 				if((attr = configNode.attribute("chanceUndefined")))
-					outfit.reflect[REFLECT_CHANCE][COMBAT_UNDEFINEDDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.reflect[REFLECT_CHANCE][COMBAT_UNDEFINEDDAMAGE] += attr.as_int();
 			}			
 			else if(strcasecmp(configNode.name(),"absorb") != 0)
 			{
 				if((attr = configNode.attribute("percentAll")))
 				{
 					for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-						outfit.absorb[(CombatType_t)i] += pugi::cast<int32_t>(attr.value());
+						outfit.absorb[(CombatType_t)i] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("percentElements")))
 				{
-					outfit.absorb[COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_ENERGYDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_FIREDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_EARTHDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_ICEDAMAGE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("percentMagic")))
 				{
-					outfit.absorb[COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_HOLYDAMAGE] += pugi::cast<int32_t>(attr.value());
-					outfit.absorb[COMBAT_DEATHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_ENERGYDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_FIREDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_EARTHDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_ICEDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_HOLYDAMAGE] += attr.as_int();
+					outfit.absorb[COMBAT_DEATHDAMAGE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("percentEnergy")))
-					outfit.absorb[COMBAT_ENERGYDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_ENERGYDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentFire")))
-					outfit.absorb[COMBAT_FIREDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_FIREDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentPoison")) || (attr = configNode.attribute("percentEarth")))
-					outfit.absorb[COMBAT_EARTHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_EARTHDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentIce")))
-					outfit.absorb[COMBAT_ICEDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_ICEDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentHoly")))
-					outfit.absorb[COMBAT_HOLYDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_HOLYDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentDeath")))
-					outfit.absorb[COMBAT_DEATHDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_DEATHDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentLifeDrain")))
-					outfit.absorb[COMBAT_LIFEDRAIN] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_LIFEDRAIN] += attr.as_int();
 
 				if((attr = configNode.attribute("percentManaDrain")))
-					outfit.absorb[COMBAT_MANADRAIN] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_MANADRAIN] += attr.as_int();
 
 				if((attr = configNode.attribute("percentDrown")))
-					outfit.absorb[COMBAT_DROWNDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_DROWNDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentPhysical")))
-					outfit.absorb[COMBAT_PHYSICALDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_PHYSICALDAMAGE] += attr.as_int();
 
 				if((attr = configNode.attribute("percentHealing")))
-					outfit.absorb[COMBAT_HEALING] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_HEALING] += attr.as_int();
 
 				if((attr = configNode.attribute("percentUndefined")))
-					outfit.absorb[COMBAT_UNDEFINEDDAMAGE] += pugi::cast<int32_t>(attr.value());
+					outfit.absorb[COMBAT_UNDEFINEDDAMAGE] += attr.as_int();
 			}			
 			else if(strcasecmp(configNode.name(),"skills") != 0)
 			{
 				if((attr = configNode.attribute("fist")))
-					outfit.skills[SKILL_FIST] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_FIST] += attr.as_int();
 
 				if((attr = configNode.attribute("club")))
-					outfit.skills[SKILL_CLUB] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_CLUB] += attr.as_int();
 
 				if((attr = configNode.attribute("axe")))
-					outfit.skills[SKILL_AXE] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_AXE] += attr.as_int();
 
 				if((attr = configNode.attribute("sword")))
-					outfit.skills[SKILL_SWORD] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_SWORD] += attr.as_int();
 
 				if((attr = configNode.attribute("distance")) || (attr = configNode.attribute("dist")))
-					outfit.skills[SKILL_DIST] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_DIST] += attr.as_int();
 
 				if((attr = configNode.attribute("shielding")) || (attr = configNode.attribute("shield")))
-					outfit.skills[SKILL_SHIELD] = pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_SHIELD] = attr.as_int();
 
 				if((attr = configNode.attribute("fishing")) || (attr = configNode.attribute("fish")))
-					outfit.skills[SKILL_FISH] = pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_FISH] = attr.as_int();
 
 				if((attr = configNode.attribute("melee")))
 				{
-					outfit.skills[SKILL_FIST] += pugi::cast<int32_t>(attr.value());
-					outfit.skills[SKILL_CLUB] += pugi::cast<int32_t>(attr.value());
-					outfit.skills[SKILL_SWORD] += pugi::cast<int32_t>(attr.value());
-					outfit.skills[SKILL_AXE] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_FIST] += attr.as_int();
+					outfit.skills[SKILL_CLUB] += attr.as_int();
+					outfit.skills[SKILL_SWORD] += attr.as_int();
+					outfit.skills[SKILL_AXE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("weapon")) || (attr = configNode.attribute("weapons")))
 				{
-					outfit.skills[SKILL_CLUB] += pugi::cast<int32_t>(attr.value());
-					outfit.skills[SKILL_SWORD] += pugi::cast<int32_t>(attr.value());
-					outfit.skills[SKILL_AXE] += pugi::cast<int32_t>(attr.value());
-					outfit.skills[SKILL_DIST] += pugi::cast<int32_t>(attr.value());
+					outfit.skills[SKILL_CLUB] += attr.as_int();
+					outfit.skills[SKILL_SWORD] += attr.as_int();
+					outfit.skills[SKILL_AXE] += attr.as_int();
+					outfit.skills[SKILL_DIST] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("fistPercent")))
-					outfit.skillsPercent[SKILL_FIST] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_FIST] += attr.as_int();
 
 				if((attr = configNode.attribute("clubPercent")))
-					outfit.skillsPercent[SKILL_CLUB] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_CLUB] += attr.as_int();
 
 				if((attr = configNode.attribute("swordPercent")))
-					outfit.skillsPercent[SKILL_SWORD] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_SWORD] += attr.as_int();
 
 				if((attr = configNode.attribute("axePercent")))
-					outfit.skillsPercent[SKILL_AXE] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_AXE] += attr.as_int();
 
 				if((attr = configNode.attribute("distancePercent")) || (attr = configNode.attribute("distPercent")))
-					outfit.skillsPercent[SKILL_DIST] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_DIST] += attr.as_int();
 
 				if((attr = configNode.attribute("shieldingPercent")) || (attr = configNode.attribute("shieldPercent")))
-					outfit.skillsPercent[SKILL_SHIELD] = pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_SHIELD] = attr.as_int();
 
 				if((attr = configNode.attribute("fishingPercent")) || (attr = configNode.attribute("fishPercent")))
-					outfit.skillsPercent[SKILL_FISH] = pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_FISH] = attr.as_int();
 
 				if((attr = configNode.attribute("meleePercent")))
 				{
-					outfit.skillsPercent[SKILL_FIST] += pugi::cast<int32_t>(attr.value());
-					outfit.skillsPercent[SKILL_CLUB] += pugi::cast<int32_t>(attr.value());
-					outfit.skillsPercent[SKILL_SWORD] += pugi::cast<int32_t>(attr.value());
-					outfit.skillsPercent[SKILL_AXE] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_FIST] += attr.as_int();
+					outfit.skillsPercent[SKILL_CLUB] += attr.as_int();
+					outfit.skillsPercent[SKILL_SWORD] += attr.as_int();
+					outfit.skillsPercent[SKILL_AXE] += attr.as_int();
 				}
 
 				if((attr = configNode.attribute("weaponPercent")) || (attr = configNode.attribute("weaponsPercent")))
 				{
-					outfit.skillsPercent[SKILL_CLUB] += pugi::cast<int32_t>(attr.value());
-					outfit.skillsPercent[SKILL_SWORD] += pugi::cast<int32_t>(attr.value());
-					outfit.skillsPercent[SKILL_AXE] += pugi::cast<int32_t>(attr.value());
-					outfit.skillsPercent[SKILL_DIST] += pugi::cast<int32_t>(attr.value());
+					outfit.skillsPercent[SKILL_CLUB] += attr.as_int();
+					outfit.skillsPercent[SKILL_SWORD] += attr.as_int();
+					outfit.skillsPercent[SKILL_AXE] += attr.as_int();
+					outfit.skillsPercent[SKILL_DIST] += attr.as_int();
 				}
 			}			
 			else if(strcasecmp(configNode.name(),"stats") != 0)
 			{
 				if((attr = configNode.attribute("maxHealth")))
-					outfit.stats[STAT_MAXHEALTH] = pugi::cast<int32_t>(attr.value());
+					outfit.stats[STAT_MAXHEALTH] = attr.as_int();
 
 				if((attr = configNode.attribute("maxMana")))
-					outfit.stats[STAT_MAXMANA] = pugi::cast<int32_t>(attr.value());
+					outfit.stats[STAT_MAXMANA] = attr.as_int();
 
 				if((attr = configNode.attribute("soul")))
-					outfit.stats[STAT_SOUL] = pugi::cast<int32_t>(attr.value());
+					outfit.stats[STAT_SOUL] = attr.as_int();
 
 				if((attr = configNode.attribute("level")))
-					outfit.stats[STAT_LEVEL] = pugi::cast<int32_t>(attr.value());
+					outfit.stats[STAT_LEVEL] = attr.as_int();
 
 				if((attr = configNode.attribute("magLevel")) ||
 					(attr = configNode.attribute("magicLevel")))
-					outfit.stats[STAT_MAGICLEVEL] = pugi::cast<int32_t>(attr.value());
+					outfit.stats[STAT_MAGICLEVEL] = attr.as_int();
 
 				if((attr = configNode.attribute("maxHealthPercent")))
-					outfit.statsPercent[STAT_MAXHEALTH] = pugi::cast<int32_t>(attr.value());
+					outfit.statsPercent[STAT_MAXHEALTH] = attr.as_int();
 
 				if((attr = configNode.attribute("maxManaPercent")))
-					outfit.statsPercent[STAT_MAXMANA] = pugi::cast<int32_t>(attr.value());
+					outfit.statsPercent[STAT_MAXMANA] = attr.as_int();
 
 				if((attr = configNode.attribute("soulPercent")))
-					outfit.statsPercent[STAT_SOUL] = pugi::cast<int32_t>(attr.value());
+					outfit.statsPercent[STAT_SOUL] = attr.as_int();
 
 				if((attr = configNode.attribute("levelPercent")))
-					outfit.statsPercent[STAT_LEVEL] = pugi::cast<int32_t>(attr.value());
+					outfit.statsPercent[STAT_LEVEL] = attr.as_int();
 
 				if((attr = configNode.attribute("magLevelPercent")) ||
 					(attr = configNode.attribute("magicLevelPercent")))
-					outfit.statsPercent[STAT_MAGICLEVEL] = pugi::cast<int32_t>(attr.value());
+					outfit.statsPercent[STAT_MAGICLEVEL] = attr.as_int();
 			}			
 			else if(strcasecmp(configNode.name(),"suppress") != 0)
 			{
 				if((attr = configNode.attribute("poison")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_POISON;
 
 				if((attr = configNode.attribute("fire")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_FIRE;
 
 				if((attr = configNode.attribute("energy")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_ENERGY;
 
 				if((attr = configNode.attribute("physical")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_PHYSICAL;
 
 				if((attr = configNode.attribute("haste")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_HASTE;
 
 				if((attr = configNode.attribute("paralyze")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_PARALYZE;
 
 				if((attr = configNode.attribute("outfit")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_OUTFIT;
 
 				if((attr = configNode.attribute("invisible")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_INVISIBLE;
 
 				if((attr = configNode.attribute("light")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_LIGHT;
 
 				if((attr = configNode.attribute("manaShield")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_MANASHIELD;
 
 				if((attr = configNode.attribute("infight")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_INFIGHT;
 
 				if((attr = configNode.attribute("drunk")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_DRUNK;
 
 				if((attr = configNode.attribute("exhaust")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_EXHAUST;
 
 				if((attr = configNode.attribute("regeneration")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_REGENERATION;
 
 				if((attr = configNode.attribute("soul")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_SOUL;
 
 				if((attr = configNode.attribute("drown")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_DROWN;
 
 				if((attr = configNode.attribute("muted")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_MUTED;
 
 				if((attr = configNode.attribute("attributes")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_ATTRIBUTES;
 
 				if((attr = configNode.attribute("freezing")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_FREEZING;
 
 				if((attr = configNode.attribute("dazzled")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_DAZZLED;
 
 				if((attr = configNode.attribute("cursed")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_CURSED;
 
 				if((attr = configNode.attribute("pacified")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_PACIFIED;
 
 				if((attr = configNode.attribute("gamemaster")))
-					if(booleanString(pugi::cast<std::string>(attr.value())))
+					if(booleanString(attr.as_string()))
 						outfit.conditionSuppressions |= CONDITION_GAMEMASTER;
 			}
 		}

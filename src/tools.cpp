@@ -17,7 +17,7 @@
 
 #include "otpch.h"
 
-
+#include "tools.h"
 #include <cryptopp/sha.h>
 #include <cryptopp/md5.h>
 #include <cryptopp/adler32.h>
@@ -1883,7 +1883,7 @@ bool parseVocationNode(pugi::xml_node& vocationNode, VocationMap& vocationMap, S
 	pugi::xml_attribute attr;
 	if((attr = vocationNode.attribute("name")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		vocationId = Vocations::getInstance()->getVocationId(strValue);
 		if(vocationId != -1)
 		{
@@ -1901,7 +1901,7 @@ bool parseVocationNode(pugi::xml_node& vocationNode, VocationMap& vocationMap, S
 	else if((attr = vocationNode.attribute("id")))
 	{
 		IntegerVec intVector;
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		if(!parseIntegerVec(strValue, intVector))
 		{
 			errorStr = "Invalid vocation id - '" + strValue + "'";

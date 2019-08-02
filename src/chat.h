@@ -79,7 +79,7 @@ class ChatChannel
 		VocationMap* m_vocationMap;
 
 		UsersMap m_users;
-		boost::shared_ptr<std::ofstream> m_file;
+		std::shared_ptr<std::ofstream> m_file;
 };
 
 class PrivateChatChannel : public ChatChannel

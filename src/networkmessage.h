@@ -125,5 +125,5 @@ class NetworkMessage
 		uint8_t m_buffer[NETWORK_MAX_SIZE];
 };
 
-typedef boost::shared_ptr<NetworkMessage> NetworkMessage_ptr;
+typedef std::shared_ptr<NetworkMessage> NetworkMessage_ptr;
 #endif

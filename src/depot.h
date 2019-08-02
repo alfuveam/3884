@@ -17,6 +17,7 @@
 
 #ifndef __DEPOT__
 #define __DEPOT__
+
 #include "container.h"
 
 class Depot : public Container

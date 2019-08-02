@@ -26,6 +26,7 @@
 
 #include "configmanager.h"
 #include "game.h"
+#include "tools.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -515,7 +516,7 @@ bool Monster::selectTarget(Creature* creature)
 
 	if((isHostile() || isSummon()) && setAttackedCreature(creature) && !isSummon())
 		Dispatcher::getInstance().addTask(createTask(
-			boost::bind(&Game::checkCreatureAttack, &g_game, getID())));
+			std::bind(&Game::checkCreatureAttack, &g_game, getID())));
 
 	return setFollowCreature(creature, true);
 }

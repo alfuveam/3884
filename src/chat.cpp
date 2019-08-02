@@ -249,7 +249,7 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 
 	if((attr = node.attribute("id")))
 	{
-		id = pugi::cast<uint16_t>(attr.value());
+		id = attr.as_uint();
 		if(id <= CHANNEL_GUILD){
 			std::clog << "[Warning - Chat::loadFromXml] Invalid or not specified channel id." << std::endl;
 			return false;
@@ -287,11 +287,11 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 
 	uint16_t access = 0;
 	if((attr = node.attribute("access")))
-		access = pugi::cast<uint16_t>(attr.value());
+		access = attr.as_uint();		
 
 	uint16_t level = 1;
 	if((attr = node.attribute("level")))
-		level = pugi::cast<uint16_t>(attr.value());
+		level = attr.as_uint();
 
 	uint16_t conditionId = -1;
 	std::string conditionMessage = "You are muted.";
@@ -304,7 +304,7 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 		uint16_t tmp = intValue * 1000;
 		if((attr = node.attribute("conditionId")))
 		{
-			conditionId = pugi::cast<uint16_t>(attr.value());
+			conditionId = attr.as_uint();
 			if(conditionId < 2)
 				std::clog << "[Warning - Chat::parseChannelNode] Using reserved muted condition sub id (" << conditionId << ")" << std::endl;
 		}
@@ -312,7 +312,7 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 		if((condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_MUTED, tmp, 0, false, conditionId)))
 		{
 			if((attr = node.attribute("conditionMessage")))
-				conditionMessage = pugi::cast<std::string>(attr.value());
+				conditionMessage = attr.as_string();
 		}
 		else
 			conditionId = -1;

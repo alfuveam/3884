@@ -19,7 +19,7 @@
 
 #include "configmanager.h"
 #include "house.h"
-
+#include "tools.h"
 
 ConfigManager::ConfigManager()
 {

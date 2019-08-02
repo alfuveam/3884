@@ -18,20 +18,22 @@
 #ifndef __OUTPUT_MESSAGE__
 #define __OUTPUT_MESSAGE__
 
-
-
 #include "connection.h"
 #include "networkmessage.h"
 
 class Protocol;
 #define OUTPUT_POOL_SIZE 100
 
-class OutputMessage : public NetworkMessage, boost::noncopyable
+class OutputMessage : public NetworkMessage
 {
 	private:
 		OutputMessage() {freeMessage();}
 
 	public:
+		// non-copyable
+		OutputMessage(const OutputMessage&) = delete;
+		OutputMessage& operator=(const OutputMessage&) = delete;
+
 		virtual ~OutputMessage() {}
 
 		Protocol* getProtocol() const {return m_protocol;}
@@ -41,13 +43,7 @@ class OutputMessage : public NetworkMessage, boost::noncopyable
 		uint64_t getFrame() const {return m_frame;}
 
 		void writeMessageLength() {addHeader((uint16_t)(m_size));}
-		void addCryptoHeader(bool addChecksum)
-		{
-			if(addChecksum)
-				addHeader((adlerChecksum((uint8_t*)(m_buffer + m_outputBufferStart), m_size)));
-
-			addHeader((uint16_t)(m_size));
-		}
+		void addCryptoHeader(bool addChecksum);
 
 #ifdef __TRACK_NETWORK__
 		virtual void Track(std::string file, int32_t line, std::string func)
@@ -131,7 +127,7 @@ class OutputMessage : public NetworkMessage, boost::noncopyable
 		uint32_t m_outputBufferStart;
 };
 
-typedef boost::shared_ptr<OutputMessage> OutputMessage_ptr;
+typedef std::shared_ptr<OutputMessage> OutputMessage_ptr;
 
 class OutputMessagePool
 {

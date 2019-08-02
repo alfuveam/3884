@@ -17,6 +17,7 @@
 
 #ifndef __PROTOCOL_LOGIN__
 #define __PROTOCOL_LOGIN__
+
 #include "protocol.h"
 
 class NetworkMessage;

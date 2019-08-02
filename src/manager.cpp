@@ -19,7 +19,7 @@
 
 #include "manager.h"
 #include "player.h"
-
+#include "tools.h"
 
 #include "configmanager.h"
 #include "game.h"

@@ -32,6 +32,7 @@
 #include "configmanager.h"
 
 #include "textlogger.h"
+#include "tools.h"
 
 extern ConfigManager g_config;
 bool Connection::m_logError = true;
@@ -47,7 +48,7 @@ Connection_ptr ConnectionManager::createConnection(boost::asio::ip::tcp::socket*
 	std::clog << "Creating new Connection" << std::endl;
 	#endif
 	boost::recursive_mutex::scoped_lock lockClass(m_connectionManagerLock);
-	Connection_ptr connection = boost::shared_ptr<Connection>(new Connection(socket, io_service, servicer));
+	Connection_ptr connection = std::shared_ptr<Connection>(new Connection(socket, io_service, servicer));
 
 	m_connections.push_back(connection);
 	return connection;
@@ -98,7 +99,7 @@ void Connection::close()
 		return;
 
 	m_connectionState = CONNECTION_STATE_REQUEST_CLOSE;
-	Dispatcher::getInstance().addTask(createTask(boost::bind(&Connection::closeConnection, this)));
+	Dispatcher::getInstance().addTask(createTask(std::bind(&Connection::closeConnection, this)));
 }
 
 bool ConnectionManager::isDisabled(uint32_t clientIp, int32_t protocolId)
@@ -262,7 +263,7 @@ void Connection::releaseConnection()
 {
 	if(m_refCount > 0) //Reschedule it and try again.
 		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-			boost::bind(&Connection::releaseConnection, this)));
+			std::bind(&Connection::releaseConnection, this)));
 	else
 		deleteConnection();
 }
@@ -297,7 +298,7 @@ void Connection::deleteConnection()
 	assert(!m_refCount);
 	try
 	{
-		m_service.dispatch(boost::bind(&Connection::onStop, this));
+		m_service.dispatch(std::bind(&Connection::onStop, this));
 	}
 	catch(std::exception& e)
 	{
@@ -322,13 +323,13 @@ void Connection::accept()
 	{
 		++m_pendingRead;
 		m_readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
-		m_readTimer.async_wait(boost::bind(&Connection::handleReadTimeout,
-			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
+		m_readTimer.async_wait(std::bind(&Connection::handleReadTimeout,
+			std::weak_ptr<Connection>(shared_from_this()), std::placeholders::_1));
 
 		// Read size of the first packet
 		boost::asio::async_read(getHandle(),
 			boost::asio::buffer(m_msg.buffer(), NETWORK_HEADER_SIZE),
-			boost::bind(&Connection::parseHeader, shared_from_this(), boost::asio::placeholders::error));
+			std::bind(&Connection::parseHeader, shared_from_this(), std::placeholders::_1));
 	}
 	catch(std::exception& e)
 	{
@@ -375,13 +376,13 @@ void Connection::parseHeader(const boost::system::error_code& error)
 	{
 		++m_pendingRead;
 		m_readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
-		m_readTimer.async_wait(boost::bind(&Connection::handleReadTimeout,
-			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
+		m_readTimer.async_wait(std::bind(&Connection::handleReadTimeout,
+			std::weak_ptr<Connection>(shared_from_this()), std::placeholders::_1));
 
 		// Read packet content
 		m_msg.setSize(size + NETWORK_HEADER_SIZE);
 		boost::asio::async_read(getHandle(), boost::asio::buffer(m_msg.bodyBuffer(), size),
-			boost::bind(&Connection::parsePacket, shared_from_this(), boost::asio::placeholders::error));
+			std::bind(&Connection::parsePacket, shared_from_this(), std::placeholders::_1));
 	}
 	catch(std::exception& e)
 	{
@@ -451,13 +452,13 @@ void Connection::parsePacket(const boost::system::error_code& error)
 	{
 		++m_pendingRead;
 		m_readTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_READ_TIMEOUT));
-		m_readTimer.async_wait(boost::bind(&Connection::handleReadTimeout,
-			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
+		m_readTimer.async_wait(std::bind(&Connection::handleReadTimeout,
+			std::weak_ptr<Connection>(shared_from_this()), std::placeholders::_1));
 
 		// Wait to the next packet
 		boost::asio::async_read(getHandle(),
 			boost::asio::buffer(m_msg.buffer(), NETWORK_HEADER_SIZE),
-			boost::bind(&Connection::parseHeader, shared_from_this(), boost::asio::placeholders::error));
+			std::bind(&Connection::parseHeader, shared_from_this(), std::placeholders::_1));
 	}
 	catch(std::exception& e)
 	{
@@ -519,12 +520,12 @@ void Connection::internalSend(OutputMessage_ptr msg)
 	{
 		++m_pendingWrite;
 		m_writeTimer.expires_from_now(boost::posix_time::seconds(CONNECTION_WRITE_TIMEOUT));
-		m_writeTimer.async_wait(boost::bind(&Connection::handleWriteTimeout,
-			boost::weak_ptr<Connection>(shared_from_this()), boost::asio::placeholders::error));
+		m_writeTimer.async_wait(std::bind(&Connection::handleWriteTimeout,
+			std::weak_ptr<Connection>(shared_from_this()), std::placeholders::_1));
 
 		boost::asio::async_write(getHandle(),
 			boost::asio::buffer(msg->getOutputBuffer(), msg->size()),
-			boost::bind(&Connection::onWrite, shared_from_this(), msg, boost::asio::placeholders::error));
+			std::bind(&Connection::onWrite, shared_from_this(), msg, std::placeholders::_1));
 	}
 	catch(std::exception& e)
 	{
@@ -618,7 +619,7 @@ void Connection::onWriteTimeout()
 	}
 }
 
-void Connection::handleReadTimeout(boost::weak_ptr<Connection> weak, const boost::system::error_code& error)
+void Connection::handleReadTimeout(std::weak_ptr<Connection> weak, const boost::system::error_code& error)
 {
 	if(error == boost::asio::error::operation_aborted || weak.expired())
 		return;
@@ -656,7 +657,7 @@ void Connection::handleWriteError(const boost::system::error_code& error)
 	m_writeError = true;
 }
 
-void Connection::handleWriteTimeout(boost::weak_ptr<Connection> weak, const boost::system::error_code& error)
+void Connection::handleWriteTimeout(std::weak_ptr<Connection> weak, const boost::system::error_code& error)
 {
 	if(error == boost::asio::error::operation_aborted || weak.expired())
 		return;

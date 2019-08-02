@@ -20,7 +20,6 @@
 
 #include "protocol.h"
 
-
 enum RequestedInfo_t
 {
 	REQUEST_BASIC_SERVER_INFO 	= 0x01,

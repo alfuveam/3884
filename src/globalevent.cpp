@@ -20,6 +20,7 @@
 #include "globalevent.h"
 
 #include "player.h"
+#include "tools.h"
 
 GlobalEvents::GlobalEvents():
 	m_interface("GlobalEvent Interface")
@@ -97,9 +98,9 @@ void GlobalEvents::startup()
 {
 	execute(GLOBALEVENT_STARTUP);
 	Scheduler::getInstance().addEvent(createSchedulerTask(TIMER_INTERVAL,
-		boost::bind(&GlobalEvents::timer, this)));
+		std::bind(&GlobalEvents::timer, this)));
 	Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-		boost::bind(&GlobalEvents::think, this)));
+		std::bind(&GlobalEvents::think, this)));
 }
 
 void GlobalEvents::timer()
@@ -118,7 +119,7 @@ void GlobalEvents::timer()
 	}
 
 	Scheduler::getInstance().addEvent(createSchedulerTask(TIMER_INTERVAL,
-		boost::bind(&GlobalEvents::timer, this)));
+		std::bind(&GlobalEvents::timer, this)));
 }
 
 void GlobalEvents::think()
@@ -136,7 +137,7 @@ void GlobalEvents::think()
 	}
 
 	Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-		boost::bind(&GlobalEvents::think, this)));
+		std::bind(&GlobalEvents::think, this)));
 }
 
 void GlobalEvents::execute(GlobalEvent_t type)
@@ -193,7 +194,7 @@ bool GlobalEvent::configureEvent(pugi::xml_node& node)
 	std::string strValue;
 	if((attr = node.attribute("name")))
 	{		
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 	} else {
 		std::clog << "[Error - GlobalEvent::configureEvent] No name for a globalevent." << std::endl;
 		return false;
@@ -203,7 +204,7 @@ bool GlobalEvent::configureEvent(pugi::xml_node& node)
 	m_eventType = GLOBALEVENT_NONE;
 	if((attr = node.attribute("type")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "startup" || tmpStrValue == "start" || tmpStrValue == "load")
 			m_eventType = GLOBALEVENT_STARTUP;
@@ -223,7 +224,7 @@ bool GlobalEvent::configureEvent(pugi::xml_node& node)
 	}
 	else if((attr = node.attribute("time")) || (attr = node.attribute("at")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		IntegerVec params = vectorAtoi(explodeString(strValue, ":"));
 		if(params[0] > 23 || params[0] < 0)
 		{
@@ -260,7 +261,7 @@ bool GlobalEvent::configureEvent(pugi::xml_node& node)
 	int32_t intValue;
 	if((attr = node.attribute("interval")))
 	{
-		intValue = pugi::cast<int32_t>(attr.value());
+		intValue = attr.as_int();
 		m_interval = std::max((int32_t)SCHEDULER_MINTICKS, intValue);
 		return true;
 	}

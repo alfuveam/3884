@@ -20,10 +20,19 @@
 
 #include "outputmessage.h"
 #include "protocol.h"
+#include "tools.h"
 
 #ifdef __ENABLE_SERVER_DIAGNOSTIC__
 uint32_t OutputMessagePool::outputMessagePoolCount = OUTPUT_POOL_SIZE;
 #endif
+
+void OutputMessage::addCryptoHeader(bool addChecksum)
+{
+	if(addChecksum)
+		addHeader((adlerChecksum((uint8_t*)(m_buffer + m_outputBufferStart), m_size)));
+
+	addHeader((uint16_t)(m_size));
+}
 
 OutputMessagePool::OutputMessagePool()
 {
@@ -136,7 +145,7 @@ void OutputMessagePool::sendAll()
 
 void OutputMessagePool::releaseMessage(OutputMessage* msg)
 {
-	Dispatcher::getInstance().addTask(createTask(boost::bind(
+	Dispatcher::getInstance().addTask(createTask(std::bind(
 		&OutputMessagePool::internalReleaseMessage, this, msg)), true);
 }
 
@@ -188,7 +197,7 @@ OutputMessage_ptr OutputMessagePool::getOutputMessage(Protocol* protocol, bool a
 
 	OutputMessage_ptr omsg;
 	omsg.reset(m_outputMessages.back(),
-		boost::bind(&OutputMessagePool::releaseMessage, this, _1));
+		std::bind(&OutputMessagePool::releaseMessage, this, std::placeholders::_1));
 
 	m_outputMessages.pop_back();
 	configureOutputMessage(omsg, protocol, autoSend);

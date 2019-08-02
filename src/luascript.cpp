@@ -8888,7 +8888,7 @@ int32_t LuaInterface::luaAddEvent(lua_State* L)
 
 	LuaTimerEvent event;
 	event.eventId = Scheduler::getInstance().addEvent(createSchedulerTask(std::max((int64_t)SCHEDULER_MINTICKS, popNumber(L)),
-		boost::bind(&LuaInterface::executeTimer, interface, ++interface->m_lastTimer)));
+		std::bind(&LuaInterface::executeTimer, interface, ++interface->m_lastTimer)));
 
 	event.parameters = params;
 	event.function = luaL_ref(L, LUA_REGISTRYINDEX);
@@ -9900,7 +9900,7 @@ int32_t LuaInterface::luaDoSetGameState(lua_State* L)
 	if(id >= GAMESTATE_FIRST && id <= GAMESTATE_LAST)
 	{
 		Dispatcher::getInstance().addTask(createTask(
-			boost::bind(&Game::setGameState, &g_game, (GameState_t)id)));
+			std::bind(&Game::setGameState, &g_game, (GameState_t)id)));
 		lua_pushboolean(L, true);
 	}
 	else
@@ -9968,7 +9968,7 @@ int32_t LuaInterface::luaDoReloadInfo(lua_State* L)
 		// we're passing it to scheduler since talkactions reload will
 		// re-init our lua state and crash due to unfinished call
 		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
-			boost::bind(&Game::reloadInfo, &g_game, (ReloadInfo_t)id, cid)));
+			std::bind(&Game::reloadInfo, &g_game, (ReloadInfo_t)id, cid)));
 		lua_pushboolean(L, true);
 	}
 	else
@@ -9984,7 +9984,7 @@ int32_t LuaInterface::luaDoSaveServer(lua_State* L)
 	if(lua_gettop(L) > 0)
 		shallow = popNumber(L);
 
-	Dispatcher::getInstance().addTask(createTask(boost::bind(&Game::saveGameState, &g_game, shallow)));
+	Dispatcher::getInstance().addTask(createTask(std::bind(&Game::saveGameState, &g_game, shallow)));
 	lua_pushnil(L);
 	return 1;
 }

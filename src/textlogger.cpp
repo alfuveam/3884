@@ -19,7 +19,7 @@
 #include "textlogger.h"
 
 #include "manager.h"
-
+#include "tools.h"
 #include "configmanager.h"
 #include "game.h"
 

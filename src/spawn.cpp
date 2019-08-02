@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "spawn.h"
-
+#include "tools.h"
 
 #include "player.h"
 #include "npc.h"
@@ -82,19 +82,19 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 	if(!(attr = p.attribute("centerpos")))
 	{
 		if((attr = p.attribute("centerx"))){
-			centerPos.x = pugi::cast<int32_t>(attr.value());
+			centerPos.x = attr.as_int();
 		} else {
 			return false;
 		}
 
 		if((attr = p.attribute("centery"))){
-			centerPos.y = pugi::cast<int32_t>(attr.value());
+			centerPos.y = attr.as_int();
 		} else {
 			return false;
 		}
 
 		if((attr = p.attribute("centerz"))){
-			centerPos.z = pugi::cast<int32_t>(attr.value());
+			centerPos.z = attr.as_int();
 		} else {
 			return false;
 		}
@@ -110,7 +110,7 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 
 	int32_t radius;
 	if((attr = p.attribute("radius"))){
-	 	radius = pugi::cast<int32_t>(attr.value());
+	 	radius = attr.as_int();
 	} else {
 		return false;
 	}
@@ -138,30 +138,30 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 			int32_t interval = MINSPAWN_INTERVAL / 1000;
 			if((attr = tmpNode.attribute("spawntime")) || (attr = tmpNode.attribute("interval")))
 			{
-				if(pugi::cast<int32_t>(attr.value()) <= interval)
+				if(attr.as_int() <= interval)
 				{
 					std::clog << "[Warning - Spawns::loadFromXml] " << name << " " << centerPos << " spawntime cannot"
 						<< " be less than " << interval << " seconds." << std::endl;
 					continue;
 				}
 
-				interval = pugi::cast<int32_t>(attr.value());
+				interval = attr.as_int();
 			}
 
 			interval *= 1000;
 			Position placePos = centerPos;
 			if((attr = tmpNode.attribute("x")))
-				placePos.x += pugi::cast<int32_t>(attr.value());
+				placePos.x += attr.as_int();
 
 			if((attr = tmpNode.attribute("y")))
-				placePos.y += pugi::cast<int32_t>(attr.value());
+				placePos.y += attr.as_int();
 
 			if((attr = tmpNode.attribute("z")))
-				placePos.z /*+*/= pugi::cast<int32_t>(attr.value());
+				placePos.z /*+*/= attr.as_int();
 
 			Direction direction = NORTH;
 			if((attr = tmpNode.attribute("direction")) && direction >= EAST && direction <= WEST)
-				direction = (Direction)pugi::cast<int32_t>(attr.value());
+				direction = (Direction)attr.as_int();
 
 			spawn->addMonster(name, placePos, direction, interval);
 		}
@@ -173,17 +173,17 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 			std::string name = strValue;
 			Position placePos = centerPos;
 			if((attr = tmpNode.attribute("x")))
-				placePos.x += pugi::cast<int32_t>(attr.value());
+				placePos.x += attr.as_int();
 
 			if((attr = tmpNode.attribute("y")))
-				placePos.y += pugi::cast<int32_t>(attr.value());
+				placePos.y += attr.as_int();
 
 			if((attr = tmpNode.attribute("z")))
-				placePos.z /*+*/= pugi::cast<int32_t>(attr.value());
+				placePos.z /*+*/= attr.as_int();
 
 			Direction direction = NORTH;
 			if((attr = tmpNode.attribute("direction")) && direction >= EAST && direction <= WEST)
-				direction = (Direction)pugi::cast<int32_t>(attr.value());
+				direction = (Direction)attr.as_int();
 
 			Npc* npc = Npc::createNpc(name);
 			if(!npc)
@@ -236,7 +236,7 @@ bool Spawns::isInZone(const Position& centerPos, int32_t radius, const Position&
 void Spawn::startEvent()
 {
 	if(!checkSpawnEvent)
-		checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval(), boost::bind(&Spawn::checkSpawn, this)));
+		checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval(), std::bind(&Spawn::checkSpawn, this)));
 }
 
 Spawn::Spawn(const Position& _pos, int32_t _radius)
@@ -374,7 +374,7 @@ void Spawn::checkSpawn()
 	}
 
 	if(spawnedMap.size() < spawnMap.size())
-		checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval(), boost::bind(&Spawn::checkSpawn, this)));
+		checkSpawnEvent = Scheduler::getInstance().addEvent(createSchedulerTask(getInterval(), std::bind(&Spawn::checkSpawn, this)));
 #ifdef __DEBUG_SPAWN__
 	else
 		std::clog << "[Notice] Spawn::checkSpawn stopped " << this << std::endl;

@@ -35,6 +35,7 @@
 
 #include "house.h"
 #include "beds.h"
+#include "tools.h"
 
 extern Game g_game;
 extern Spells* g_spells;

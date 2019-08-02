@@ -17,6 +17,7 @@
 
 #ifndef __GLOBALEVENT__
 #define __GLOBALEVENT__
+
 #include "baseevents.h"
 
 #include "const.h"

@@ -18,7 +18,7 @@
 #include "otpch.h"
 #include "scheduler.h"
 
-
+#include "tools.h"
 
 Scheduler::SchedulerState Scheduler::m_threadState = Scheduler::STATE_TERMINATED;
 
@@ -26,7 +26,7 @@ Scheduler::Scheduler()
 {
 	m_lastEvent = 0;
 	Scheduler::m_threadState = STATE_RUNNING;
-	boost::thread(boost::bind(&Scheduler::schedulerThread, (void*)this));
+	boost::thread(std::bind(&Scheduler::schedulerThread, (void*)this));
 }
 
 void Scheduler::schedulerThread(void* p)

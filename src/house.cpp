@@ -17,7 +17,7 @@
 
 #include "otpch.h"
 #include "house.h"
-
+#include "tools.h"
 
 #include "database.h"
 #include "beds.h"
@@ -703,7 +703,7 @@ bool Houses::loadFromXml(std::string filename)
 			return false;
 		}
 
-		houseId = pugi::cast<int>(attr.value());
+		houseId = attr.as_int();
 		House* house = Houses::getInstance()->getHouse(houseId);
 		if(!house)
 		{
@@ -713,13 +713,13 @@ bool Houses::loadFromXml(std::string filename)
 
 		Position entry(0, 0, 0);
 		if((attr = houseNode.attribute("entryx")))
-			entry.x = pugi::cast<int>(attr.value());
+			entry.x = attr.as_int();
 
 		if((attr = houseNode.attribute("entryy")))
-			entry.y = pugi::cast<int>(attr.value());
+			entry.y = attr.as_int();
 
 		if((attr = houseNode.attribute("entryz")))
-			entry.z = pugi::cast<int>(attr.value());
+			entry.z = attr.as_int();
 
 		house->setEntry(entry);
 		if(!entry.x || !entry.y)
@@ -729,28 +729,28 @@ bool Houses::loadFromXml(std::string filename)
 		}
 
 		if((attr = houseNode.attribute("name")))
-			house->setName(pugi::cast<std::string>(attr.value()));
+			house->setName(attr.as_string());
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_NAME);
 
 		if((attr = houseNode.attribute("townid")))
-			house->setTownId(pugi::cast<int>(attr.value()));
+			house->setTownId(attr.as_int());
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_TOWN);
 
 		if((attr = houseNode.attribute("size")))
-			house->setSize(pugi::cast<int>(attr.value()));
+			house->setSize(attr.as_int());
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_SIZE);
 
 		if((attr = houseNode.attribute("guildhall")))
-			house->setGuild(pugi::cast<bool>(attr.value()));
+			house->setGuild(attr.as_bool());
 		else
 			house->resetSyncFlag(House::HOUSE_SYNC_GUILD);
 
 		uint32_t rent = 0;
 		if((attr = houseNode.attribute("rent")))
-			rent = pugi::cast<int>(attr.value());
+			rent = attr.as_int();
 
 		uint32_t price = house->getTilesCount() * g_config.getNumber(ConfigManager::HOUSE_PRICE);
 		if(g_config.getBool(ConfigManager::HOUSE_RENTASPRICE) && rent)

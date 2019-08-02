@@ -22,7 +22,7 @@
 #include "connection.h"
 #include "networkmessage.h"
 #include "outputmessage.h"
-
+#include "tools.h"
 #include "configmanager.h"
 #include "game.h"
 

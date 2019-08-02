@@ -18,17 +18,23 @@
 #ifndef __PROTOCOL__
 #define __PROTOCOL__
 
+#include "tools.h"
+
 class OutputMessage;
-typedef boost::shared_ptr<OutputMessage> OutputMessage_ptr;
+typedef std::shared_ptr<OutputMessage> OutputMessage_ptr;
 
 class Connection;
-typedef boost::shared_ptr<Connection> Connection_ptr;
+typedef std::shared_ptr<Connection> Connection_ptr;
 
 class NetworkMessage;
 
-class Protocol : boost::noncopyable
+class Protocol
 {
 	public:
+		// non-copyable
+		Protocol(const Protocol&) = delete;
+		Protocol& operator=(const Protocol&) = delete;
+			
 		Protocol(Connection_ptr connection)
 		{
 			m_connection = connection;

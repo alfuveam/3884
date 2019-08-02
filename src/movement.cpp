@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "movement.h"
-
+#include "tools.h"
 
 #include "creature.h"
 #include "player.h"
@@ -210,7 +210,7 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 	bool success = true;
 	if((attr = p.attribute("itemid")))
 	{
-		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		strVector = explodeString(attr.as_string(), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), "-"));
@@ -248,8 +248,8 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 
 	if((attr = p.attribute("fromid")) && (_attr = p.attribute("toid")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
-		endStrValue = pugi::cast<std::string>(_attr.value());
+		strValue = attr.as_string();
+		endStrValue = _attr.as_string();
 		intVector = vectorAtoi(explodeString(strValue, ";"));
 		endIntVector = vectorAtoi(explodeString(endStrValue, ";"));
 		if(intVector[0] && endIntVector[0] && intVector.size() == endIntVector.size())
@@ -287,7 +287,7 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 
 	if((attr = p.attribute("uniqueid")))
 	{
-		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		strVector = explodeString(attr.as_string(), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), "-"));
@@ -305,8 +305,8 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 
 	if((attr = p.attribute("fromuid")) && (_attr = p.attribute("touid")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
-		endStrValue = pugi::cast<std::string>(_attr.value());
+		strValue = attr.as_string();
+		endStrValue = _attr.as_string();
 		intVector = vectorAtoi(explodeString(strValue, ";"));
 		endIntVector = vectorAtoi(explodeString(endStrValue, ";"));
 		if(intVector[0] && endIntVector[0] && intVector.size() == endIntVector.size())
@@ -324,7 +324,7 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 
 	if((attr = p.attribute("actionid")))
 	{
-		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		strVector = explodeString(attr.as_string(), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), "-"));
@@ -342,8 +342,8 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 
 	if((attr = p.attribute("fromaid")) && (_attr = p.attribute("toaid")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
-		endStrValue = pugi::cast<std::string>(_attr.value());
+		strValue = attr.as_string();
+		endStrValue = _attr.as_string();
 		intVector = vectorAtoi(explodeString(strValue, ";"));
 		endIntVector = vectorAtoi(explodeString(endStrValue, ";"));
 		if(intVector[0] && endIntVector[0] && intVector.size() == endIntVector.size())
@@ -361,7 +361,7 @@ bool MoveEvents::registerEvent(Event* event, const pugi::xml_node& p, bool overr
 
 	if((attr = p.attribute("pos")) || (attr = p.attribute("position")))
 	{
-		strVector = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		strVector = explodeString(attr.as_string(), ";");
 		for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
 		{
 			intVector = vectorAtoi(explodeString((*it), ","));
@@ -805,7 +805,7 @@ bool MoveEvent::configureEvent(pugi::xml_node& p)
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("type")) || (attr = p.attribute("event")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 
 		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "stepin")
@@ -830,7 +830,7 @@ bool MoveEvent::configureEvent(pugi::xml_node& p)
 		{
 			if((attr = p.attribute("slot")))
 			{
-				strValue = pugi::cast<std::string>(attr.value());
+				strValue = attr.as_string();
 				std::string tmpStrValue = asLowerCaseString(strValue);
 				if(tmpStrValue == "head")
 					slot = SLOTP_HEAD;
@@ -867,21 +867,21 @@ bool MoveEvent::configureEvent(pugi::xml_node& p)
 			wieldInfo = 0;
 			if((p.attribute("lvl")) || (p.attribute("level")))
 			{
-	 			reqLevel = pugi::cast<int32_t>(attr.value());
+	 			reqLevel = attr.as_int();
 				if(reqLevel > 0)
 					wieldInfo |= WIELDINFO_LEVEL;
 			}
 
 			if((p.attribute("maglv")) || (p.attribute("maglevel")))
 			{
-	 			reqMagLevel = pugi::cast<int32_t>(attr.value());
+	 			reqMagLevel = attr.as_int();
 				if(reqMagLevel > 0)
 					wieldInfo |= WIELDINFO_MAGLV;
 			}
 
 			if((attr = p.attribute("prem")) || (attr = p.attribute("premium")))
 			{
-				premium = booleanString(pugi::cast<std::string>(attr.value()));
+				premium = booleanString(attr.as_string());
 				if(premium)
 					wieldInfo |= WIELDINFO_PREMIUM;
 			}

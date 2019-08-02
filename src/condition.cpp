@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "condition.h"
-
+#include "tools.h"
 
 #include "game.h"
 #include "creature.h"

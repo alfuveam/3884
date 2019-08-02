@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "vocation.h"
-
+#include "tools.h"
 
 Vocation Vocations::defVoc = Vocation();
 
@@ -46,7 +46,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 
 	if((attr = p.attribute("id")))
 	{
-		intValue = pugi::cast<int32_t>(attr.value());
+		intValue = attr.as_int();
 	} else {
 		std::clog << "[Error - Vocations::parseVocationNode] Missing vocation id." << std::endl;
 		return false;
@@ -54,117 +54,117 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 
 	Vocation* voc = new Vocation(intValue);
 	if((attr = p.attribute("name")))
-		voc->setName(pugi::cast<std::string>(attr.value()));
+		voc->setName(attr.as_string());
 
 	if((attr = p.attribute("description")))
-		voc->setDescription(pugi::cast<std::string>(attr.value()));
+		voc->setDescription(attr.as_string());
 
 	if((attr = p.attribute("needpremium")))
-		voc->setNeedPremium(booleanString(pugi::cast<std::string>(attr.value())));
+		voc->setNeedPremium(booleanString(attr.as_string()));
 	
 	if((attr = p.attribute("accountmanager")) || (attr = p.attribute("manager")))
-	    voc->setAsManagerOption(booleanString(pugi::cast<std::string>(attr.value())));
+	    voc->setAsManagerOption(booleanString(attr.as_string()));
 
 	if((attr = p.attribute("gaincap")) || (attr = p.attribute("gaincapacity")))
-		voc->setGainCap(pugi::cast<int32_t>(attr.value()));
+		voc->setGainCap(attr.as_int());
 
 	if((attr = p.attribute("gainhp")) || (attr = p.attribute("gainhealth")))
-		voc->setGain(GAIN_HEALTH, pugi::cast<int32_t>(attr.value()));
+		voc->setGain(GAIN_HEALTH, attr.as_int());
 
 	if((attr = p.attribute("gainmana")))
-		voc->setGain(GAIN_MANA, pugi::cast<int32_t>(attr.value()));
+		voc->setGain(GAIN_MANA, attr.as_int());
 
 	if((attr = p.attribute("gainhpticks")) || (attr = p.attribute("gainhealthticks")))
-		voc->setGainTicks(GAIN_HEALTH, pugi::cast<int32_t>(attr.value()));
+		voc->setGainTicks(GAIN_HEALTH, attr.as_int());
 
 	if((attr = p.attribute("gainhpamount")) || (attr = p.attribute("gainhealthamount")))
-		voc->setGainAmount(GAIN_HEALTH, pugi::cast<int32_t>(attr.value()));
+		voc->setGainAmount(GAIN_HEALTH, attr.as_int());
 
 	if((attr = p.attribute("gainmanaticks")))
-		voc->setGainTicks(GAIN_MANA, pugi::cast<int32_t>(attr.value()));
+		voc->setGainTicks(GAIN_MANA, attr.as_int());
 
 	if((attr = p.attribute("gainmanaamount")))
-		voc->setGainAmount(GAIN_MANA, pugi::cast<int32_t>(attr.value()));
+		voc->setGainAmount(GAIN_MANA, attr.as_int());
 
 	if((attr = p.attribute("manamultiplier")))
-		voc->setMultiplier(MULTIPLIER_MANA, pugi::cast<float>(attr.value()));
+		voc->setMultiplier(MULTIPLIER_MANA, attr.as_float());
 
 	if((attr = p.attribute("attackspeed")))
-		voc->setAttackSpeed(pugi::cast<int32_t>(attr.value()));
+		voc->setAttackSpeed(attr.as_int());
 
 	if((attr = p.attribute("basespeed")))
-		voc->setBaseSpeed(pugi::cast<int32_t>(attr.value()));
+		voc->setBaseSpeed(attr.as_int());
 
 	if((attr = p.attribute("soulmax")))
-		voc->setGain(GAIN_SOUL, pugi::cast<int32_t>(attr.value()));
+		voc->setGain(GAIN_SOUL, attr.as_int());
 
 	if((attr = p.attribute("gainsoulamount")))
-		voc->setGainAmount(GAIN_SOUL, pugi::cast<int32_t>(attr.value()));
+		voc->setGainAmount(GAIN_SOUL, attr.as_int());
 
 	if((attr = p.attribute("gainsoulticks")))
-		voc->setGainTicks(GAIN_SOUL, pugi::cast<int32_t>(attr.value()));
+		voc->setGainTicks(GAIN_SOUL, attr.as_int());
 
 	if((attr = p.attribute("attackable")))
-		voc->setAttackable(booleanString(pugi::cast<std::string>(attr.value())));
+		voc->setAttackable(booleanString(attr.as_string()));
 
 	if((attr = p.attribute("fromvoc")) || (attr = p.attribute("fromvocation")))
-		voc->setFromVocation(pugi::cast<int32_t>(attr.value()));
+		voc->setFromVocation(attr.as_int());
 
 	if((attr = p.attribute("lessloss")))
-		voc->setLessLoss(pugi::cast<int32_t>(attr.value()));
+		voc->setLessLoss(attr.as_int());
 	
 	for(auto configNode : p.children())
 	{
 		if(!(strcasecmp(configNode.name(), "skill") == 0))
 		{
 			if((attr = configNode.attribute("fist")))
-				voc->setSkillMultiplier(SKILL_FIST, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_FIST, attr.as_float());
 
 			if((attr = configNode.attribute("fistBase")))
-				voc->setSkillBase(SKILL_FIST, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_FIST, attr.as_int());
 
 			if((attr = configNode.attribute("club")))
-				voc->setSkillMultiplier(SKILL_CLUB, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_CLUB, attr.as_float());
 
 			if((attr = configNode.attribute("clubBase")))
-				voc->setSkillBase(SKILL_CLUB, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_CLUB, attr.as_int());
 
 			if((attr = configNode.attribute("axe")))
-				voc->setSkillMultiplier(SKILL_AXE, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_AXE, attr.as_float());
 
 			if((attr = configNode.attribute("axeBase")))
-				voc->setSkillBase(SKILL_AXE, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_AXE, attr.as_int());
 
 			if((attr = configNode.attribute("sword")))
-				voc->setSkillMultiplier(SKILL_SWORD, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_SWORD, attr.as_float());
 
 			if((attr = configNode.attribute("swordBase")))
-				voc->setSkillBase(SKILL_SWORD, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_SWORD, attr.as_int());
 
 			if((attr = configNode.attribute("distance")) || (attr = configNode.attribute("dist")))
-				voc->setSkillMultiplier(SKILL_DIST, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_DIST, attr.as_float());
 
 			if((attr = configNode.attribute("distanceBase")) || (attr = configNode.attribute("distBase")))
-				voc->setSkillBase(SKILL_DIST, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_DIST, attr.as_int());
 
 			if((attr = configNode.attribute("shielding")) || (attr = configNode.attribute("shield")))
-				voc->setSkillMultiplier(SKILL_SHIELD, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_SHIELD, attr.as_float());
 
 			if((attr = configNode.attribute("shieldingBase")) || (attr = configNode.attribute("shieldBase")))
-				voc->setSkillBase(SKILL_SHIELD, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_SHIELD, attr.as_int());
 
 			if((attr = configNode.attribute("fishing")) || (attr = configNode.attribute("fish")))
-				voc->setSkillMultiplier(SKILL_FISH, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL_FISH, attr.as_float());
 
 			if((attr = configNode.attribute("fishingBase")) || (attr = configNode.attribute("fishBase")))
-				voc->setSkillBase(SKILL_FISH, pugi::cast<int32_t>(attr.value()));
+				voc->setSkillBase(SKILL_FISH, attr.as_int());
 
 			if((attr = configNode.attribute("experience")) || (attr = configNode.attribute("exp")))
-				voc->setSkillMultiplier(SKILL__LEVEL, pugi::cast<float>(attr.value()));
+				voc->setSkillMultiplier(SKILL__LEVEL, attr.as_float());
 
 			if((attr = configNode.attribute("id")))
 			{
-				intValue = pugi::cast<int32_t>(attr.value());
+				intValue = attr.as_int();
 				skills_t skill = (skills_t)intValue;
 				if(intValue < SKILL_FIRST || intValue >= SKILL__LAST)
 				{
@@ -176,218 +176,218 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 					voc->setSkillBase(skill, intValue);
 
 				if((attr = configNode.attribute("multiplier")))
-					voc->setSkillMultiplier(skill, pugi::cast<float>(attr.value()));
+					voc->setSkillMultiplier(skill, attr.as_float());
 			}
 		}
 		else if(!(strcasecmp(configNode.name(), "formula") == 0))
 		{
 			if((attr = configNode.attribute("meleeDamage")))
-				voc->setMultiplier(MULTIPLIER_MELEE, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_MELEE, attr.as_float());
 
 			if((attr = configNode.attribute("distDamage")) || (attr = configNode.attribute("distanceDamage")))
-				voc->setMultiplier(MULTIPLIER_DISTANCE, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_DISTANCE, attr.as_float());
 
 			if((attr = configNode.attribute("wandDamage")) || (attr = configNode.attribute("rodDamage")))
-				voc->setMultiplier(MULTIPLIER_WAND, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_WAND, attr.as_float());
 
 			if((attr = configNode.attribute("magDamage")) || (attr = configNode.attribute("magicDamage")))
-				voc->setMultiplier(MULTIPLIER_MAGIC, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_MAGIC, attr.as_float());
 
 			if((attr = configNode.attribute("magHealingDamage")) || (attr = configNode.attribute("magicHealingDamage")))
-				voc->setMultiplier(MULTIPLIER_HEALING, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_HEALING, attr.as_float());
 
 			if((attr = configNode.attribute("defense")))
-				voc->setMultiplier(MULTIPLIER_DEFENSE, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_DEFENSE, attr.as_float());
 
 			if((attr = configNode.attribute("magDefense")) || (attr = configNode.attribute("magicDefense")))
-				voc->setMultiplier(MULTIPLIER_MAGICDEFENSE, pugi::cast<float>(attr.value()));
+				voc->setMultiplier(MULTIPLIER_MAGICDEFENSE, attr.as_float());
 
 			if((attr = configNode.attribute("armor")))
-				voc->setMultiplier(MULTIPLIER_ARMOR, pugi::cast<float>(attr.value()));		
+				voc->setMultiplier(MULTIPLIER_ARMOR, attr.as_float());		
 		}
 		else if(!(strcasecmp(configNode.name(), "absorb") == 0))
 		{
 			if((attr = configNode.attribute("percentAll")))
 			{
 				for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-					voc->increaseAbsorb((CombatType_t)i, pugi::cast<int32_t>(attr.value()));
+					voc->increaseAbsorb((CombatType_t)i, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("percentElements")))
 			{
-				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_FIREDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_ICEDAMAGE, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("percentMagic")))
 			{
-				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_FIREDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_ICEDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, attr.as_int());
+				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("percentEnergy")))
-				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_ENERGYDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentFire")))
-				voc->increaseAbsorb(COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_FIREDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentPoison")) || (attr = configNode.attribute("percentEarth")))
-				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_EARTHDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentIce")))
-				voc->increaseAbsorb(COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_ICEDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentHoly")))
-				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_HOLYDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentDeath")))
-				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_DEATHDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentLifeDrain")))
-				voc->increaseAbsorb(COMBAT_LIFEDRAIN, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_LIFEDRAIN, attr.as_int());
 
 			if((attr = configNode.attribute("percentManaDrain")))
-				voc->increaseAbsorb(COMBAT_MANADRAIN, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_MANADRAIN, attr.as_int());
 
 			if((attr = configNode.attribute("percentDrown")))
-				voc->increaseAbsorb(COMBAT_DROWNDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_DROWNDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentPhysical")))
-				voc->increaseAbsorb(COMBAT_PHYSICALDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_PHYSICALDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentHealing")))
-				voc->increaseAbsorb(COMBAT_HEALING, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_HEALING, attr.as_int());
 
 			if((attr = configNode.attribute("percentUndefined")))
-				voc->increaseAbsorb(COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseAbsorb(COMBAT_UNDEFINEDDAMAGE, attr.as_int());
 		}
 		else if(!(strcasecmp(configNode.name(), "reflect") == 0))
 		{
 			if((attr = configNode.attribute("percentAll")))
 			{
 				for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-					voc->increaseReflect(REFLECT_PERCENT, (CombatType_t)i, pugi::cast<int32_t>(attr.value()));
+					voc->increaseReflect(REFLECT_PERCENT, (CombatType_t)i, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("percentElements")))
 			{
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("percentMagic")))
 			{
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("percentEnergy")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ENERGYDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentFire")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_FIREDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentPoison")) || (attr = configNode.attribute("percentEarth")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_EARTHDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentIce")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_ICEDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentHoly")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HOLYDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentDeath")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DEATHDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentLifeDrain")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_LIFEDRAIN, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_LIFEDRAIN, attr.as_int());
 
 			if((attr = configNode.attribute("percentManaDrain")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_MANADRAIN, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_MANADRAIN, attr.as_int());
 
 			if((attr = configNode.attribute("percentDrown")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DROWNDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_DROWNDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentPhysical")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_PHYSICALDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_PHYSICALDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("percentHealing")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HEALING, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_HEALING, attr.as_int());
 
 			if((attr = configNode.attribute("percentUndefined")))
-				voc->increaseReflect(REFLECT_PERCENT, COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_PERCENT, COMBAT_UNDEFINEDDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceAll")))
 			{
 				for(int32_t i = COMBAT_FIRST; i <= COMBAT_LAST; i++)
-					voc->increaseReflect(REFLECT_CHANCE, (CombatType_t)i, pugi::cast<int32_t>(attr.value()));
+					voc->increaseReflect(REFLECT_CHANCE, (CombatType_t)i, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("chanceElements")))
 			{
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("chanceMagic")))
 			{
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, attr.as_int());
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, attr.as_int());
 			}
 
 			if((attr = configNode.attribute("chanceEnergy")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ENERGYDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceFire")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_FIREDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chancePoison")) || (attr = configNode.attribute("chanceEarth")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_EARTHDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceIce")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_ICEDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceHoly")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HOLYDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceDeath")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DEATHDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceLifeDrain")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_LIFEDRAIN, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_LIFEDRAIN, attr.as_int());
 
 			if((attr = configNode.attribute("chanceManaDrain")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_MANADRAIN, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_MANADRAIN, attr.as_int());
 
 			if((attr = configNode.attribute("chanceDrown")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DROWNDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_DROWNDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chancePhysical")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_PHYSICALDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_PHYSICALDAMAGE, attr.as_int());
 
 			if((attr = configNode.attribute("chanceHealing")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HEALING, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_HEALING, attr.as_int());
 
 			if((attr = configNode.attribute("chanceUndefined")))
-				voc->increaseReflect(REFLECT_CHANCE, COMBAT_UNDEFINEDDAMAGE, pugi::cast<int32_t>(attr.value()));
+				voc->increaseReflect(REFLECT_CHANCE, COMBAT_UNDEFINEDDAMAGE, attr.as_int());
 		}
 	}
 

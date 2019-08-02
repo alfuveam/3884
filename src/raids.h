@@ -23,7 +23,6 @@
 #include "baseevents.h"
 #include "position.h"
 
-
 enum RefType_t
 {
 	REF_NONE = 0,

@@ -19,13 +19,13 @@
 #define __SERVER__
 
 class ServiceBase;
-typedef boost::shared_ptr<ServiceBase> Service_ptr;
+typedef std::shared_ptr<ServiceBase> Service_ptr;
 
 class ServicePort;
-typedef boost::shared_ptr<ServicePort> ServicePort_ptr;
+typedef std::shared_ptr<ServicePort> ServicePort_ptr;
 
 class Connection;
-typedef boost::shared_ptr<Connection> Connection_ptr;
+typedef std::shared_ptr<Connection> Connection_ptr;
 
 class Protocol;
 class NetworkMessage;
@@ -33,7 +33,7 @@ class NetworkMessage;
 typedef boost::asio::ip::address IPAddress;
 typedef std::vector<IPAddress> IPAddressList;
 
-class ServiceBase : boost::noncopyable
+class ServiceBase
 {
 	public:
 		virtual ~ServiceBase() {}
@@ -57,16 +57,21 @@ class Service : public ServiceBase
 		const char* getProtocolName() const {return ProtocolType::protocolName();}
 };
 
-typedef boost::shared_ptr<boost::asio::ip::tcp::acceptor> Acceptor_ptr;
-class ServicePort : boost::noncopyable, public boost::enable_shared_from_this<ServicePort>
+typedef std::shared_ptr<boost::asio::ip::tcp::acceptor> Acceptor_ptr;
+
+class ServicePort : public std::enable_shared_from_this<ServicePort>
 {
 	public:
+		// non-copyable
+		ServicePort(const ServicePort&) = delete;
+		ServicePort& operator=(const ServicePort&) = delete;
+
 		ServicePort(boost::asio::io_service& io_service): m_io_service(io_service),
 			m_serverPort(0), m_pendingStart(false) {}
 		virtual ~ServicePort() {close();}
 
-		static void services(boost::weak_ptr<ServicePort> weakService, IPAddressList ips, uint16_t port);
-		static void service(boost::weak_ptr<ServicePort> weakService, IPAddress ip, uint16_t port);
+		static void services(std::weak_ptr<ServicePort> weakService, IPAddressList ips, uint16_t port);
+		static void service(std::weak_ptr<ServicePort> weakService, IPAddress ip, uint16_t port);
 
 		bool add(Service_ptr);
 		void open(IPAddressList ips, uint16_t port);
@@ -95,10 +100,13 @@ class ServicePort : boost::noncopyable, public boost::enable_shared_from_this<Se
 		static bool m_logError;
 };
 
-class ServiceManager : boost::noncopyable
+class ServiceManager
 {
-	ServiceManager(const ServiceManager&);
-	public:
+	public:		
+		// non-copyable
+		ServiceManager(const ServiceManager&) = delete;
+		ServiceManager& operator=(const ServiceManager&) = delete;
+					
 		ServiceManager(): m_io_service(), deathTimer(m_io_service), running(false) {}
 		virtual ~ServiceManager() {stop();}
 

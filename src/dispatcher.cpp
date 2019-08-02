@@ -19,7 +19,7 @@
 #include "dispatcher.h"
 
 #include "outputmessage.h"	
-
+#include "tools.h"
 #include "game.h"
 
 extern Game g_game;
@@ -30,7 +30,7 @@ Dispatcher::Dispatcher()
 {
 	m_taskList.clear();
 	Dispatcher::m_threadState = Dispatcher::STATE_RUNNING;
-	boost::thread(boost::bind(&Dispatcher::dispatcherThread, (void*)this));
+	boost::thread(std::bind(&Dispatcher::dispatcherThread, (void*)this));
 }
 
 void Dispatcher::dispatcherThread(void* p)

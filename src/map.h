@@ -39,7 +39,7 @@ struct AStarNode
 	int32_t f, g, h;
 };
 
-using boost::shared_ptr;
+using std::shared_ptr;
 #define MAP_MAX_LAYERS 16
 
 #define MAX_NODES 512

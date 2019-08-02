@@ -20,7 +20,7 @@
 
 #include "game.h"
 #include "configmanager.h"
-
+#include "tools.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -178,7 +178,7 @@ bool Weapon::configureEvent(pugi::xml_node& p)
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("id")))
 	{
-		id = pugi::cast<int32_t>(attr.value());
+		id = attr.as_int();
 	} else {
 		std::clog << "Error: [Weapon::configureEvent] Weapon without id." << std::endl;
 		return false;
@@ -186,48 +186,48 @@ bool Weapon::configureEvent(pugi::xml_node& p)
 
 	if((attr = p.attribute("lv")) || (attr = p.attribute("lvl")) || (attr = p.attribute("level")))
 	{
-	 	level = pugi::cast<int32_t>(attr.value());
+	 	level = attr.as_int();
 		if(level > 0)
 			wieldInfo |= WIELDINFO_LEVEL;
 	}
 
 	if((attr = p.attribute("maglv")) || (attr = p.attribute("maglvl")) || (attr = p.attribute("maglevel")))
 	{
-	 	magLevel = pugi::cast<int32_t>(attr.value());
+	 	magLevel = attr.as_int();
 		if(magLevel > 0)
 			wieldInfo |= WIELDINFO_MAGLV;
 	}
 
 	if((attr = p.attribute("mana")))
-	 	mana = pugi::cast<int32_t>(attr.value());
+	 	mana = attr.as_int();
 
 	if((attr = p.attribute("manapercent")))
-	 	manaPercent = pugi::cast<int32_t>(attr.value());
+	 	manaPercent = attr.as_int();
 
 	if((attr = p.attribute("soul")))
-	 	soul = pugi::cast<int32_t>(attr.value());
+	 	soul = attr.as_int();
 
 	if((attr = p.attribute("exhaust")) || (attr = p.attribute("exhaustion")))
-		exhaustion = pugi::cast<int32_t>(attr.value());
+		exhaustion = attr.as_int();
 
 	if((attr = p.attribute("prem")) || (attr = p.attribute("premium")))
 	{
-		premium = booleanString(pugi::cast<std::string>(attr.value()));
+		premium = booleanString(attr.as_string());
 		if(premium)
 			wieldInfo |= WIELDINFO_PREMIUM;
 	}
 
 	if((attr = p.attribute("enabled")))
-		enabled = booleanString(pugi::cast<std::string>(attr.value()));
+		enabled = booleanString(attr.as_string());
 
 	if((attr = p.attribute("unproperly")))
-		wieldUnproperly = booleanString(pugi::cast<std::string>(attr.value()));
+		wieldUnproperly = booleanString(attr.as_string());
 
 	if((attr = p.attribute("swing")))
-		swing = booleanString(pugi::cast<std::string>(attr.value()));
+		swing = booleanString(attr.as_string());
 
 	if((attr = p.attribute("type")))
-		params.combatType = getCombatType(pugi::cast<std::string>(attr.value()));
+		params.combatType = getCombatType(attr.as_string());
 
 	std::string error;
 	StringVec vocStringVec;
@@ -960,10 +960,10 @@ bool WeaponWand::configureEvent(pugi::xml_node& p)
 		return false;
 
 	if((attr = p.attribute("min")))
-		minChange = pugi::cast<int32_t>(attr.value());
+		minChange = attr.as_int();
 
 	if((attr = p.attribute("max")))
-		maxChange = pugi::cast<int32_t>(attr.value());
+		maxChange = attr.as_int();
 
 	return true;
 }

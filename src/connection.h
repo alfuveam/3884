@@ -24,16 +24,16 @@ static constexpr int32_t CONNECTION_WRITE_TIMEOUT = 30;
 static constexpr int32_t CONNECTION_READ_TIMEOUT = 30;
 
 class OutputMessage;
-typedef boost::shared_ptr<OutputMessage> OutputMessage_ptr;
+typedef std::shared_ptr<OutputMessage> OutputMessage_ptr;
 
 class Connection;
-typedef boost::shared_ptr<Connection> Connection_ptr;
+typedef std::shared_ptr<Connection> Connection_ptr;
 
 class ServiceBase;
-typedef boost::shared_ptr<ServiceBase> Service_ptr;
+typedef std::shared_ptr<ServiceBase> Service_ptr;
 
 class ServicePort;
-typedef boost::shared_ptr<ServicePort> ServicePort_ptr;
+typedef std::shared_ptr<ServicePort> ServicePort_ptr;
 
 #ifdef __DEBUG_NET__
 #define PRINT_ASIO_ERROR(description) \
@@ -87,9 +87,12 @@ class ConnectionManager
 		boost::recursive_mutex m_connectionManagerLock;
 };
 
-class Connection : public boost::enable_shared_from_this<Connection>, boost::noncopyable
+class Connection : public std::enable_shared_from_this<Connection>
 {
 	public:
+		// non-copyable
+		Connection(const Connection&) = delete;
+		Connection& operator=(const Connection&) = delete;
 
 		enum ConnectionState_t
 		{
@@ -150,8 +153,8 @@ class Connection : public boost::enable_shared_from_this<Connection>, boost::non
 		void handleReadError(const boost::system::error_code& error);
 		void handleWriteError(const boost::system::error_code& error);
 
-		static void handleReadTimeout(boost::weak_ptr<Connection> weak, const boost::system::error_code& error);
-		static void handleWriteTimeout(boost::weak_ptr<Connection> weak, const boost::system::error_code& error);
+		static void handleReadTimeout(std::weak_ptr<Connection> weak, const boost::system::error_code& error);
+		static void handleWriteTimeout(std::weak_ptr<Connection> weak, const boost::system::error_code& error);
 
 		void closeConnection();
 		void deleteConnection();

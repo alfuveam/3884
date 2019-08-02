@@ -32,7 +32,7 @@ class Tile;
 class Connection;
 class Quest;
 
-typedef boost::shared_ptr<NetworkMessage> NetworkMessage_ptr;
+typedef std::shared_ptr<NetworkMessage> NetworkMessage_ptr;
 class ProtocolGame : public Protocol
 {
 	public:
@@ -329,8 +329,8 @@ class ProtocolGame : public Protocol
 		void parseExtendedOpcode(NetworkMessage& msg);
         void sendExtendedOpcode(uint8_t opcode, const std::string& buffer);
 
-		#define addGameTask(f, ...) addGameTaskInternal(0, boost::bind(f, &g_game, __VA_ARGS__))
-		#define addGameTaskTimed(delay, f, ...) addGameTaskInternal(delay, boost::bind(f, &g_game, __VA_ARGS__))
+		#define addGameTask(f, ...) addGameTaskInternal(0, std::bind(f, &g_game, __VA_ARGS__))
+		#define addGameTaskTimed(delay, f, ...) addGameTaskInternal(delay, std::bind(f, &g_game, __VA_ARGS__))
 		template<class FunctionType>
 		void addGameTaskInternal(uint32_t delay, const FunctionType&);
 

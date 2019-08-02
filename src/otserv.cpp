@@ -26,7 +26,7 @@
 #include "game.h"
 #include "chat.h"
 
-
+#include "tools.h"
 #include "rsa.h"
 
 #include "protocollogin.h"
@@ -52,7 +52,7 @@
 
 #include "admin.h"
 #include "textlogger.h"
-
+#include "tools.h"
 
 RSA g_RSA;
 ConfigManager g_config;
@@ -154,7 +154,7 @@ void signalHandler(int32_t sig)
 	{
 		case SIGHUP:
 			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::saveGameState, &g_game, false)));
+				std::bind(&Game::saveGameState, &g_game, false)));
 			break;
 
 		case SIGTRAP:
@@ -167,7 +167,7 @@ void signalHandler(int32_t sig)
 
 		case SIGUSR1:
 			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::setGameState, &g_game, GAMESTATE_CLOSED)));
+				std::bind(&Game::setGameState, &g_game, GAMESTATE_CLOSED)));
 			break;
 
 		case SIGUSR2:
@@ -176,17 +176,17 @@ void signalHandler(int32_t sig)
 
 		case SIGCONT:
 			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::reloadInfo, &g_game, RELOAD_ALL, 0)));
+				std::bind(&Game::reloadInfo, &g_game, RELOAD_ALL, 0)));
 			break;
 
 		case SIGQUIT:
 			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::setGameState, &g_game, GAMESTATE_SHUTDOWN)));
+				std::bind(&Game::setGameState, &g_game, GAMESTATE_SHUTDOWN)));
 			break;
 
 		case SIGTERM:
 			Dispatcher::getInstance().addTask(createTask(
-				boost::bind(&Game::shutdown, &g_game)));
+				std::bind(&Game::shutdown, &g_game)));
 			break;
 
 		default:
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 #endif
 
 	OutputHandler::getInstance();
-	Dispatcher::getInstance().addTask(createTask(boost::bind(otserv, args, &servicer)));
+	Dispatcher::getInstance().addTask(createTask(std::bind(otserv, args, &servicer)));
 
 	g_loaderSignal.wait(g_loaderUniqueLock);
 	boost::this_thread::sleep(boost::posix_time::milliseconds(10000));

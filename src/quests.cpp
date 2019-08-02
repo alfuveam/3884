@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "quests.h"
-
+#include "tools.h"
 
 bool Mission::isStarted(Player* player)
 {

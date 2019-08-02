@@ -21,7 +21,7 @@
 #include "connection.h"
 #include "outputmessage.h"
 #include "textlogger.h"
-
+#include "tools.h"
 #include "game.h"
 #include "configmanager.h"
 
@@ -31,7 +31,7 @@ extern ConfigManager g_config;
 
 bool ServicePort::m_logError = true;
 
-void ServicePort::services(boost::weak_ptr<ServicePort> weakService, IPAddressList ips, uint16_t port)
+void ServicePort::services(std::weak_ptr<ServicePort> weakService, IPAddressList ips, uint16_t port)
 {
 	if(weakService.expired())
 		return;
@@ -40,7 +40,7 @@ void ServicePort::services(boost::weak_ptr<ServicePort> weakService, IPAddressLi
 		service->open(ips, port);
 }
 
-void ServicePort::service(boost::weak_ptr<ServicePort> weakService, IPAddress ip, uint16_t port)
+void ServicePort::service(std::weak_ptr<ServicePort> weakService, IPAddress ip, uint16_t port)
 {
 	if(weakService.expired())
 		return;
@@ -100,8 +100,8 @@ void ServicePort::open(IPAddressList ips, uint16_t port)
 	{
 		m_logError = false;
 		m_pendingStart = true;
-		Scheduler::getInstance().addEvent(createSchedulerTask(5000, boost::bind(
-			&ServicePort::services, boost::weak_ptr<ServicePort>(shared_from_this()), pendingIps, m_serverPort)));
+		Scheduler::getInstance().addEvent(createSchedulerTask(5000, std::bind(
+			&ServicePort::services, std::weak_ptr<ServicePort>(shared_from_this()), pendingIps, m_serverPort)));
 	}
 }
 
@@ -131,8 +131,8 @@ void ServicePort::accept(Acceptor_ptr acceptor)
 	try
 	{
 		boost::asio::ip::tcp::socket* socket = new boost::asio::ip::tcp::socket(m_io_service);
-		acceptor->async_accept(*socket, boost::bind(
-			&ServicePort::handle, this, acceptor, socket, boost::asio::placeholders::error));
+		acceptor->async_accept(*socket, std::bind(
+			&ServicePort::handle, this, acceptor, socket, std::placeholders::_1));
 	}
 	catch(std::exception& e)
 	{
@@ -194,8 +194,8 @@ void ServicePort::handle(Acceptor_ptr acceptor, boost::asio::ip::tcp::socket* so
 		if(!m_pendingStart)
 		{
 			m_pendingStart = true;
-			Scheduler::getInstance().addEvent(createSchedulerTask(5000, boost::bind(
-				&ServicePort::service, boost::weak_ptr<ServicePort>(shared_from_this()),
+			Scheduler::getInstance().addEvent(createSchedulerTask(5000, std::bind(
+				&ServicePort::service, std::weak_ptr<ServicePort>(shared_from_this()),
 				acceptor->local_endpoint().address().to_v4(), m_serverPort)));
 		}
 	}
@@ -256,7 +256,7 @@ void ServiceManager::stop()
 	{
 		try
 		{
-			m_io_service.post(boost::bind(&ServicePort::close, it->second));
+			m_io_service.post(std::bind(&ServicePort::close, it->second));
 		}
 		catch(std::exception& e)
 		{
@@ -268,7 +268,7 @@ void ServiceManager::stop()
 	OutputMessagePool::getInstance()->stop();
 
 	deathTimer.expires_from_now(boost::posix_time::seconds(3)); 
-	deathTimer.async_wait(boost::bind(&ServiceManager::die, this));
+	deathTimer.async_wait(std::bind(&ServiceManager::die, this));
 }
 
 std::list<uint16_t> ServiceManager::getPorts() const

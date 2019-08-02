@@ -200,20 +200,20 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 	{
 		if(booleanString(attr.as_string()))
 		{
-			strValue = pugi::cast<std::string>(attr.value());
+			strValue = attr.as_string();
 			mod.enabled = true;
 		}
 	}
 	mod.file = file;
 	mod.name = strValue;
 	if((attr = doc.attribute("author")))
-		mod.author = pugi::cast<std::string>(attr.value());
+		mod.author = attr.as_string();
 
 	if((attr = doc.attribute("version")))
-		mod.version = pugi::cast<std::string>(attr.value());
+		mod.version = attr.as_string();
 
 	if((attr = doc.attribute("contact")))
-		mod.contact = pugi::cast<std::string>(attr.value());
+		mod.contact = attr.as_string();
 	
 	if(mod.enabled)
 	{
@@ -243,7 +243,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 			else if(strcasecmp(p.name(), "item") != 0)
 			{
 				if((attr = p.attribute("id")))
-					Item::items.parseItemNode(p, pugi::cast<int32_t>(attr.value())); //duplicates checking isn't necessary here
+					Item::items.parseItemNode(p, attr.as_int()); //duplicates checking isn't necessary here
 			}
 			if(strcasecmp(p.name(), "description") != 0 || strcasecmp(p.name(), "info") != 0)
 			{
@@ -262,7 +262,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 					continue;
 				}
 
-				strValue = pugi::cast<std::string>(attr.value());
+				strValue = attr.as_string();
 				toLowerCaseString(strValue);
 				std::string strLib;
 				if((attr = p.attribute(p.name())))

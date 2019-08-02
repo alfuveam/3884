@@ -16,9 +16,8 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-
+#include "tools.h"
 #include "baseevents.h"
-
 
 bool BaseEvents::loadFromXml()
 {

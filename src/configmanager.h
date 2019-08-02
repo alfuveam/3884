@@ -17,6 +17,7 @@
 
 #ifndef __CONFIG_MANAGER__
 #define __CONFIG_MANAGER__
+
 #include "luascript.h"
 
 class ConfigManager

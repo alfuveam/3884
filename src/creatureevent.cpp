@@ -19,7 +19,7 @@
 
 #include "creatureevent.h"
 #include "player.h"
-
+#include "tools.h"
 
 CreatureEvents::CreatureEvents():
 m_interface("CreatureScript Interface")
@@ -280,7 +280,7 @@ bool CreatureEvent::configureEvent(pugi::xml_node& node)
 		std::clog << "[Error - CreatureEvent::configureEvent] No name for creature event." << std::endl;
 		return false;
 	} else {
-		str = pugi::cast<std::string>(attr.value());
+		str = attr.as_string();
 	}
 
 	m_eventName = str;
@@ -289,7 +289,7 @@ bool CreatureEvent::configureEvent(pugi::xml_node& node)
 		std::clog << "[Error - CreatureEvent::configureEvent] No type for creature event." << std::endl;
 		return false;
 	} else {
-		str = pugi::cast<std::string>(attr.value());
+		str = attr.as_string();
 	}
 
 	std::string tmpStr = asLowerCaseString(str);

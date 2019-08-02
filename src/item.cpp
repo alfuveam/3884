@@ -108,14 +108,14 @@ bool Item::loadItem(pugi::xml_node& node, Container* parent)
 
 	Item* item = NULL;
 	if((attr = node.attribute("id")))
-		item = Item::CreateItem(pugi::cast<int>(attr.value()));
+		item = Item::CreateItem(attr.as_int());
 
 	if(!item)
 		return false;
 
 	if((attr = node.attribute("attributes")))
 	{
-		StringVec v, _attr = explodeString(pugi::cast<std::string>(attr.value()), ";");
+		StringVec v, _attr = explodeString(attr.as_string(), ";");
 		for(StringVec::iterator it = _attr.begin(); it != _attr.end(); ++it)
 		{
 			v = explodeString((*it), ",");
@@ -131,18 +131,18 @@ bool Item::loadItem(pugi::xml_node& node, Container* parent)
 
 	//compatibility
 	if((attr = node.attribute("subtype")) || (attr = node.attribute("subType")))
-		item->setSubType(pugi::cast<int>(attr.value()));
+		item->setSubType(attr.as_int());
 
 	if((attr = node.attribute("actionId")) || (attr = node.attribute("actionid"))
 		|| (attr = node.attribute("aid")))
-		item->setActionId(pugi::cast<int>(attr.value()));
+		item->setActionId(attr.as_int());
 
 	if((attr = node.attribute("uniqueId")) || (attr = node.attribute("uniqueid"))
 		|| (attr = node.attribute("uid")))
-		item->setUniqueId(pugi::cast<int>(attr.value()));
+		item->setUniqueId(attr.as_int());
 
 	if((attr = node.attribute("text")))
-		item->setText(pugi::cast<std::string>(attr.value()));
+		item->setText(attr.as_string());
 
 	if(item->getContainer())
 		loadContainer(node, item->getContainer());

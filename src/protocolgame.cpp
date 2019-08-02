@@ -282,7 +282,7 @@ bool ProtocolGame::login(const std::string& name, uint32_t id, const std::string
 		addRef();
 		if(!castAccount)
 			m_eventConnect = Scheduler::getInstance().addEvent(createSchedulerTask(
-				1000, boost::bind(&ProtocolGame::connect, this, _player->getID(), operatingSystem, version, castAccount)));
+				1000, std::bind(&ProtocolGame::connect, this, _player->getID(), operatingSystem, version, castAccount)));
 		else
 			connect(_player->getID(), operatingSystem, version, castAccount);
 		return true;
@@ -603,7 +603,7 @@ bool ProtocolGame::parseFirstPacket(NetworkMessage& msg)
 	}
 
 	ConnectionManager::getInstance()->addAttempt(getIP(), protocolId, true);
-	Dispatcher::getInstance().addTask(createTask(boost::bind(
+	Dispatcher::getInstance().addTask(createTask(std::bind(
 		&ProtocolGame::login, this, character, id, password, operatingSystem, version, gamemaster, castAccount)));
 	return true;
 }
@@ -956,7 +956,7 @@ void ProtocolGame::parsePacket(NetworkMessage &msg)
 						player->sendTextMessage(MSG_INFO_DESCR, "You have been banished.");
 
 						g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_WRAPS_GREEN);
-						Scheduler::getInstance().addEvent(createSchedulerTask(1000, boost::bind(
+						Scheduler::getInstance().addEvent(createSchedulerTask(1000, std::bind(
 							&Game::kickPlayer, &g_game, player->getID(), false)));
 					}
 				}
@@ -1157,7 +1157,7 @@ bool ProtocolGame::canSee(uint16_t x, uint16_t y, uint16_t z) const
 //********************** Parse methods *******************************//
 void ProtocolGame::parseLogout(NetworkMessage&)
 {
-	Dispatcher::getInstance().addTask(createTask(boost::bind(&ProtocolGame::logout, this, true, false)));
+	Dispatcher::getInstance().addTask(createTask(std::bind(&ProtocolGame::logout, this, true, false)));
 }
 
 void ProtocolGame::parseCreatePrivateChannel(NetworkMessage&)

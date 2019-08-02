@@ -20,14 +20,6 @@
 
 #include <pugixml.hpp>
 
-//boost
-#include <boost/config.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-#include <boost/regex.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include <string>
 #include <algorithm>
 #include <chrono>
@@ -51,17 +43,18 @@
 #include <unordered_set>
 // from src - end
 
+//boost
+#include <boost/config.hpp>
+#include <boost/regex.hpp>
+#include <boost/tokenizer.hpp>
 #include <boost/utility.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-#include <boost/shared_ptr.hpp>
 
 // from src
-#include <boost/enable_shared_from_this.hpp>
 #include <boost/any.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/version.hpp>
-#include <boost/pool/pool.hpp>
 // from src - end
 
 #include <cstddef>
@@ -69,9 +62,6 @@
 
 #include <ctime>
 #include <cassert>
-
-#include "templates.h" // to pugi::cast
-#include "tools.h"
 
 #if BOOST_VERSION < 104400
 	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()

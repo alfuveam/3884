@@ -28,7 +28,7 @@ class Waypoint
 		Position pos;
 };
 
-typedef boost::shared_ptr<Waypoint> WaypointPtr;
+typedef std::shared_ptr<Waypoint> WaypointPtr;
 typedef std::map<std::string, WaypointPtr> WaypointMap;
 
 class Waypoints

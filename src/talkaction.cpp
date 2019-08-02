@@ -43,7 +43,7 @@
 #include "configmanager.h"
 #include "game.h"
 #include "chat.h"
-
+#include "tools.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -107,8 +107,10 @@ bool TalkActions::registerEvent(Event* event, const pugi::xml_node& p, bool over
 			}
 	}
 
-	if(!(attr = p.attribute("separator")))
-		strValue = pugi::cast<std::string>(attr.value()) + ";";
+	if(!(attr = p.attribute("separator"))){
+		strValue = attr.as_string();
+		strValue += ";";
+	}
 
 	StringVec strVector = explodeString(talkAction->getWords(), strValue);
 	for(StringVec::iterator it = strVector.begin(); it != strVector.end(); ++it)
@@ -329,10 +331,10 @@ bool TalkAction::configureEvent(pugi::xml_node& p)
 	std::string strValue;
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("words")))
-		m_words = pugi::cast<std::string>(attr.value());
+		m_words = attr.as_string();
 	else if(!(attr = p.attribute("default")))
 	{
-		if(!booleanString(pugi::cast<std::string>(attr.value()))){
+		if(!booleanString(attr.as_string())){
 			std::clog << "[Error - TalkAction::configureEvent] No words for TalkAction." << std::endl;
 			return false;
 		} else {
@@ -343,7 +345,7 @@ bool TalkAction::configureEvent(pugi::xml_node& p)
 
 	if((attr = p.attribute("filter")))
 	{
-		std::string tmpStrValue = asLowerCaseString(pugi::cast<std::string>(attr.value()));
+		std::string tmpStrValue = asLowerCaseString(attr.as_string());
 		if(tmpStrValue == "quotation")
 			m_filter = TALKFILTER_QUOTATION;
 		else if(tmpStrValue == "word")
@@ -351,7 +353,7 @@ bool TalkAction::configureEvent(pugi::xml_node& p)
 		else if(tmpStrValue == "word-spaced")
 			m_filter = TALKFILTER_WORD_SPACED;
 		else
-			std::clog << "[Warning - TalkAction::configureEvent] Unknown filter for TalkAction: " << pugi::cast<std::string>(attr.value()) << ", using default." << std::endl;
+			std::clog << "[Warning - TalkAction::configureEvent] Unknown filter for TalkAction: " << attr.as_string() << ", using default." << std::endl;
 	}
 
 	if((attr = p.attribute("access")))
@@ -361,16 +363,16 @@ bool TalkAction::configureEvent(pugi::xml_node& p)
 		m_channel = attr.as_int();
 
 	if((attr = p.attribute("logged")) || (attr = p.attribute("log")))
-		m_logged = booleanString(pugi::cast<std::string>(attr.value()));
+		m_logged = booleanString(attr.as_string());
 
 	if((attr = p.attribute("hidden")) || (attr = p.attribute("hide")))
-		m_hidden = booleanString(pugi::cast<std::string>(attr.value()));
+		m_hidden = booleanString(attr.as_string());
 
 	if((attr = p.attribute("case-sensitive")) || (attr = p.attribute("casesensitive")) || (attr = p.attribute("sensitive")))
-		m_sensitive = booleanString(pugi::cast<std::string>(attr.value()));
+		m_sensitive = booleanString(attr.as_string());
 
 	if((attr = p.attribute("exception")))
-		m_exceptions = explodeString(asLowerCaseString(pugi::cast<std::string>(attr.value())), ";");
+		m_exceptions = explodeString(asLowerCaseString(attr.as_string()), ";");
 
 	return true;
 }

@@ -29,6 +29,7 @@
 #include "player.h"
 #include "npc.h"
 #include "monster.h"
+#include "templates.h"
 
 class Creature;
 class Player;

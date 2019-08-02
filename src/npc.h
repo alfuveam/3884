@@ -22,6 +22,7 @@
 
 #include "creature.h"
 #include "luascript.h"
+#include "templates.h"
 
 class Npc;
 typedef std::list<Npc*> NpcList;

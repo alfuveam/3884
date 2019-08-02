@@ -18,7 +18,7 @@
 #include "otpch.h"
 
 #include "gameservers.h"
-
+#include "tools.h"
 
 void GameServers::clear()
 {
@@ -58,7 +58,7 @@ bool GameServers::loadFromXml(bool result)
 		std::string name, address;
 		uint32_t id, versionMin, versionMax, port;
 		if((attr = serverNode.attribute("id"))){
-			id = pugi::cast<uint32_t>(attr.value());
+			id = attr.as_uint();
 		}
 		else
 		{
@@ -73,7 +73,7 @@ bool GameServers::loadFromXml(bool result)
 		}
 
 		if((attr = serverNode.attribute("name"))){
-			name = pugi::cast<std::string>(attr.value());
+			name = attr.as_string();
 		}
 		else
 		{
@@ -83,7 +83,7 @@ bool GameServers::loadFromXml(bool result)
 
 		if((attr = serverNode.attribute("versionMin")))
 		{
-			versionMin = pugi::cast<uint32_t>(attr.value());
+			versionMin = attr.as_uint();
 		}
 		else
 		{
@@ -92,7 +92,7 @@ bool GameServers::loadFromXml(bool result)
 		}
 
 		if((attr = serverNode.attribute("versionMax"))){
-			versionMax = pugi::cast<uint32_t>(attr.value());
+			versionMax = attr.as_uint();
 		}
 		else
 		{
@@ -102,7 +102,7 @@ bool GameServers::loadFromXml(bool result)
 
 		if((attr = serverNode.attribute("address")) || (attr = serverNode.attribute("ip")))
 		{
-			address = pugi::cast<std::string>(attr.value());
+			address = attr.as_string();
 		}
 		else
 		{
@@ -112,7 +112,7 @@ bool GameServers::loadFromXml(bool result)
 
 		if((attr = serverNode.attribute("port")))
 		{	
-			port = pugi::cast<uint32_t>(attr.value());
+			port = attr.as_uint();
 		}
 		else
 		{

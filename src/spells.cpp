@@ -19,7 +19,7 @@
 #include "const.h"
 
 #include "spells.h"
-
+#include "tools.h"
 
 #include "house.h"
 #include "housetile.h"
@@ -489,7 +489,7 @@ bool Spell::configureSpell(pugi::xml_node& p)
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("name")))
 	{
-		name = pugi::cast<std::string>(attr.value());
+		name = attr.as_string();
 		const char* reservedList[] =
 		{
 			"melee", "physical", "poison", "earth", "fire", "ice", "freeze", "energy", "drown", "death", "curse", "holy",
@@ -514,50 +514,50 @@ bool Spell::configureSpell(pugi::xml_node& p)
 	}
 
 	if((attr = p.attribute("lvl")) || (attr = p.attribute("level")))
-	 	level = pugi::cast<int32_t>(attr.value());
+	 	level = attr.as_int();
 
 	if((attr = p.attribute("maglv")) || (attr = p.attribute("magiclevel")))
-	 	magLevel = pugi::cast<int32_t>(attr.value());
+	 	magLevel = attr.as_int();
 
 	if((attr = p.attribute("mana")))
-	 	mana = pugi::cast<int32_t>(attr.value());
+	 	mana = attr.as_int();
 
 	if((attr = p.attribute("manapercent")))
-	 	manaPercent = pugi::cast<int32_t>(attr.value());
+	 	manaPercent = attr.as_int();
 
 	if((attr = p.attribute("soul")))
-	 	soul = pugi::cast<int32_t>(attr.value());
+	 	soul = attr.as_int();
 
 	if((attr = p.attribute("exhaustion")))
-		exhaustion = pugi::cast<int32_t>(attr.value());
+		exhaustion = attr.as_int();
 
 	if((attr = p.attribute("enabled")))
-		enabled = booleanString(pugi::cast<std::string>(attr.value()));
+		enabled = booleanString(attr.as_string());
 
 	if((attr = p.attribute("prem")) || (attr = p.attribute("premium")))
-		premium = booleanString(pugi::cast<std::string>(attr.value()));
+		premium = booleanString(attr.as_string());
 
 	if((attr = p.attribute("needtarget")))
-		needTarget = booleanString(pugi::cast<std::string>(attr.value()));
+		needTarget = booleanString(attr.as_string());
 
 	if((attr = p.attribute("needweapon")))
-		needWeapon = booleanString(pugi::cast<std::string>(attr.value()));
+		needWeapon = booleanString(attr.as_string());
 
 	if((attr = p.attribute("selftarget")))
-		selfTarget = booleanString(pugi::cast<std::string>(attr.value()));
+		selfTarget = booleanString(attr.as_string());
 
 	if((attr = p.attribute("needlearn")))
-		learnable = booleanString(pugi::cast<std::string>(attr.value()));
+		learnable = booleanString(attr.as_string());
 
 	if((attr = p.attribute("range")))
-		range = pugi::cast<int32_t>(attr.value());
+		range = attr.as_int();
 
 	if((attr = p.attribute("blocking")))
-		blockingCreature = blockingSolid = booleanString(pugi::cast<std::string>(attr.value()));
+		blockingCreature = blockingSolid = booleanString(attr.as_string());
 
 	if((attr = p.attribute("blocktype")))
 	{
-		strValue = pugi::cast<std::string>(attr.value());
+		strValue = attr.as_string();
 		std::string tmpStrValue = asLowerCaseString(strValue);
 		if(tmpStrValue == "all")
 			blockingCreature = blockingSolid = true;
@@ -570,7 +570,7 @@ bool Spell::configureSpell(pugi::xml_node& p)
 	}
 
 	if((attr = p.attribute("aggressive")))
-		isAggressive = booleanString(pugi::cast<std::string>(attr.value()));
+		isAggressive = booleanString(attr.as_string());
 
 	std::string error = "";
 	
@@ -1036,19 +1036,19 @@ bool InstantSpell::configureEvent(pugi::xml_node&  p)
 
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("param")) || (attr = p.attribute("params")))
- 		hasParam = booleanString(pugi::cast<std::string>(attr.value()));
+ 		hasParam = booleanString(attr.as_string());
 
 	if((attr = p.attribute("direction")))
-		needDirection = booleanString(pugi::cast<std::string>(attr.value()));
+		needDirection = booleanString(attr.as_string());
 
 	if((attr = p.attribute("casterTargetOrDirection")))
-		casterTargetOrDirection = booleanString(pugi::cast<std::string>(attr.value()));
+		casterTargetOrDirection = booleanString(attr.as_string());
 
 	if((attr = p.attribute("blockwalls")))
-		checkLineOfSight = booleanString(pugi::cast<std::string>(attr.value()));
+		checkLineOfSight = booleanString(attr.as_string());
 
 	if((attr = p.attribute("limitRange")))
-		limitRange = pugi::cast<int32_t>(attr.value());
+		limitRange = attr.as_int();
 
 	return true;
 }
@@ -1488,10 +1488,10 @@ bool ConjureSpell::configureEvent(pugi::xml_node&  p)
 
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("conjureId")))
-		conjureId = pugi::cast<int32_t>(attr.value());
+		conjureId = attr.as_int();
 
 	if((attr = p.attribute("conjureCount")))
-		conjureCount = pugi::cast<int32_t>(attr.value());
+		conjureCount = attr.as_int();
 	else if(conjureId != 0)
 	{
 		//load the default charge from items.xml
@@ -1501,7 +1501,7 @@ bool ConjureSpell::configureEvent(pugi::xml_node&  p)
 	}
 
 	if((attr = p.attribute("reagentId")))
-		conjureReagentId = pugi::cast<int32_t>(attr.value());
+		conjureReagentId = attr.as_int();
 
 	return true;
 }
@@ -1651,7 +1651,7 @@ bool RuneSpell::configureEvent(pugi::xml_node&  p)
 
 	pugi::xml_attribute attr;
 	if((attr = p.attribute("id")))
-		runeId = pugi::cast<int32_t>(attr.value());
+		runeId = attr.as_int();
 	else
 	{
 		std::clog << "Error: [RuneSpell::configureSpell] Rune spell without id." << std::endl;
@@ -1659,7 +1659,7 @@ bool RuneSpell::configureEvent(pugi::xml_node&  p)
 	}
 
 	if((attr = p.attribute("charges")))
-		hasCharges = booleanString(pugi::cast<std::string>(attr.value()));
+		hasCharges = booleanString(attr.as_string());
 
 	ItemType& it = Item::items.getItemType(runeId);
 	if(level && level != it.runeLevel)

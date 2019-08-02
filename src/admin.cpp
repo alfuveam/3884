@@ -19,7 +19,7 @@
 
 #include "admin.h"
 #include "rsa.h"
-
+#include "tools.h"
 
 #include "configmanager.h"
 #include "game.h"
@@ -329,7 +329,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_SHALLOW_SAVE_SERVER:
 				{
 					addLogLine(LOGTYPE_EVENT, "saving server");
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&Game::saveGameState, &g_game, (command == CMD_SHALLOW_SAVE_SERVER))));
 
 					output->put<char>(AP_MSG_COMMAND_OK);
@@ -339,7 +339,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_CLOSE_SERVER:
 				{
 					addLogLine(LOGTYPE_EVENT, "closing server");
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&Game::setGameState, &g_game, GAMESTATE_CLOSED)));
 
 					output->put<char>(AP_MSG_COMMAND_OK);
@@ -358,7 +358,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_SHUTDOWN_SERVER:
 				{
 					addLogLine(LOGTYPE_EVENT, "shutting down server");
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&Game::setGameState, &g_game, GAMESTATE_SHUTDOWN)));
 
 					output->put<char>(AP_MSG_COMMAND_OK);
@@ -367,7 +367,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 
 				case CMD_PAY_HOUSES:
 				{
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&ProtocolAdmin::adminCommandPayHouses, this)));
 					break;
 				}
@@ -375,7 +375,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_RELOAD_SCRIPTS:
 				{
 					const int8_t reload = msg.get<char>();
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&ProtocolAdmin::adminCommandReload, this, reload)));
 					break;
 				}
@@ -384,7 +384,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_KICK:
 				{
 					const std::string param = msg.getString();
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&ProtocolAdmin::adminCommandKickPlayer, this, param)));
 					break;
 				}
@@ -392,7 +392,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				case CMD_SEND_MAIL:
 				{
 					const std::string xmlData = msg.getString();
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&ProtocolAdmin::adminCommandSendMail, this, xmlData)));
 					break;
 				}
@@ -401,7 +401,7 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 				{
 					const std::string param = msg.getString();
 					addLogLine(LOGTYPE_EVENT, "broadcasting: " + param);
-					Dispatcher::getInstance().addTask(createTask(boost::bind(
+					Dispatcher::getInstance().addTask(createTask(std::bind(
 						&Game::broadcastMessage, &g_game, param, MSG_STATUS_WARNING)));
 
 					output->put<char>(AP_MSG_COMMAND_OK);
@@ -484,7 +484,7 @@ void ProtocolAdmin::adminCommandKickPlayer(const std::string& param)
 	Player* player = NULL;
 	if(g_game.getPlayerByNameWildcard(param, player) == RET_NOERROR)
 	{
-		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS, boost::bind(&Game::kickPlayer, &g_game, player->getID(), false)));
+		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS, std::bind(&Game::kickPlayer, &g_game, player->getID(), false)));
 		addLogLine(LOGTYPE_EVENT, "kicking player " + player->getName());
 		output->put<char>(AP_MSG_COMMAND_OK);
 	}
@@ -620,7 +620,7 @@ Item* Admin::createMail(const std::string xmlData, std::string& name, uint32_t& 
 
 	if(attr = node.attribute("town"))
 	{
-		Town* town = Towns::getInstance()->getTown(pugi::cast<int32_t>(attr.value()));
+		Town* town = Towns::getInstance()->getTown(attr.as_int());
 		if(!town)
 			return false;
 
@@ -630,7 +630,7 @@ Item* Admin::createMail(const std::string xmlData, std::string& name, uint32_t& 
 		return false;
 
 	if(attr = node.attribute("id"))
-		itemId = pugi::cast<int32_t>(attr.value());
+		itemId = attr.as_int();
 
 	Item* mailItem = Item::CreateItem(itemId);	//	for to only one item ?????
 	mailItem->setParent(VirtualCylinder::virtualCylinder);
