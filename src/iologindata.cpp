@@ -312,7 +312,6 @@ bool IOLoginData::setRecoveryKey(uint32_t accountId, std::string newRecoveryKey)
 uint64_t IOLoginData::createAccount(std::string name, std::string password)
 {
 	std::string salt = "";
-	password = password;
 	_encrypt(password, false);
 
 	Database* db = Database::getInstance();
