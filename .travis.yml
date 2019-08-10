@@ -2,8 +2,8 @@ sudo: required
 dist: trusty
 language: cpp
 compiler:
-  - clang
-  - gcc
+  - clang-7
+  - gcc-7
 env:
   - LUAJIT=OFF  
 cache: apt
