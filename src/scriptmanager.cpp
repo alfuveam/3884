@@ -113,8 +113,8 @@ bool ScriptManager::loadSystem()
 
 bool ScriptManager::loadMods()
 {
-	std::filesystem::path modsPath(getFilePath(FILE_TYPE_MOD));
-	if(!std::filesystem::exists(modsPath))
+	fs::path modsPath(getFilePath(FILE_TYPE_MOD));
+	if(!fs::exists(modsPath))
 	{
 		std::clog << "[Error - ScriptManager::loadMods] Couldn't locate main directory" << std::endl;
 		return false;
@@ -122,9 +122,9 @@ bool ScriptManager::loadMods()
 
 	int32_t i = 0, j = 0;
 	bool enabled = false;	
-	for(auto& it : std::filesystem::directory_iterator(modsPath))
+	for(auto& it : fs::directory_iterator(modsPath))
 	{
-		if(std::filesystem::is_directory(it.status()) && it.path().extension() != ".xml")
+		if(fs::is_directory(it.status()) && it.path().extension() != ".xml")
 			continue;
 
 		std::clog << "> Loading " << it.path() << "...";

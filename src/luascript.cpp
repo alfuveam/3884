@@ -738,9 +738,9 @@ bool LuaInterface::loadFile(const std::string& file, Npc* npc/* = NULL*/)
 bool LuaInterface::loadDirectory(const std::string& dir, Npc* npc/* = NULL*/, bool recursively/* = false*/)
 {
 	StringVec files;
-	for(auto& it : std::filesystem::directory_iterator(dir))
+	for(auto& it : fs::directory_iterator(dir))
 	{
-		if(!std::filesystem::is_directory(it.status()) && it.path().extension() == ".lua")
+		if(!fs::is_directory(it.status()) && it.path().extension() == ".lua")
 			files.push_back(it.path());
 	}
 
