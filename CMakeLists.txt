@@ -11,6 +11,15 @@ include(cotire)
 
 add_compile_options(-Wall -Werror -pipe -fvisibility=hidden)
 link_libraries(-lz)
+
+if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    MESSAGE(STATUS "This version of gcc use a std::experimental::filesystem")
+    link_libraries(stdc++fs)
+  endif()  
+endif()
+
+
 set(CMAKE_CXX_FLAGS_PERFORMANCE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 if (CMAKE_COMPILER_IS_GNUCXX)

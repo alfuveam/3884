@@ -273,7 +273,6 @@ bool IOLoginData::getPassword(uint32_t accountId, std::string& password, std::st
 bool IOLoginData::setPassword(uint32_t accountId, std::string newPassword)
 {
 	std::string salt = "";
-	newPassword = newPassword;
 	_encrypt(newPassword, false);
 
 	Database* db = Database::getInstance();

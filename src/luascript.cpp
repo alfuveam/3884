@@ -741,7 +741,7 @@ bool LuaInterface::loadDirectory(const std::string& dir, Npc* npc/* = NULL*/, bo
 	for(auto& it : fs::directory_iterator(dir))
 	{
 		if(!fs::is_directory(it.status()) && it.path().extension() == ".lua")
-			files.push_back(it.path());
+			files.push_back(it.path().u8string());
 	}
 
 	std::sort(files.begin(), files.end());
