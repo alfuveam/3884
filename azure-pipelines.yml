@@ -5,6 +5,6 @@ pool:
   vmImage: 'macOS-10.13'
 
 steps:
-- bash: brew install boost luajit mysql-connector-c pugixml sqlite libpq cryptopp
+- bash: brew install boost luajit mysql-connector-c pugixml sqlite libpq pkg-config cryptopp
 - bash: git clone --recursive https://github.com/aspiraboo/3884.git
 - bash: cd 3884; mkdir build; cd build; cmake .. ;make
