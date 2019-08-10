@@ -25,6 +25,7 @@
 
 #include "game.h"
 #include "configmanager.h"
+#include "scheduler.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -129,7 +130,7 @@ void BedItem::sleep(Player* player)
 
 		player->getTile()->moveCreature(NULL, player, getTile());
 		g_game.addMagicEffect(player->getPosition(), MAGIC_EFFECT_SLEEP);
-		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS, std::bind(&Game::kickPlayer, &g_game, player->getID(), false)));
+		g_scheduler.addEvent(createSchedulerTask(SCHEDULER_MINTICKS, std::bind(&Game::kickPlayer, &g_game, player->getID(), false)));
 	}
 	else if(Item::items[getID()].transformToFree)
 	{

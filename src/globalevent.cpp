@@ -22,6 +22,8 @@
 #include "player.h"
 #include "tools.h"
 
+#include "scheduler.h"
+
 GlobalEvents::GlobalEvents():
 	m_interface("GlobalEvent Interface")
 {
@@ -97,9 +99,9 @@ bool GlobalEvents::registerEvent(Event* event, const pugi::xml_node&, bool overr
 void GlobalEvents::startup()
 {
 	execute(GLOBALEVENT_STARTUP);
-	Scheduler::getInstance().addEvent(createSchedulerTask(TIMER_INTERVAL,
+	g_scheduler.addEvent(createSchedulerTask(TIMER_INTERVAL,
 		std::bind(&GlobalEvents::timer, this)));
-	Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
+	g_scheduler.addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
 		std::bind(&GlobalEvents::think, this)));
 }
 
@@ -118,7 +120,7 @@ void GlobalEvents::timer()
 				<< it->second->getName() << std::endl;
 	}
 
-	Scheduler::getInstance().addEvent(createSchedulerTask(TIMER_INTERVAL,
+	g_scheduler.addEvent(createSchedulerTask(TIMER_INTERVAL,
 		std::bind(&GlobalEvents::timer, this)));
 }
 
@@ -136,7 +138,7 @@ void GlobalEvents::think()
 				<< it->second->getName() << std::endl;
 	}
 
-	Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
+	g_scheduler.addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
 		std::bind(&GlobalEvents::think, this)));
 }
 

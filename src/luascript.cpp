@@ -48,6 +48,7 @@
 #include "status.h"
 #include "game.h"
 #include "chat.h"
+#include "scheduler.h"
 
 #if LUA_VERSION_NUM >= 502
 	#undef lua_strlen
@@ -653,7 +654,7 @@ LuaInterface::LuaInterface(std::string interfaceName)
 LuaInterface::~LuaInterface()
 {
 	for(LuaTimerEvents::iterator it = m_timerEvents.begin(); it != m_timerEvents.end(); ++it)
-		Scheduler::getInstance().stopEvent(it->second.eventId);
+		g_scheduler.stopEvent(it->second.eventId);
 
 	closeState();
 }
@@ -737,17 +738,16 @@ bool LuaInterface::loadFile(const std::string& file, Npc* npc/* = NULL*/)
 bool LuaInterface::loadDirectory(const std::string& dir, Npc* npc/* = NULL*/, bool recursively/* = false*/)
 {
 	StringVec files;
-	for(boost::filesystem::directory_iterator it(dir), end; it != end; ++it)
+	for(auto& it : std::filesystem::directory_iterator(dir))
 	{
-		std::string s = BOOST_DIR_ITER_FILENAME(it);
-		if(!boost::filesystem::is_directory(it->status()) && (s.size() > 4 ? s.substr(s.size() - 4) : "") == ".lua")
-			files.push_back(s);
+		if(!std::filesystem::is_directory(it.status()) && it.path().extension() == ".lua")
+			files.push_back(it.path());
 	}
 
 	std::sort(files.begin(), files.end());
-	for(StringVec::iterator it = files.begin(); it != files.end(); ++it)
+	for(auto it = files.begin(); it != files.end(); ++it)
 	{
-		if(!loadFile(dir + (*it), npc))
+		if(!loadFile(*it, npc))
 			return false;
 	}
 
@@ -863,8 +863,8 @@ bool LuaInterface::initState()
 #endif
 
 	registerFunctions();
-	if(!loadDirectory(getFilePath(FILE_TYPE_OTHER, "lib/"), NULL))
-		std::clog << "[Warning - LuaInterface::initState] Cannot load " << getFilePath(FILE_TYPE_OTHER, "lib/") << std::endl;
+	if(!loadDirectory(getFilePath(FILE_TYPE_OTHER,"lib/"), NULL))
+		std::clog << "[Warning - LuaInterface::initState] Cannot load " << getFilePath(FILE_TYPE_OTHER,"lib/") << std::endl;
 
 	lua_newtable(m_luaState);
 	lua_setfield(m_luaState, LUA_REGISTRYINDEX, "EVENTS");
@@ -8887,7 +8887,7 @@ int32_t LuaInterface::luaAddEvent(lua_State* L)
 		params.push_back(luaL_ref(L, LUA_REGISTRYINDEX));
 
 	LuaTimerEvent event;
-	event.eventId = Scheduler::getInstance().addEvent(createSchedulerTask(std::max((int64_t)SCHEDULER_MINTICKS, popNumber(L)),
+	event.eventId = g_scheduler.addEvent(createSchedulerTask(std::max((int64_t)SCHEDULER_MINTICKS, popNumber(L)),
 		std::bind(&LuaInterface::executeTimer, interface, ++interface->m_lastTimer)));
 
 	event.parameters = params;
@@ -8916,7 +8916,7 @@ int32_t LuaInterface::luaStopEvent(lua_State* L)
 	LuaTimerEvents::iterator it = interface->m_timerEvents.find(eventId);
 	if(it != interface->m_timerEvents.end())
 	{
-		Scheduler::getInstance().stopEvent(it->second.eventId);
+		g_scheduler.stopEvent(it->second.eventId);
 		for(std::list<int32_t>::iterator lt = it->second.parameters.begin(); lt != it->second.parameters.end(); ++lt)
 			luaL_unref(interface->m_luaState, LUA_REGISTRYINDEX, *lt);
 
@@ -9899,7 +9899,7 @@ int32_t LuaInterface::luaDoSetGameState(lua_State* L)
 	uint32_t id = popNumber(L);
 	if(id >= GAMESTATE_FIRST && id <= GAMESTATE_LAST)
 	{
-		Dispatcher::getInstance().addTask(createTask(
+		g_dispatcher.addTask(createTask(
 			std::bind(&Game::setGameState, &g_game, (GameState_t)id)));
 		lua_pushboolean(L, true);
 	}
@@ -9967,7 +9967,7 @@ int32_t LuaInterface::luaDoReloadInfo(lua_State* L)
 	{
 		// we're passing it to scheduler since talkactions reload will
 		// re-init our lua state and crash due to unfinished call
-		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
+		g_scheduler.addEvent(createSchedulerTask(SCHEDULER_MINTICKS,
 			std::bind(&Game::reloadInfo, &g_game, (ReloadInfo_t)id, cid)));
 		lua_pushboolean(L, true);
 	}
@@ -9984,7 +9984,7 @@ int32_t LuaInterface::luaDoSaveServer(lua_State* L)
 	if(lua_gettop(L) > 0)
 		shallow = popNumber(L);
 
-	Dispatcher::getInstance().addTask(createTask(std::bind(&Game::saveGameState, &g_game, shallow)));
+	g_dispatcher.addTask(createTask(std::bind(&Game::saveGameState, &g_game, shallow)));
 	lua_pushnil(L);
 	return 1;
 }

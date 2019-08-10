@@ -60,27 +60,8 @@
 	#endif
 
 	#include <cstring>
-	inline int strcasecmp(const char * s1, const char * s2)
-	{
-		return ::_stricmp(s1, s2);
-	}
-
-	inline int strncasecmp(const char * s1, const char * s2, size_t n)
-	{
-		return ::_strnicmp(s1, s2, n);
-	}
-
-	#define atoll _atoi64
-	#if VISUALC_VERSION < 10
-		typedef unsigned long long uint64_t;
-		typedef signed long long int64_t;
-		typedef unsigned int uint32_t;
-		typedef signed int int32_t;
-		typedef unsigned short uint16_t;
-		typedef signed short int16_t;
-		typedef unsigned char uint8_t;
-		typedef signed char int8_t;
-	#endif
+	#define strcasecmp _stricmp
+	#define strncasecmp _strnicmp
 
 	#pragma warning(disable:4786) // msvc too long debug names in stl
 	#pragma warning(disable:4018) // 'expression' : signed/unsigned mismatch
@@ -106,34 +87,6 @@
 	#ifndef _WIN32
 		#define WINDOWS
 	#endif
-#else
-	#ifdef __USE_MINIDUMP__
-		#undef __USE_MINIDUMP__
-	#endif
-
-	#if defined _WIN32 || defined WIN32 || defined __WINDOWS__ || defined WINDOWS
-		#ifndef _WIN32
-			#define _WIN32
-		#endif
-		#ifndef WIN32
-			#define WIN32
-		#endif
-
-		#ifndef __WINDOWS__
-			#define __WINDOWS__
-		#endif
-		#ifndef _WIN32
-			#define WINDOWS
-		#endif
-	#endif
-
-	#ifdef __CYGWIN__
-		#undef WIN32
-		#undef _WIN32
-		#undef WINDOWS
-		#undef __WINDOWS__
-		#define HAVE_ERRNO_AS_DEFINE
-	#endif
 #endif
 
 #ifdef __WINDOWS__
@@ -150,6 +103,7 @@
 	#define _WIN32_WINNT 0x0501
 #elif defined __GNUC__
 	#define __USE_ZLIB__
+	#include <sys/timeb.h>
 #endif
 
 #ifdef __USE_MINIDUMP__
@@ -169,7 +123,6 @@
 // #endif
 
 #ifdef _WIN32
-	#include <sys/timeb.h>
 
 	#ifndef access
 	#define access _access
@@ -182,64 +135,12 @@
 	#ifndef ftime
 	#define ftime _ftime
 	#endif
-
-	#ifndef EWOULDBLOCK
-	#define EWOULDBLOCK WSAEWOULDBLOCK
-	#endif
-
-	#ifndef errno
-	#define errno WSAGetLastError()
-	#endif
-
-	#ifndef OTSYS_SLEEP
-		#define OTSYS_SLEEP(n) Sleep(n)
-	#endif
 #else
 	#include <sys/timeb.h>
-	#include <sys/types.h>
-	#include <sys/socket.h>
-
-	#include <unistd.h>
-	#include <netdb.h>
-	#include <errno.h>
-
-	#include <arpa/inet.h>
-	#include <netinet/in.h>
-
-	#ifndef SOCKET
-	#define SOCKET int32_t
-	#endif
-
-	#ifndef closesocket
-	#define closesocket close
-	#endif
-
-	#ifndef SOCKADDR
-	#define SOCKADDR sockaddr
-	#endif
-
-	#ifndef SOCKET_ERROR
-	#define SOCKET_ERROR -1
-	#endif
-
-	#include <ctime>
-	inline void OTSYS_SLEEP(int32_t n)
-	{
-		timespec tv;
-		tv.tv_sec  = n / 1000;
-		tv.tv_nsec = (n % 1000) * 1000000;
-		nanosleep(&tv, NULL);
-	}
 #endif
 
 #if defined WINDOWS
 	#include <winerror.h>
-#endif
-
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-	#include <cstdint>
-#else
-	#include <stdint.h>
 #endif
 
 #ifndef _WIN32

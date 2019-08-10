@@ -18,8 +18,6 @@
 // Definitions should be global.
 #include "definitions.h"
 
-#include <pugixml.hpp>
-
 #include <string>
 #include <algorithm>
 #include <chrono>
@@ -31,40 +29,33 @@
 #include <map>
 #include <limits>
 
-// from src
 #include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <stdlib.h>
 #include <cmath>
 #include <memory>
 #include <unordered_set>
-// from src - end
-
-//boost
-#include <boost/config.hpp>
-#include <boost/regex.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/utility.hpp>
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
-
-// from src
-#include <boost/any.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/version.hpp>
-// from src - end
-
-#include <cstddef>
-#include <cstdlib>
 
 #include <ctime>
 #include <cassert>
 
-#if BOOST_VERSION < 104400
-	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename()
-#else
-	#define BOOST_DIR_ITER_FILENAME(iterator) (iterator)->path().filename().string()
-#endif
+#include <cstdint>
+#include <regex>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <filesystem>
+
+//	lib
+#include <boost/tokenizer.hpp>
+#include <boost/asio.hpp>
+
+#include <boost/any.hpp>
+
+#include <pugixml.hpp>
+
+//	def
+#define OTSYS_TIME() std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()

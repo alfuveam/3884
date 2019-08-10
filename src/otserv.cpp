@@ -49,7 +49,7 @@
 #include "group.h"
 
 #include "monsters.h"
-
+#include "scheduler.h"
 #include "admin.h"
 #include "textlogger.h"
 #include "tools.h"
@@ -60,10 +60,12 @@ Game g_game;
 Chat g_chat;
 Monsters g_monsters;
 Npcs g_npcs;
+Dispatcher g_dispatcher;
+Scheduler g_scheduler;
 
-boost::mutex g_loaderLock;
-boost::condition_variable g_loaderSignal;
-boost::unique_lock<boost::mutex> g_loaderUniqueLock(g_loaderLock);
+std::mutex g_loaderLock;
+std::condition_variable g_loaderSignal;
+std::unique_lock<std::mutex> g_loaderUniqueLock(g_loaderLock);
 std::list<std::pair<uint32_t, uint32_t> > serverIps;
 
 bool argumentsHandler(StringVec args)
@@ -153,7 +155,7 @@ void signalHandler(int32_t sig)
 	switch(sig)
 	{
 		case SIGHUP:
-			Dispatcher::getInstance().addTask(createTask(
+			g_dispatcher.addTask(createTask(
 				std::bind(&Game::saveGameState, &g_game, false)));
 			break;
 
@@ -166,7 +168,7 @@ void signalHandler(int32_t sig)
 			break;
 
 		case SIGUSR1:
-			Dispatcher::getInstance().addTask(createTask(
+			g_dispatcher.addTask(createTask(
 				std::bind(&Game::setGameState, &g_game, GAMESTATE_CLOSED)));
 			break;
 
@@ -175,17 +177,17 @@ void signalHandler(int32_t sig)
 			break;
 
 		case SIGCONT:
-			Dispatcher::getInstance().addTask(createTask(
+			g_dispatcher.addTask(createTask(
 				std::bind(&Game::reloadInfo, &g_game, RELOAD_ALL, 0)));
 			break;
 
 		case SIGQUIT:
-			Dispatcher::getInstance().addTask(createTask(
+			g_dispatcher.addTask(createTask(
 				std::bind(&Game::setGameState, &g_game, GAMESTATE_SHUTDOWN)));
 			break;
 
 		case SIGTERM:
-			Dispatcher::getInstance().addTask(createTask(
+			g_dispatcher.addTask(createTask(
 				std::bind(&Game::shutdown, &g_game)));
 			break;
 
@@ -205,6 +207,12 @@ int32_t getch()
 	return (int32_t)getchar();
 }
 #endif
+
+uint32_t swap_uint32(uint32_t val)
+{
+    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF ); 
+    return (val << 16) | (val >> 16);
+}
 
 void allocationHandler()
 {
@@ -234,6 +242,9 @@ int main(int argc, char* argv[])
 	ServiceManager servicer;
 	g_config.startup();
 
+	g_dispatcher.start();
+	g_scheduler.start();	
+
 #ifdef __EXCEPTION_TRACER__
 	ExceptionHandler mainExceptionHandler;
 	mainExceptionHandler.InstallHandler();
@@ -260,10 +271,10 @@ int main(int argc, char* argv[])
 #endif
 
 	OutputHandler::getInstance();
-	Dispatcher::getInstance().addTask(createTask(std::bind(otserv, args, &servicer)));
+	g_dispatcher.addTask(createTask(std::bind(otserv, args, &servicer)));
 
 	g_loaderSignal.wait(g_loaderUniqueLock);
-	boost::this_thread::sleep(boost::posix_time::milliseconds(10000));
+	
 	if(servicer.isRunning())
 	{
 		std::clog << ">> " << g_config.getString(ConfigManager::SERVER_NAME) << " servidor Online!" << std::endl << std::endl;

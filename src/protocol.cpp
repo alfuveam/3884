@@ -19,11 +19,11 @@
 
 #include "protocol.h"
 
-#include "scheduler.h"
 #include "connection.h"
 #include "outputmessage.h"
 
 #include "rsa.h"
+#include "scheduler.h"
 
 extern RSA g_RSA;
 
@@ -89,7 +89,7 @@ OutputMessage_ptr Protocol::getOutputBuffer()
 void Protocol::releaseProtocol()
 {
 	if(m_refCount > 0)
-		Scheduler::getInstance().addEvent(createSchedulerTask(SCHEDULER_MINTICKS, std::bind(&Protocol::releaseProtocol, this)));
+		g_scheduler.addEvent(createSchedulerTask(SCHEDULER_MINTICKS, std::bind(&Protocol::releaseProtocol, this)));
 	else
 		deleteProtocolTask();
 }

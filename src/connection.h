@@ -84,7 +84,7 @@ class ConnectionManager
 		IpConnectMap ipConnectMap; 
 
 		std::list<Connection_ptr> m_connections;
-		boost::recursive_mutex m_connectionManagerLock;
+		std::recursive_mutex m_connectionManagerLock;
 };
 
 class Connection : public std::enable_shared_from_this<Connection>
@@ -184,7 +184,7 @@ class Connection : public std::enable_shared_from_this<Connection>
 		uint32_t m_packetsSent;
 	
 		static bool m_logError;
-		boost::recursive_mutex m_connectionLock;
+		std::recursive_mutex m_connectionLock;
 };
 
 #endif

@@ -18,12 +18,12 @@
 #ifndef __MAP__
 #define __MAP__
 
-
 #include "fileloader.h"
 #include "position.h"
 
 #include "waypoints.h"
 #include "tile.h"
+#include "tools.h"
 
 class Creature;
 class Player;

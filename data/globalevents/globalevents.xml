@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <globalevents>
-	<globalevent name="Save" interval="900000" event="script" value="save.lua"/>
+	<globalevent name="Save" interval="900000" event="script" value="save.lua"/>	
 	<globalevent name="Clean" interval="7200000" event="script" value="clean.lua"/>
 
 	<globalevent name="Init" type="startup" event="script" value="init.lua"/>

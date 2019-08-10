@@ -20,7 +20,6 @@
 
 #include "enums.h"
 #include "server.h"
-#include "scheduler.h"
 
 #include "map.h"
 #include "spawn.h"

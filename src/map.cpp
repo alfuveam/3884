@@ -27,7 +27,6 @@
 
 #include "iomapserialize.h"
 #include "items.h"
-#include "tools.h"
 #include "game.h"
 
 extern Game g_game;

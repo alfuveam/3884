@@ -2037,14 +2037,3 @@ std::string getFilePath(FileType_t type, std::string name/* = ""*/)
 	}
 	return path;
 }
-
-int64_t OTSYS_TIME()
-{
-	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-}
-
-uint32_t swap_uint32(uint32_t val)
-{
-    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF ); 
-    return (val << 16) | (val >> 16);
-}

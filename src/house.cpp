@@ -486,14 +486,14 @@ bool AccessList::parseList(const std::string& _list)
 
 bool AccessList::isInList(const Player* player)
 {
-	std::string name = player->getName();
-	boost::cmatch what;
+	std::string name = player->getName();	
+	std::cmatch what;
 	try
 	{
 		toLowerCaseString(name);
-		for(RegexList::iterator it = regexList.begin(); it != regexList.end(); ++it)
+		for(auto it = regexList.begin(); it != regexList.end(); ++it)
 		{
-			if(boost::regex_match(name.c_str(), what, it->first))
+			if(std::regex_match(name.c_str(), what, it->first))
 				return it->second;
 		}
 	}
@@ -502,7 +502,7 @@ bool AccessList::isInList(const Player* player)
 	if(playerList.find(player->getGUID()) != playerList.end())
 		return true;
 
-	for(GuildList::iterator git = guildList.begin(); git != guildList.end(); ++git)
+	for(auto git = guildList.begin(); git != guildList.end(); ++git)
 	{
 		if(git->first == player->getGuildId() && ((uint32_t)git->second == player->getRankId() || git->second == -1))
 			return true;
@@ -536,7 +536,7 @@ bool AccessList::addGuild(const std::string& guildName, const std::string& rankN
 	if(!rankId)
 		return false;
 
-	for(GuildList::iterator git = guildList.begin(); git != guildList.end(); ++git)
+	for(auto git = guildList.begin(); git != guildList.end(); ++git)
 	{
 		if(git->first == guildId && git->second == rankId)
 			return true;
@@ -548,7 +548,7 @@ bool AccessList::addGuild(const std::string& guildName, const std::string& rankN
 
 bool AccessList::addExpression(const std::string& expression)
 {
-	for(ExpressionList::iterator it = expressionList.begin(); it != expressionList.end(); ++it)
+	for(auto it = expressionList.begin(); it != expressionList.end(); ++it)
 	{
 		if((*it) == expression)
 			return false;
@@ -575,10 +575,10 @@ bool AccessList::addExpression(const std::string& expression)
 			if(out.substr(0, 1) == "!")
 			{
 				if(out.length() > 1)
-					regexList.push_front(std::make_pair(boost::regex(out.substr(1)), false));
+					regexList.push_front(std::make_pair(std::regex(out.substr(1)), false));
 			}
 			else
-				regexList.push_back(std::make_pair(boost::regex(out), true));
+				regexList.push_back(std::make_pair(std::regex(out), true));
 		}
 	}
 	catch(...) {}

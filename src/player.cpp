@@ -29,12 +29,13 @@
 
 #include "combat.h"
 #include "movement.h"
-#include "weapons.h"
-#include "creatureevent.h"
 
 #include "configmanager.h"
 #include "game.h"
 #include "chat.h"
+#include "weapons.h"
+#include "creatureevent.h"
+#include "scheduler.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -1731,7 +1732,7 @@ void Player::setNextWalkActionTask(SchedulerTask* task)
 {
 	if(walkTaskEvent)
 	{
-		Scheduler::getInstance().stopEvent(walkTaskEvent);
+		g_scheduler.stopEvent(walkTaskEvent);
 		walkTaskEvent = 0;
 	}
 
@@ -1744,13 +1745,13 @@ void Player::setNextWalkTask(SchedulerTask* task)
 {
 	if(nextStepEvent)
 	{
-		Scheduler::getInstance().stopEvent(nextStepEvent);
+		g_scheduler.stopEvent(nextStepEvent);
 		nextStepEvent = 0;
 	}
 
 	if(task)
 	{
-		nextStepEvent = Scheduler::getInstance().addEvent(task);
+		nextStepEvent = g_scheduler.addEvent(task);
 		setIdleTime(0);
 	}
 }
@@ -1759,13 +1760,13 @@ void Player::setNextActionTask(SchedulerTask* task)
 {
 	if(actionTaskEvent)
 	{
-		Scheduler::getInstance().stopEvent(actionTaskEvent);
+		g_scheduler.stopEvent(actionTaskEvent);
 		actionTaskEvent = 0;
 	}
 
 	if(task)
 	{
-		actionTaskEvent = Scheduler::getInstance().addEvent(task);
+		actionTaskEvent = g_scheduler.addEvent(task);
 		setIdleTime(0);
 	}
 }
@@ -3487,7 +3488,7 @@ bool Player::setAttackedCreature(Creature* creature)
 		setFollowCreature(NULL);
 
 	if(creature)
-		Dispatcher::getInstance().addTask(createTask(std::bind(&Game::checkCreatureAttack, &g_game, getID())));
+		g_dispatcher.addTask(createTask(std::bind(&Game::checkCreatureAttack, &g_game, getID())));
 
 	return true;
 }
@@ -3610,7 +3611,7 @@ void Player::onWalkComplete()
 	if(!walkTask)
 		return;
 
-	walkTaskEvent = Scheduler::getInstance().addEvent(walkTask);
+	walkTaskEvent = g_scheduler.addEvent(walkTask);
 	walkTask = NULL;
 }
 
@@ -4329,7 +4330,7 @@ bool Player::addUnjustifiedKill(const Player* attacked, bool countNow)
 
 		sendTextMessage(MSG_INFO_DESCR, "You have been banished.");
 		g_game.addMagicEffect(getPosition(), MAGIC_EFFECT_WRAPS_GREEN);
-		Scheduler::getInstance().addEvent(createSchedulerTask(1000, std::bind(
+		g_scheduler.addEvent(createSchedulerTask(1000, std::bind(
 			&Game::kickPlayer, &g_game, getID(), false)));
 	}
 	else

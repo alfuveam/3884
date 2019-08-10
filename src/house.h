@@ -69,16 +69,11 @@ class AccessList
 		void getList(std::string& _list) const;
 
 	private:
-		typedef std::unordered_set<uint32_t> PlayerList;
-		typedef std::list<std::pair<uint32_t, int32_t> > GuildList;
-		typedef std::list<std::string> ExpressionList;
-		typedef std::list<std::pair<boost::regex, bool> > RegexList;
-
 		std::string list;
-		PlayerList playerList;
-		GuildList guildList;
-		ExpressionList expressionList;
-		RegexList regexList;
+		std::unordered_set<uint32_t> playerList;
+		std::list<std::pair<uint32_t, int32_t> > guildList;
+		std::list<std::string> expressionList;
+		std::list<std::pair<std::regex, bool> > regexList;
 };
 
 class Door : public Item

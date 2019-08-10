@@ -20,13 +20,6 @@
 
 #include "const.h"
 
-enum SocketCode_t
-{
-	SOCKET_CODE_OK,
-	SOCKET_CODE_TIMEOUT,
-	SOCKET_CODE_ERROR,
-};
-
 class Item;
 class Position;
 
@@ -42,10 +35,6 @@ class NetworkMessage
 			m_size = 0;
 			m_position = size;
 		}
-
-		// socket functions
-		SocketCode_t read(SOCKET socket, bool ignoreLength, int32_t timeout = NETWORK_RETRY_TIMEOUT);
-		SocketCode_t write(SOCKET socket, int32_t timeout = NETWORK_RETRY_TIMEOUT);
 
 		// simple read functions for incoming message
 		template<typename T>

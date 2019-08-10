@@ -51,7 +51,7 @@ class DatabaseSQLite : public _Database
 	protected:
 		std::string _parse(const std::string& s);
 
-		boost::recursive_mutex sqliteLock;
+		std::recursive_mutex sqliteLock;
 		sqlite3* m_handle;
 };
 

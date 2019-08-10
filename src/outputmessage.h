@@ -177,7 +177,7 @@ class OutputMessagePool
 		InternalList m_outputMessages;
 		InternalList m_allMessages;
 
-		boost::recursive_mutex m_outputPoolLock;
+		std::recursive_mutex m_outputPoolLock;
 		uint64_t m_frameTime;
 		bool m_shutdown;
 };

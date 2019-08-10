@@ -15,54 +15,41 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __TEMPLATES__
-#define __TEMPLATES__
+#ifndef __THREAD_HOLDER_H__
+#define __THREAD_HOLDER_H__
 
-template<class T> class AutoList : public std::map<uint32_t, T*>
+#include "enums.h"
+
+template <typename Derived>
+class ThreadHolder
 {
 	public:
-		AutoList() {}
-		virtual ~AutoList() {}
-};
+		ThreadHolder() {}
+		void start() {
+			setState(STATE_RUNNING);
+			thread = std::thread(&Derived::threadMain, static_cast<Derived*>(this));
+		}
 
-class AutoId
-{
-	public:
-		AutoId()
-		{
-			std::lock_guard<std::recursive_mutex> lockClass(lock);
-			++count;
-			if(count >= 0xFFFFFF)
-				count = 1000;
+		void stop() {
+			setState(STATE_CLOSING);
+		}
 
-			while(list.find(count) != list.end())
-			{
-				if(count >= 0xFFFFFF)
-					count = 1000;
-				else
-					++count;
+		void join() {
+			if (thread.joinable()) {
+				thread.join();
 			}
-
-			list.insert(count);
-			autoId = count;
 		}
-
-		virtual ~AutoId()
-		{
-			std::set<uint32_t>::iterator it = list.find(autoId);
-			if(it != list.end())
-				list.erase(it);
-		}
-
-		uint32_t autoId;
-
 	protected:
-		static uint32_t count;
+		void setState(ThreadState newState) {
+			m_threadState.store(newState, std::memory_order_relaxed);
+		}
 
-		typedef std::set<uint32_t> List;
-		static List list;
-
-		static std::recursive_mutex lock;
+		ThreadState getState() const {
+			return m_threadState.load(std::memory_order_relaxed);
+		}
+		std::atomic<ThreadState> m_threadState{STATE_TERMINATED};
+	private:
+		std::thread thread;
 };
 
 #endif

@@ -19,7 +19,7 @@
 #define __RAIDS__
 
 #include "const.h"
-
+#include "tools.h"
 #include "baseevents.h"
 #include "position.h"
 

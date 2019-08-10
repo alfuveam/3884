@@ -21,7 +21,6 @@
 #include "baseevents.h"
 
 #include "const.h"
-#include "scheduler.h"
 
 #define TIMER_INTERVAL 1000
 

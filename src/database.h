@@ -19,7 +19,6 @@
 #define __DATABASE__
 
 #include "enums.h"
-#include "tools.h"
 
 #ifdef __MULTI_SQL_DRIVERS__
 #define DATABASE_VIRTUAL virtual
@@ -254,7 +253,7 @@ class DBQuery : public std::stringstream
 		virtual ~DBQuery() {str(""); databaseLock.unlock();}
 
 	protected:
-		static boost::recursive_mutex databaseLock;
+		static std::recursive_mutex databaseLock;
 };
 
 /**

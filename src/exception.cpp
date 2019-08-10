@@ -35,7 +35,7 @@ FunctionMap functionMap;
 
 uint32_t offMax, offMin;
 bool mapLoaded = false;
-boost::recursive_mutex mapLock;
+std::recursive_mutex mapLock;
 
 #ifdef __GNUC__
 void printPointer(std::ostream* output, uint32_t p);
@@ -57,7 +57,7 @@ ExceptionHandler::~ExceptionHandler()
 bool ExceptionHandler::InstallHandler()
 {
 	#ifdef _WIN32
-	boost::recursive_mutex::scoped_lock lockObj(mapLock);
+	std::lock_guard<std::recursive_mutex> lockObj(mapLock);
 	if(!mapLoaded)
 		LoadMap();
 

@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-
+#include "tools.h"
 #include "database.h"
 #include "databasesqlite.h"
 
@@ -88,7 +88,7 @@ std::string DatabaseSQLite::_parse(const std::string& s)
 
 bool DatabaseSQLite::query(const std::string& query)
 {
-	boost::recursive_mutex::scoped_lock lockClass(sqliteLock);
+	std::lock_guard<std::recursive_mutex> lockClass(sqliteLock);
 	if(!m_connected)
 		return false;
 
@@ -122,7 +122,7 @@ bool DatabaseSQLite::query(const std::string& query)
 
 DBResult* DatabaseSQLite::storeQuery(const std::string& query)
 {
-	boost::recursive_mutex::scoped_lock lockClass(sqliteLock);
+	std::lock_guard<std::recursive_mutex> lockClass(sqliteLock);
 	if(!m_connected)
 		return NULL;
 
@@ -158,8 +158,8 @@ std::string DatabaseSQLite::escapeString(const std::string& s)
 	delete[] output;
 
 	//escape % and _ because we are using LIKE operator.
-	r = boost::regex_replace(r, boost::regex("%"), "\\%");
-	r = boost::regex_replace(r, boost::regex("_"), "\\_");
+	r = std::regex_replace(r, std::regex("%"), "\\%");
+	r = std::regex_replace(r, std::regex("_"), "\\_");
 	if(r[r.length() - 1] != '\'')
 		r += "'";
 

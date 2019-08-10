@@ -18,45 +18,29 @@
 #include "otpch.h"
 #include "dispatcher.h"
 
-#include "outputmessage.h"	
-#include "tools.h"
+#include "outputmessage.h"
 #include "game.h"
+#include "tools.h"
 
 extern Game g_game;
 
-Dispatcher::DispatcherState Dispatcher::m_threadState = Dispatcher::STATE_TERMINATED;
-
-Dispatcher::Dispatcher()
+void Dispatcher::threadMain()
 {
-	m_taskList.clear();
-	Dispatcher::m_threadState = Dispatcher::STATE_RUNNING;
-	boost::thread(std::bind(&Dispatcher::dispatcherThread, (void*)this));
-}
-
-void Dispatcher::dispatcherThread(void* p)
-{
-	Dispatcher* dispatcher = (Dispatcher*)p;
-	#if defined __EXCEPTION_TRACER__
-	ExceptionHandler dispatcherExceptionHandler;
-	dispatcherExceptionHandler.InstallHandler();
-	#endif
-	srand((uint32_t)OTSYS_TIME());
-
 	OutputMessagePool* outputPool = NULL;
-	boost::unique_lock<boost::mutex> taskLockUnique(dispatcher->m_taskLock, boost::defer_lock);
-	while(Dispatcher::m_threadState != Dispatcher::STATE_TERMINATED)
+	std::unique_lock<std::mutex> taskLockUnique(m_taskLock, std::defer_lock);
+	while(m_threadState != STATE_TERMINATED)
 	{
 		Task* task = NULL;
 		// check if there are tasks waiting
 		taskLockUnique.lock();
-		if(dispatcher->m_taskList.empty()) //if the list is empty wait for signal
-			dispatcher->m_taskSignal.wait(taskLockUnique);
+		if(m_taskList.empty()) //if the list is empty wait for signal
+			m_taskSignal.wait(taskLockUnique);
 
-		if(!dispatcher->m_taskList.empty() && Dispatcher::m_threadState != Dispatcher::STATE_TERMINATED)
+		if(!m_taskList.empty() && m_threadState != STATE_TERMINATED)
 		{
 			// take the first task
-			task = dispatcher->m_taskList.front();
-			dispatcher->m_taskList.pop_front();
+			task = m_taskList.front();
+			m_taskList.pop_front();
 		}
 
 		taskLockUnique.unlock();
@@ -88,7 +72,7 @@ void Dispatcher::addTask(Task* task, bool front/* = false*/)
 {
 	bool signal = false;
 	m_taskLock.lock();
-	if(Dispatcher::m_threadState == Dispatcher::STATE_RUNNING)
+	if(m_threadState == STATE_RUNNING)
 	{
 		signal = m_taskList.empty();
 		if(front)
@@ -128,15 +112,24 @@ void Dispatcher::flush()
 void Dispatcher::stop()
 {
 	m_taskLock.lock();
-	m_threadState = Dispatcher::STATE_CLOSING;
+	m_threadState = STATE_CLOSING;
 	m_taskLock.unlock();
 }
 
 void Dispatcher::shutdown()
 {
 	m_taskLock.lock();
-	m_threadState = Dispatcher::STATE_TERMINATED;
+	m_threadState = STATE_TERMINATED;
 
 	flush();
 	m_taskLock.unlock();
+}
+
+Task* createTask(std::function<void (void)> f)
+{
+	return new Task(std::move(f));
+}
+Task* createTask(uint32_t expiration, std::function<void (void)> f)
+{
+	return new Task(expiration, std::move(f));
 }

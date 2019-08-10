@@ -24,7 +24,7 @@
 #include "tools.h"
 #include "game.h"
 #include "configmanager.h"
-
+#include "scheduler.h"
 
 extern Game g_game;
 extern ConfigManager g_config;
@@ -100,7 +100,7 @@ void ServicePort::open(IPAddressList ips, uint16_t port)
 	{
 		m_logError = false;
 		m_pendingStart = true;
-		Scheduler::getInstance().addEvent(createSchedulerTask(5000, std::bind(
+		g_scheduler.addEvent(createSchedulerTask(5000, std::bind(
 			&ServicePort::services, std::weak_ptr<ServicePort>(shared_from_this()), pendingIps, m_serverPort)));
 	}
 }
@@ -194,7 +194,7 @@ void ServicePort::handle(Acceptor_ptr acceptor, boost::asio::ip::tcp::socket* so
 		if(!m_pendingStart)
 		{
 			m_pendingStart = true;
-			Scheduler::getInstance().addEvent(createSchedulerTask(5000, std::bind(
+			g_scheduler.addEvent(createSchedulerTask(5000, std::bind(
 				&ServicePort::service, std::weak_ptr<ServicePort>(shared_from_this()),
 				acceptor->local_endpoint().address().to_v4(), m_serverPort)));
 		}

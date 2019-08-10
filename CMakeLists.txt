@@ -47,7 +47,7 @@ else()
 endif()
 
 #	Is necessary to build a correct build file
-find_package(Boost 1.53.0 COMPONENTS system iostreams filesystem regex date_time thread REQUIRED)
+find_package(Boost 1.53.0 COMPONENTS system iostreams REQUIRED)
 
 add_subdirectory(src)
 add_executable(tfs ${tfs_SRC})

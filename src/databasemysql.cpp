@@ -21,8 +21,8 @@
 #include "database.h"
 #include "databasemysql.h"
 
-#include "scheduler.h"
 #include "configmanager.h"
+#include "scheduler.h"
 
 extern ConfigManager g_config;
 
@@ -62,7 +62,7 @@ DatabaseMySQL::DatabaseMySQL() :
 
 	timeout = g_config.getNumber(ConfigManager::SQL_KEEPALIVE) * 1000;
 	if(timeout)
-		m_timeoutTask = Scheduler::getInstance().addEvent(createSchedulerTask(timeout,
+		m_timeoutTask = g_scheduler.addEvent(createSchedulerTask(timeout,
 			std::bind(&DatabaseMySQL::keepAlive, this)));
 
 	if(!g_config.getBool(ConfigManager::HOUSE_STORAGE))
@@ -84,7 +84,7 @@ DatabaseMySQL::~DatabaseMySQL()
 {
 	mysql_close(&m_handle);
 	if(m_timeoutTask != 0)
-		Scheduler::getInstance().stopEvent(m_timeoutTask);
+		g_scheduler.stopEvent(m_timeoutTask);
 }
 
 bool DatabaseMySQL::getParam(DBParam_t param)
@@ -216,7 +216,7 @@ void DatabaseMySQL::keepAlive()
 			m_connected = false;
 	}
 
-	Scheduler::getInstance().addEvent(createSchedulerTask(timeout,
+	g_scheduler.addEvent(createSchedulerTask(timeout,
 		std::bind(&DatabaseMySQL::keepAlive, this)));
 }
 

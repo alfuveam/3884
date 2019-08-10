@@ -18,6 +18,13 @@
 #ifndef __ENUMS__
 #define __ENUMS__
 
+enum ThreadState
+{
+	STATE_RUNNING,
+	STATE_CLOSING,
+	STATE_TERMINATED
+};
+
 enum DatabaseEngine_t
 {
 	DATABASE_ENGINE_NONE = 0,

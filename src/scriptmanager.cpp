@@ -113,23 +113,22 @@ bool ScriptManager::loadSystem()
 
 bool ScriptManager::loadMods()
 {
-	boost::filesystem::path modsPath(getFilePath(FILE_TYPE_MOD));
-	if(!boost::filesystem::exists(modsPath))
+	std::filesystem::path modsPath(getFilePath(FILE_TYPE_MOD));
+	if(!std::filesystem::exists(modsPath))
 	{
 		std::clog << "[Error - ScriptManager::loadMods] Couldn't locate main directory" << std::endl;
 		return false;
 	}
 
 	int32_t i = 0, j = 0;
-	bool enabled = false;
-	for(boost::filesystem::directory_iterator it(modsPath), end; it != end; ++it)
+	bool enabled = false;	
+	for(auto& it : std::filesystem::directory_iterator(modsPath))
 	{
-		std::string s = BOOST_DIR_ITER_FILENAME(it);
-		if(boost::filesystem::is_directory(it->status()) && (s.size() > 4 ? s.substr(s.size() - 4) : "") != ".xml")
+		if(std::filesystem::is_directory(it.status()) && it.path().extension() != ".xml")
 			continue;
 
-		std::clog << "> Loading " << s << "...";
-		if(loadFromXml(s, enabled))
+		std::clog << "> Loading " << it.path() << "...";
+		if(loadFromXml(it.path(), enabled))
 		{
 			std::clog << " done";
 			if(!enabled)
@@ -173,7 +172,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 	enabled = false;
 	pugi::xml_attribute attr;
 	pugi::xml_document _doc;
-	pugi::xml_parse_result result = _doc.load_file(getFilePath(FILE_TYPE_MOD, file).c_str());	
+	pugi::xml_parse_result result = _doc.load_file(file.c_str());	
 	if(!result)
 	{
 		std::clog << "[Error - ScriptManager::loadFromXml] Cannot load mod " << file << std::endl;		
