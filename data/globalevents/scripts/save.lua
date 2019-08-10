@@ -27,7 +27,7 @@ local function executeSave(seconds)
 	end
 end
 
-function onTime(interval)
+function onThink(interval)
 	if(table.maxn(config.broadcast) == 0) then
 		doSaveServer(config.shallow)
 	else

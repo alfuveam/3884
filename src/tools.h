@@ -29,22 +29,6 @@ typedef std::vector<int32_t> IntegerVec;
 typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 typedef std::map<int32_t, bool> VocationMap;
 
-enum DistributionType_t
-{
-	DISTRO_UNIFORM,
-	DISTRO_SQUARE,
-	DISTRO_NORMAL
-};
-
-enum FileType_t
-{
-	FILE_TYPE_XML,
-	FILE_TYPE_LOG,
-	FILE_TYPE_OTHER,
-	FILE_TYPE_CONFIG,
-	FILE_TYPE_MOD
-};
-
 std::string transformToMD5(std::string plainText, bool upperCase);
 std::string transformToSHA1(std::string plainText, bool upperCase);
 std::string transformToSHA256(std::string plainText, bool upperCase);

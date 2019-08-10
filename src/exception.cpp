@@ -23,7 +23,8 @@
 	#include <tlhelp32.h>
 #endif
 
-
+#include "tools.h"
+#include "enums.h"
 #include "configmanager.h"
 
 #ifdef __EXCEPTION_TRACER__

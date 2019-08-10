@@ -128,7 +128,7 @@ bool ScriptManager::loadMods()
 			continue;
 
 		std::clog << "> Loading " << it.path() << "...";
-		if(loadFromXml(it.path(), enabled))
+		if(loadFromXml(it.path().u8string(), enabled))
 		{
 			std::clog << " done";
 			if(!enabled)

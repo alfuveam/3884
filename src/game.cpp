@@ -3345,7 +3345,6 @@ bool Game::internalCloseTrade(Player* player)
 		return true;
 	}
 
-	std::vector<Item*>::iterator it;
 	if(player->getTradeItem())
 	{
 		std::map<Item*, uint32_t>::iterator it = tradeItems.find(player->getTradeItem());

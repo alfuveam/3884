@@ -22,6 +22,11 @@
 
 void Scheduler::threadMain()
 {
+	#if defined __EXCEPTION_TRACER__
+		ExceptionHandler schedulerExceptionHandler;
+		schedulerExceptionHandler.InstallHandler();
+	#endif
+
 	std::unique_lock<std::mutex> eventLockUnique(m_eventLock, std::defer_lock);
 	while(m_threadState != STATE_TERMINATED)
 	{
@@ -69,7 +74,7 @@ void Scheduler::threadMain()
 	}
 
 	#if defined __EXCEPTION_TRACER__
-	schedulerExceptionHandler.RemoveHandler();
+		schedulerExceptionHandler.RemoveHandler();
 	#endif
 }
 

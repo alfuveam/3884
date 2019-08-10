@@ -26,6 +26,11 @@ extern Game g_game;
 
 void Dispatcher::threadMain()
 {
+	#if defined __EXCEPTION_TRACER__
+		ExceptionHandler dispatcherExceptionHandler;
+		dispatcherExceptionHandler.InstallHandler();
+	#endif
+
 	OutputMessagePool* outputPool = NULL;
 	std::unique_lock<std::mutex> taskLockUnique(m_taskLock, std::defer_lock);
 	while(m_threadState != STATE_TERMINATED)
@@ -64,7 +69,7 @@ void Dispatcher::threadMain()
 	}
 
 	#if defined __EXCEPTION_TRACER__
-	dispatcherExceptionHandler.RemoveHandler();
+		dispatcherExceptionHandler.RemoveHandler();
 	#endif
 }
 

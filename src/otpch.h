@@ -48,7 +48,12 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
-#include <filesystem>
+
+#if __GNUC__ < 8
+    #include <experimental/filesystem>
+#else
+    #include <filesystem>
+#endif
 
 //	lib
 #include <boost/tokenizer.hpp>
