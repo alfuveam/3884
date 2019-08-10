@@ -188,12 +188,17 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg)
 
 bool Protocol::RSA_decrypt(NetworkMessage& msg)
 {
+	return RSA_decrypt(&g_RSA, msg);	
+}
+
+bool Protocol::RSA_decrypt(RSA* rsa, NetworkMessage& msg)
+{
 	if ((msg.size() - msg.position()) < 128) {
 		return false;
 	}
 
 	g_RSA.decrypt(reinterpret_cast<char*>(msg.buffer()) + msg.position()); //does not break strict aliasing	
-	return msg.get<char>() == 0;	
+	return msg.get<char>() == 0;
 }
 
 uint32_t Protocol::getIP() const

@@ -19,6 +19,7 @@
 #define __PROTOCOL__
 
 #include "tools.h"
+#include "rsa.h"
 
 class OutputMessage;
 typedef std::shared_ptr<OutputMessage> OutputMessage_ptr;
@@ -77,6 +78,7 @@ class Protocol
 		void XTEA_encrypt(OutputMessage& msg);
 		bool XTEA_decrypt(NetworkMessage& msg);
 		bool RSA_decrypt(NetworkMessage& msg);
+		bool RSA_decrypt(RSA* rsa, NetworkMessage& msg);
 
 		virtual void releaseProtocol();
 		virtual void deleteProtocolTask();

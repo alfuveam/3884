@@ -869,7 +869,7 @@ bool Monster::pushItem(Item* item, int32_t radius)
 	pairVector.push_back(PositionPair(1, 0));
 	pairVector.push_back(PositionPair(1, 1));
 
-	std::random_shuffle(pairVector.begin(), pairVector.end());
+	std::shuffle(pairVector.begin(), pairVector.end(), std::default_random_engine(0));
 	Position tryPos;
 	for(int32_t n = 1; n <= radius; ++n)
 	{
@@ -927,7 +927,7 @@ bool Monster::pushCreature(Creature* creature)
 	dirVector.push_back(WEST);
 	dirVector.push_back(EAST);
 
-	std::random_shuffle(dirVector.begin(), dirVector.end());
+	std::shuffle(dirVector.begin(), dirVector.end(), std::default_random_engine(0));
 	Position monsterPos = creature->getPosition();
 
 	Tile* tile = NULL;
@@ -1029,7 +1029,7 @@ bool Monster::getRandomStep(const Position& creaturePos, Direction& dir)
 	dirVector.push_back(WEST);
 	dirVector.push_back(EAST);
 
-	std::random_shuffle(dirVector.begin(), dirVector.end());
+	std::shuffle(dirVector.begin(), dirVector.end(), std::default_random_engine(0));
 	for(DirVector::iterator it = dirVector.begin(); it != dirVector.end(); ++it)
 	{
 		if(!canWalkTo(creaturePos, *it))
@@ -1109,7 +1109,7 @@ bool Monster::getDanceStep(const Position& creaturePos, Direction& dir,	bool kee
 	if(dirVector.empty())
 		return false;
 
-	std::random_shuffle(dirVector.begin(), dirVector.end());
+	std::shuffle(dirVector.begin(), dirVector.end(), std::default_random_engine(0));
 	dir = dirVector[random_range(0, dirVector.size() - 1)];
 	return true;
 }

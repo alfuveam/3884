@@ -42,10 +42,11 @@ class SchedulerTask : public Task
 
 SchedulerTask* createSchedulerTask(uint32_t delay, std::function<void (void)> f);
 
-class lessTask : public std::binary_function<SchedulerTask*&, SchedulerTask*&, bool>
+struct lessTask
 {
-	public:
-		bool operator()(SchedulerTask*& t1, SchedulerTask*& t2) {return (*t1) < (*t2);}
+	bool operator()(const SchedulerTask* lhs, const SchedulerTask* rhs) const {
+		return lhs->getCycle() > rhs->getCycle();
+	}
 };
 
 typedef std::set<uint32_t> EventIds;

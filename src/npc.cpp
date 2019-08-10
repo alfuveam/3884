@@ -1859,7 +1859,7 @@ bool Npc::getRandomStep(Direction& dir)
 	if(dirList.empty())
 		return false;
 
-	std::random_shuffle(dirList.begin(), dirList.end());
+	std::shuffle(dirList.begin(), dirList.end(), std::default_random_engine(0));
 	dir = dirList[random_range(0, dirList.size() - 1)];
 	return true;
 }

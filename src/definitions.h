@@ -103,7 +103,6 @@
 	#define _WIN32_WINNT 0x0501
 #elif defined __GNUC__
 	#define __USE_ZLIB__
-	#include <sys/timeb.h>
 #endif
 
 #ifdef __USE_MINIDUMP__
@@ -135,8 +134,6 @@
 	#ifndef ftime
 	#define ftime _ftime
 	#endif
-#else
-	#include <sys/timeb.h>
 #endif
 
 #if defined WINDOWS
@@ -157,5 +154,7 @@
 		std::clog << "Boost exception: " << e.what() << std::endl;
 	}
 #endif
+
+#include <sys/timeb.h>
 
 #endif

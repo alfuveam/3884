@@ -198,7 +198,7 @@ bool Map::placeCreature(const Position& centerPos, Creature* creature, bool exte
 		relList.push_back(PositionPair(0, -2));
 		relList.push_back(PositionPair(0, 2));
 		relList.push_back(PositionPair(2, 0));
-		std::random_shuffle(relList.begin(), relList.end());
+		std::shuffle(relList.begin(), relList.end(), std::default_random_engine(0));
 	}
 
 	relList.push_back(PositionPair(-1, -1));
@@ -209,7 +209,7 @@ bool Map::placeCreature(const Position& centerPos, Creature* creature, bool exte
 	relList.push_back(PositionPair(1, -1));
 	relList.push_back(PositionPair(1, 0));
 	relList.push_back(PositionPair(1, 1));
-	std::random_shuffle(relList.begin() + shufflePos, relList.end());
+	std::shuffle(relList.begin() + shufflePos, relList.end(), std::default_random_engine(0));
 
 	uint32_t radius = 1;
 	Position tryPos;

@@ -11,8 +11,8 @@ addons:
   apt:
     packages:
       - clang-8
-      - gcc-9
-      - g++-9
+      - gcc-8
+      - g++-8
       - libboost-dev
       - libboost-system-dev
       - libboost-iostreams-dev

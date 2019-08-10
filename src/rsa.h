@@ -32,8 +32,10 @@ class RSA
 		void loadPEM(const std::string& filename);
 		void decrypt(char* msg) const;
 
+		void getPublicKey(char* buffer);
 	private:
 		CryptoPP::RSA::PrivateKey pk;
+		CryptoPP::RSA::PublicKey _pk;
 };
 
 #endif

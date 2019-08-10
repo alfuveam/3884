@@ -15,8 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifdef __OTADMIN__
-
 #include "otpch.h"
 
 #include "admin.h"
@@ -25,6 +23,7 @@
 
 #include "configmanager.h"
 #include "game.h"
+#include "scheduler.h"
 
 #include "connection.h"
 #include "outputmessage.h"
@@ -33,7 +32,6 @@
 #include "house.h"
 #include "town.h"
 #include "iologindata.h"
-
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -290,10 +288,10 @@ void ProtocolAdmin::parsePacket(NetworkMessage& msg)
 						output->put<char>(AP_MSG_KEY_EXCHANGE_OK);
 						output->put<char>(ENCRYPTION_RSA1024XTEA);
 
-						char RSAPublicKey[128];
+						char* RSAPublicKey = new char[128];
 						rsa->getPublicKey(RSAPublicKey);
 
-						output->put<char>s(RSAPublicKey, 128);
+						output->put<char>(*RSAPublicKey);
 						break;
 					}
 
@@ -602,35 +600,36 @@ uint32_t Admin::getOptions() const
 
 Item* Admin::createMail(const std::string xmlData, std::string& name, uint32_t& depotId)
 {
-	pugi::xml_document doc;
-	pugi::xml_parse_result result = doc.load_buffer_inplace(xmlData.c_str(), xmlData.length());	
+	pugi::xml_document node;
+	pugi::xml_parse_result result = node.load_buffer_inplace((void*)xmlData.c_str(), xmlData.length());
 	if(!result)
 		return NULL;
-
-	// xmlNodePtr root = xmlDocGetRootElement(doc);
-	if(doc.attribute("mail"))
+	
+	if(node.attribute("mail"))
 		return NULL;
 
-	int32_t intValue;
 	std::string strValue;
 	pugi::xml_attribute attr;
 
 	int32_t itemId = ITEM_PARCEL;
-	if(attr = node.attribute("to"))
-		name = attr.as_string());
+	if((attr = node.attribute("to")))
+		name = attr.as_string();
 
-	if(attr = node.attribute("town"))
+	if((attr = node.attribute("town")))
 	{
 		Town* town = Towns::getInstance()->getTown(attr.as_int());
-		if(!town)
-			return false;
+		if(!town){
+			return nullptr;
+		}
 
 		depotId = town->getID();
 	}
 	else if(!IOLoginData::getInstance()->getDefaultTownByName(name, depotId)) //use the players default town
-		return false;
+	{
+		return nullptr;
+	}
 
-	if(attr = node.attribute("id"))
+	if((attr = node.attribute("id")))
 		itemId = attr.as_int();
 
 	Item* mailItem = Item::CreateItem(itemId);	//	for to only one item ?????
@@ -692,4 +691,3 @@ void ProtocolAdmin::addLogLine(LogType_t type, std::string message)
 	if(g_config.getBool(ConfigManager::ADMIN_LOGS))
 		LOG_MESSAGE(type, message, "ADMIN " + convertIPAddress(getIP()))
 }
-#endif
