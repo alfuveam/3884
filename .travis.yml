@@ -1,9 +1,9 @@
 sudo: required
-dist: trusty
+dist: bionic
 language: cpp
 compiler:
-  - clang-7
-  - gcc-7
+  - clang
+  - gcc
 env:
   - LUAJIT=OFF  
 cache: apt

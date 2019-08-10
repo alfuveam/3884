@@ -10,7 +10,6 @@ configuration:
   - Release
 
 matrix:
-  CXXSTD: 17
   fast_finish: true
 
 only_commits:
