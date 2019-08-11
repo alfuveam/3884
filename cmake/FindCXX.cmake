@@ -11,7 +11,7 @@ if(COMPILER_KNOWS_CXX17)
     check_cxx_compiler_flag("-stdlib=libc++" COMPILER_KNOWS_STDLIB)
     if(APPLE AND COMPILER_KNOWS_STDLIB)
         add_compile_options(-stdlib=libc++)
-        link_libraries(c++fs) # <filesystem>
+        link_libraries(c++experimental) # <filesystem>
     endif()
 else()
     message(FATAL_ERROR "Your C++ compiler does not support C++17.")
