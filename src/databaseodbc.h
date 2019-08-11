@@ -18,16 +18,6 @@
 // Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //////////////////////////////////////////////////////////////////////
 
-//
-// C++ Interface: databaseodbc
-//
-// Description: Frontend for ODBC connections
-//
-//
-// Author: Bruno R Ferreira <brf_coldf@yahoo.com.br>, (C) 2007
-//
-//
-
 #ifdef __USE_ODBC__
 
 #ifndef __OTSERV_DATABASEODBC_H__
@@ -37,9 +27,6 @@
 #include <sqlext.h>
 #include <sqltypes.h>
 
-/**
-  @author Bruno R Ferreira <brf_coldf@yahoo.com.br>
-*/
 class DatabaseODBC : public _Database
 {
 public:
@@ -78,7 +65,7 @@ public:
   DATABASE_VIRTUAL uint32_t getDataUInt(const std::string &s);
   DATABASE_VIRTUAL int64_t getDataLong(const std::string &s);
   DATABASE_VIRTUAL std::string getDataString(const std::string &s);
-  DATABASE_VIRTUAL const char* getDataStream(const std::string &s, unsigned long &size);
+  DATABASE_VIRTUAL const char* getDataStream(const std::string &s, uint64_t &size);
 
   DATABASE_VIRTUAL bool empty();
 

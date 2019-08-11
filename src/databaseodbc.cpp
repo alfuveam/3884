@@ -318,7 +318,7 @@ std::string ODBCResult::getDataString(const std::string &s)
   return std::string(""); // Failed
 }
 
-const char* ODBCResult::getDataStream(const std::string &s, unsigned long &size)
+const char* ODBCResult::getDataStream(const std::string &s, uint64_t &size)
 {
   listNames_t::iterator it = m_listNames.find(s);
   if(it != m_listNames.end() )

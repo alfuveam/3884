@@ -16,7 +16,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-#include <errmsg.h> //mysql
+
+#if defined( _MSC_VER)
+	#include <mysql/errmsg.h>
+#else
+	#include <errmsg.h>
+#endif
 
 #include "database.h"
 #include "databasemysql.h"
