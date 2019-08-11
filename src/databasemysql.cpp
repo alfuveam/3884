@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-#include <mysql/errmsg.h>
+#include <errmsg.h> //mysql
 
 #include "database.h"
 #include "databasemysql.h"
