@@ -119,7 +119,7 @@ endif()
 if(__USE_PGSQL__)
   add_definitions(-D__USE_PGSQL__)
   find_package(PostgreSQL REQUIRED)
-  include_directories(${PostgreSQL_INCLUDE_DIR})
+  include_directories(${PostgreSQL_INCLUDE_DIRS})
   target_link_libraries(tfs ${PostgreSQL_LIBRARIES})
 endif()
 
