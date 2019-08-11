@@ -1,4 +1,4 @@
-find_path(PostgreSQL_INCLUDE_DIR libpq-fe.h
+find_path(PostgreSQL_INCLUDE_DIRS libpq-fe.h
    /usr/include/
    /usr/include/pgsql/
    /usr/local/include/pgsql/
@@ -9,6 +9,6 @@ find_library(PostgreSQL_LIBRARIES NAMES pq libpq)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PostgreSQL DEFAULT_MSG
-                                  PostgreSQL_INCLUDE_DIR PostgreSQL_LIBRARIES )
+                                  PostgreSQL_INCLUDE_DIRS PostgreSQL_LIBRARIES )
 
-mark_as_advanced(PostgreSQL_INCLUDE_DIR PostgreSQL_LIBRARIES)
+mark_as_advanced(PostgreSQL_INCLUDE_DIRS PostgreSQL_LIBRARIES)
