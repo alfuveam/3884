@@ -26,6 +26,11 @@ if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_LES
   endif()  
 endif()
 
+if(APPLE)
+  MESSAGE(STATUS "This version of compiler use a std::experimental::filesystem")
+  link_libraries(stdc++fs)
+endif()
+
 set(CMAKE_CXX_FLAGS_PERFORMANCE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 if (CMAKE_COMPILER_IS_GNUCXX)

@@ -49,7 +49,7 @@
 #include <condition_variable>
 #include <mutex>
 
-#if __GNUC__ < 8 && !defined( _MSC_VER) && !defined(__APPLE__)
+#if __GNUC__ < 8 && !defined( _MSC_VER)
     #include <experimental/filesystem>
     namespace fs = std::experimental::filesystem;
 #else
