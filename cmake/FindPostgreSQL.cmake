@@ -1,4 +1,5 @@
 find_path(PostgreSQL_INCLUDE_DIR libpq-fe.h
+   /usr/include/
    /usr/include/pgsql/
    /usr/local/include/pgsql/
    /usr/include/postgresql/
