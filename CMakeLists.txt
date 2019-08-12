@@ -61,11 +61,16 @@ else()
     find_package(Lua REQUIRED)
 endif()
 
-#	Is necessary to build a correct build file
-find_package(Boost 1.53.0 COMPONENTS system iostreams REQUIRED)
-
 add_subdirectory(src)
 add_executable(tfs ${tfs_SRC})
+
+#	Is necessary to build a correct build file
+if(APPLE)
+  find_package(Boost 1.53.0 COMPONENTS system iostreams filesystem REQUIRED)
+  target_link_libraries(tfs ${Boost_FILESYSTEM_LIBRARY})
+else()
+  find_package(Boost 1.53.0 COMPONENTS system iostreams REQUIRED)
+endif()
 
 option(__ENABLE_SERVER_DIAGNOSTIC__ "__ENABLE_SERVER_DIAGNOSTIC__" ON)
 option(__LOGIN_SERVER__ "__LOGIN_SERVER__" OFF)
@@ -124,7 +129,7 @@ if(__USE_PGSQL__)
 endif()
 
 include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PUGIXML_INCLUDE_DIR} ${Crypto++_INCLUDE_DIR})
-target_link_libraries(tfs ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${PUGIXML_LIBRARIES} ${Crypto++_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(tfs ${LUA_LIBRARIES} ${Boost_LIBRARIES} ${PUGIXML_LIBRARIES} ${Crypto++_LIBRARIES})
 
 set_target_properties(tfs PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "src/otpch.h")
 set_target_properties(tfs PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
