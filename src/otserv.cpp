@@ -291,7 +291,6 @@ int main(int argc, char* argv[])
 
 void otserv(StringVec, ServiceManager* services)
 {
-	srand((uint32_t)OTSYS_TIME());
 #if defined(_WIN32)
 	SetConsoleTitle(SOFTWARE_NAME);
 
@@ -402,7 +401,6 @@ void otserv(StringVec, ServiceManager* services)
 			CPU_SET((*it), &mask);
 
 		sched_setaffinity(getpid(), (int32_t)sizeof(mask), &mask);
-	}
 #endif
 
 	std::string runPath = g_config.getString(ConfigManager::RUNFILE);
