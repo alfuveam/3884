@@ -7,7 +7,7 @@ The Forgotten Server is a free and open-source MMORPG server emulator written in
 
 * [Compiling](https://github.com/aspiraboo/3884/wiki/Compiling)
 
-### Jobs Status
+### Status
 
 <table align="center">
     <tr>
