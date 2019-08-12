@@ -394,7 +394,8 @@ void otserv(StringVec, ServiceManager* services)
 		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 
 #else
-#ifndef MACOS
+
+#if !defined(__APPLE__)
 		cpu_set_t mask;
 		CPU_ZERO(&mask);
 		for(IntegerVec::iterator it = cores.begin(); it != cores.end(); ++it)
