@@ -28,7 +28,7 @@ extern Game g_game;
 
 bool Outfits::parseOutfitNode(pugi::xml_node& p)
 {
-	if(strcasecmp(p.name(),"outfit") == 0)
+	if(std::string(p.name()).compare("outfit"))
 		return false;
 
 	pugi::xml_attribute attr;
@@ -84,7 +84,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 	
 	for(auto listNode : p.children())
 	{		
-		if(strcasecmp(listNode.name(),"list") == 0)
+		if(std::string(listNode.name()).compare("list"))
 			continue;
 
 		Outfit outfit = newOutfit;
@@ -169,7 +169,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 		
 		for(auto configNode : listNode.children())
 		{
-			if(strcasecmp(configNode.name(),"reflect") != 0)
+			if(!std::string(configNode.name()).compare("reflect"))
 			{
 				if((attr = configNode.attribute("percentAll")))
 				{
@@ -291,7 +291,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 				if((attr = configNode.attribute("chanceUndefined")))
 					outfit.reflect[REFLECT_CHANCE][COMBAT_UNDEFINEDDAMAGE] += attr.as_int();
 			}			
-			else if(strcasecmp(configNode.name(),"absorb") != 0)
+			else if(!std::string(configNode.name()).compare("absorb"))
 			{
 				if((attr = configNode.attribute("percentAll")))
 				{
@@ -353,7 +353,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 				if((attr = configNode.attribute("percentUndefined")))
 					outfit.absorb[COMBAT_UNDEFINEDDAMAGE] += attr.as_int();
 			}			
-			else if(strcasecmp(configNode.name(),"skills") != 0)
+			else if(!std::string(configNode.name()).compare("skills"))
 			{
 				if((attr = configNode.attribute("fist")))
 					outfit.skills[SKILL_FIST] += attr.as_int();
@@ -429,7 +429,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 					outfit.skillsPercent[SKILL_DIST] += attr.as_int();
 				}
 			}			
-			else if(strcasecmp(configNode.name(),"stats") != 0)
+			else if(!std::string(configNode.name()).compare("stats"))
 			{
 				if((attr = configNode.attribute("maxHealth")))
 					outfit.stats[STAT_MAXHEALTH] = attr.as_int();
@@ -463,7 +463,7 @@ bool Outfits::parseOutfitNode(pugi::xml_node& p)
 					(attr = configNode.attribute("magicLevelPercent")))
 					outfit.statsPercent[STAT_MAGICLEVEL] = attr.as_int();
 			}			
-			else if(strcasecmp(configNode.name(),"suppress") != 0)
+			else if(!std::string(configNode.name()).compare("suppress"))
 			{
 				if((attr = configNode.attribute("poison")))
 					if(booleanString(attr.as_string()))
@@ -600,7 +600,7 @@ bool Outfits::loadFromXml()
 		return false;
 	}
 
-	if(strcasecmp(doc.name(),"outfits") == 0)
+	if(!std::string(doc.name()).compare("outfits"))
 	{
 		std::clog << "[Error - Outfits::loadFromXml] Malformed outfits file." << std::endl;		
 		return false;

@@ -113,6 +113,7 @@ bool ScriptManager::loadSystem()
 
 bool ScriptManager::loadMods()
 {
+	namespace fs = boost::filesystem;
 	fs::path modsPath(getFilePath(FILE_TYPE_MOD));
 	if(!fs::exists(modsPath))
 	{
@@ -181,12 +182,12 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 
 	std::string strValue;
 
-	if(strcasecmp(_doc.name(),"mod") == 0)
+	if(!std::string(_doc.name()).compare("mod"))
 	{
 		std::clog << "[Error - ScriptManager::loadFromXml] Malformed mod " << file << std::endl;		
 		return false;
 	}
-	if(strcasecmp(_doc.name(), "name") == 0)	
+	if(!std::string(_doc.name()).compare("name"))
 	{
 		std::clog << "[Warning - ScriptManager::loadFromXml] Empty name in mod " << file << std::endl;		
 		return false;
@@ -219,32 +220,35 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 		std::string scriptsPath = getFilePath(FILE_TYPE_MOD, "scripts/");		
 		for(auto p : doc.children())
 		{
-			if(strcasecmp(p.name(), "quest") != 0)
+			if(!std::string(p.name()).compare("quest"))
 				Quests::getInstance()->parseQuestNode(p, modsLoaded);
-			else if(strcasecmp(p.name(), "outfit") != 0)
+			else if(!std::string(p.name()).compare("outfit"))
 				Outfits::getInstance()->parseOutfitNode(p);
-			else if(strcasecmp(p.name(), "vocation") != 0)
+			else if(!std::string(p.name()).compare("vocation"))
 				Vocations::getInstance()->parseVocationNode(p); //duplicates checking is dangerous, shouldn't be performed until we find some good solution
-			else if(strcasecmp(p.name(), "group") != 0)
+			else if(!std::string(p.name()).compare("group"))
 				Groups::getInstance()->parseGroupNode(p); //duplicates checking is dangerous, shouldn't be performed until we find some good solution
-			else if(strcasecmp(p.name(), "raid") != 0)
+			else if(!std::string(p.name()).compare("raid"))
 				Raids::getInstance()->parseRaidNode(p, modsLoaded, FILE_TYPE_MOD);
-			else if(strcasecmp(p.name(), "spawn") != 0)
+			else if(!std::string(p.name()).compare("spawn"))
 				Spawns::getInstance()->parseSpawnNode(p, modsLoaded);
-			else if(strcasecmp(p.name(), "channel") != 0)
+			else if(!std::string(p.name()).compare("channel"))
 				g_chat.parseChannelNode(p); //TODO: duplicates (channel destructor needs to send closeChannel to users)
-			else if(strcasecmp(p.name(), "monster") != 0)
+			else if(!std::string(p.name()).compare("monster"))
 			{
 				std::string path, name;
-				if(((attr = p.attribute("file")) || (attr = p.attribute("path"))) && (attr = p.attribute("name")))
-					g_monsters.loadMonster(getFilePath(FILE_TYPE_MOD, "monster/" + path), name, true);
+				if(((attr = p.attribute("file")) || (attr = p.attribute("path"))))
+					path = attr.as_string();
+					if(attr = p.attribute("name"))
+						name = attr.as_string();
+						g_monsters.loadMonster(getFilePath(FILE_TYPE_MOD, "monster/" + path), name, true);
 			}
-			else if(strcasecmp(p.name(), "item") != 0)
+			else if(!std::string(p.name()).compare("item"))
 			{
 				if((attr = p.attribute("id")))
 					Item::items.parseItemNode(p, attr.as_int()); //duplicates checking isn't necessary here
 			}
-			if(strcasecmp(p.name(), "description") != 0 || strcasecmp(p.name(), "info") != 0)
+			if(!std::string(p.name()).compare("description") || !std::string(p.name()).compare("info"))
 			{
 				if((attr = p.attribute(p.name())))
 				{
@@ -253,7 +257,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 					mod.description = desc;
 				}
 			}
-			else if(strcasecmp(p.name(), "lib") != 0 || strcasecmp(p.name(), "config") != 0)
+			else if(!std::string(p.name()).compare("lib") || !std::string(p.name()).compare("config"))
 			{
 				if(!(attr = p.attribute("name")))
 				{

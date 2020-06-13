@@ -142,7 +142,7 @@ bool Quests::loadFromXml()
 		return false;
 	}
 
-	if(strcasecmp(doc.name(),"quests") == 0)
+	if(!std::string(doc.name()).compare("quests"))
 	{
 		std::clog << "[Error - Quests::loadFromXml] Malformed quests file." << std::endl;
 		return false;
@@ -158,7 +158,7 @@ bool Quests::loadFromXml()
 
 bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 {	
-	if(strcasecmp(p.name(),"quest") == 0)
+	if(std::string(p.name()).compare("quest"))
 		return false;
 
 	pugi::xml_attribute attr;
@@ -189,7 +189,7 @@ bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 	
 	for(auto missionNode : p.children())
 	{
-		if(strcasecmp(missionNode.name(),"mission") == 0)
+		if(std::string(missionNode.name()).compare("mission"))
 			continue;
 
 		std::string missionName, missionState, storageId;
@@ -216,7 +216,7 @@ bool Quests::parseQuestNode(pugi::xml_node& p, bool checkDuplicate)
 				// parse sub-states only if main is not set				
 				for(auto stateNode : missionNode.children())
 				{
-					if(strcasecmp(stateNode.name(),"missionstate") == 0)
+					if(std::string(stateNode.name()).compare("missionstate"))
 						continue;
 
 					uint32_t missionId;

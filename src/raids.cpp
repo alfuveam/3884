@@ -37,7 +37,7 @@ Raids::Raids()
 
 bool Raids::parseRaidNode(pugi::xml_node& raidNode, bool checkDuplicate, FileType_t pathing)
 {	
-	if(strcasecmp(raidNode.name(),"raid") == 0)
+	if(std::string(raidNode.name()).compare("raid"))
 		return false;
 
 	int32_t intValue;
@@ -133,7 +133,7 @@ bool Raids::loadFromXml()
 		return false;
 	}
 
-	if(strcasecmp(doc.name(),"raid") == 0)
+	if(!std::string(doc.name()).compare("raid"))
 	{
 		std::clog << "[Error - Raids::loadFromXml] Malformed raids file." << std::endl;		
 		return false;
@@ -203,7 +203,7 @@ Raid* Raids::getRaidByName(const std::string& name)
 	RaidList::iterator it;
 	for(it = raidList.begin(); it != raidList.end(); it++)
 	{
-		if(!strcasecmp((*it)->getName().c_str(), name.c_str()))
+		if(!std::string((*it)->getName().c_str()).compare(name.c_str()))
 			return (*it);
 	}
 
@@ -246,7 +246,7 @@ bool Raid::loadFromXml(const std::string& _filename)
 		return false;
 	}
 	
-	if(strcasecmp(doc.name(),"raid") == 0)
+	if(std::string(doc.name()).compare("raid"))
 	{
 		std::clog << "[Error - Raid::loadFromXml] Malformed raid file (" << _filename << ")." << std::endl;		
 		return false;
@@ -256,17 +256,17 @@ bool Raid::loadFromXml(const std::string& _filename)
 	for(auto eventNode : doc.children())
 	{
 		RaidEvent* event;
-		if(strcasecmp(eventNode.name(), "announce") != 0)
+		if(!std::string(eventNode.name()).compare("announce"))
 			event = new AnnounceEvent(this, ref);
-		else if(strcasecmp(eventNode.name(), "effect") != 0)
+		else if(!std::string(eventNode.name()).compare("effect"))
 			event = new EffectEvent(this, ref);
-		else if(strcasecmp(eventNode.name(), "itemspawn") != 0)
+		else if(!std::string(eventNode.name()).compare("itemspawn"))
 			event = new ItemSpawnEvent(this, ref);
-		else if(strcasecmp(eventNode.name(), "singlespawn") != 0)
+		else if(!std::string(eventNode.name()).compare("singlespawn"))
 			event = new SingleSpawnEvent(this, ref);
-		else if(strcasecmp(eventNode.name(), "areaspawn") != 0)
+		else if(!std::string(eventNode.name()).compare("areaspawn"))
 			event = new AreaSpawnEvent(this, ref);
-		else if(strcasecmp(eventNode.name(), "script") != 0)
+		else if(!std::string(eventNode.name()).compare("script"))
 			event = new ScriptEvent(this, ref);
 		else
 		{
@@ -834,7 +834,7 @@ bool AreaSpawnEvent::configureRaidEvent(pugi::xml_node& eventNode)
 
 	for(auto monsterNode : eventNode.children())
 	{
-		if(strcasecmp(monsterNode.name(), "monster") != 0)
+		if(!std::string(monsterNode.name()).compare("monster"))
 		{
 			if((attr = monsterNode.attribute("name")))
 			{

@@ -17,6 +17,9 @@
 
 #include "otpch.h"
 
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+#define CRYPTOPP_DEFAULT_NO_DLL
+
 #include "tools.h"
 #include <cryptopp/sha.h>
 #include <cryptopp/md5.h>
@@ -638,17 +641,12 @@ std::string formatTime(time_t _time/* = 0*/, bool ms/* = false*/)
 		s << tms->tm_sec;
 		if(ms)
 		{
-			timeb t;
-			ftime(&t);
+			auto now = std::chrono::system_clock::now();
+			auto _ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) -
+					std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
 
-			s << "."; // make it format zzz
-			if(t.millitm < 10)
-				s << "0";
-
-			if(t.millitm < 100)
-				s << "0";
-
-			s << t.millitm;
+			s << ".";
+			s << _ms.count();
 		}
 	}
 	else
@@ -1532,7 +1530,7 @@ MagicEffect_t getMagicEffect(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(magicEffectNames) / sizeof(MagicEffectNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), magicEffectNames[i].name))
+		if(!std::string(strValue.c_str()).compare(magicEffectNames[i].name))
 			return magicEffectNames[i].magicEffect;
 	}
 
@@ -1543,7 +1541,7 @@ ShootEffect_t getShootType(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(shootTypeNames) / sizeof(ShootTypeNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), shootTypeNames[i].name))
+		if(!std::string(strValue.c_str()).compare(shootTypeNames[i].name))
 			return shootTypeNames[i].shootType;
 	}
 
@@ -1554,7 +1552,7 @@ CombatType_t getCombatType(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(combatTypeNames) / sizeof(CombatTypeNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), combatTypeNames[i].name))
+		if(!std::string(strValue.c_str()).compare(combatTypeNames[i].name))
 			return combatTypeNames[i].combatType;
 	}
 
@@ -1565,7 +1563,7 @@ Ammo_t getAmmoType(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(ammoTypeNames) / sizeof(AmmoTypeNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), ammoTypeNames[i].name))
+		if(!std::string(strValue.c_str()).compare(ammoTypeNames[i].name))
 			return ammoTypeNames[i].ammoType;
 	}
 
@@ -1576,7 +1574,7 @@ AmmoAction_t getAmmoAction(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(ammoActionNames) / sizeof(AmmoActionNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), ammoActionNames[i].name))
+		if(!std::string(strValue.c_str()).compare(ammoActionNames[i].name))
 			return ammoActionNames[i].ammoAction;
 	}
 
@@ -1587,7 +1585,7 @@ FluidTypes_t getFluidType(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(fluidTypeNames) / sizeof(FluidTypeNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), fluidTypeNames[i].name))
+		if(!std::string(strValue.c_str()).compare(fluidTypeNames[i].name))
 			return fluidTypeNames[i].fluidType;
 	}
 
@@ -1598,7 +1596,7 @@ skills_t getSkillId(const std::string& strValue)
 {
 	for(uint32_t i = 0; i < sizeof(skillIdNames) / sizeof(SkillIdNames); ++i)
 	{
-		if(!strcasecmp(strValue.c_str(), skillIdNames[i].name))
+		if(!std::string(strValue.c_str()).compare(skillIdNames[i].name))
 			return skillIdNames[i].skillId;
 	}
 
@@ -1875,7 +1873,7 @@ void printXMLError(const std::string& where, const std::string& fileName, const 
 
 bool parseVocationNode(pugi::xml_node& vocationNode, VocationMap& vocationMap, StringVec& vocStringVec, std::string& errorStr)
 {	
-	if(strcasecmp(vocationNode.name(),"vocation") == 0)
+	if(std::string(vocationNode.name()).compare("vocation"))
 		return true;
 
 	int32_t vocationId = -1;

@@ -24,7 +24,7 @@ Vocation Vocations::defVoc = Vocation();
 
 void Vocations::clear()
 {
-	for(VocationsMap::iterator it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
+	for(auto it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
 		delete it->second;
 
 	vocationsMap.clear();
@@ -40,8 +40,8 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 {
 	int32_t intValue;
 	pugi::xml_attribute attr;
-	
-	if((strcasecmp(p.name(), "vocation") == 0))
+
+	if(std::string("vocation").compare(p.name()) != 0)	
 		return false;
 
 	if((attr = p.attribute("id")))
@@ -115,7 +115,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 	
 	for(auto configNode : p.children())
 	{
-		if(!(strcasecmp(configNode.name(), "skill") == 0))
+		if(!std::string(configNode.name()).compare("skill"))
 		{
 			if((attr = configNode.attribute("fist")))
 				voc->setSkillMultiplier(SKILL_FIST, attr.as_float());
@@ -179,7 +179,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 					voc->setSkillMultiplier(skill, attr.as_float());
 			}
 		}
-		else if(!(strcasecmp(configNode.name(), "formula") == 0))
+		else if(!std::string(configNode.name()).compare("formula"))
 		{
 			if((attr = configNode.attribute("meleeDamage")))
 				voc->setMultiplier(MULTIPLIER_MELEE, attr.as_float());
@@ -205,7 +205,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 			if((attr = configNode.attribute("armor")))
 				voc->setMultiplier(MULTIPLIER_ARMOR, attr.as_float());		
 		}
-		else if(!(strcasecmp(configNode.name(), "absorb") == 0))
+		else if(!std::string(configNode.name()).compare("absorb"))
 		{
 			if((attr = configNode.attribute("percentAll")))
 			{
@@ -267,7 +267,7 @@ bool Vocations::parseVocationNode(pugi::xml_node& p)
 			if((attr = configNode.attribute("percentUndefined")))
 				voc->increaseAbsorb(COMBAT_UNDEFINEDDAMAGE, attr.as_int());
 		}
-		else if(!(strcasecmp(configNode.name(), "reflect") == 0))
+		else if(!std::string(configNode.name()).compare("reflect"))
 		{
 			if((attr = configNode.attribute("percentAll")))
 			{
@@ -405,7 +405,7 @@ bool Vocations::loadFromXml()
 		return false;
 	}
 	
-	if((strcasecmp(doc.name(),"vocations") == 0))
+	if(!std::string(doc.name()).compare("vocations"))
 	{
 		std::clog << "[Error - Vocations::loadFromXml] Malformed vocations file." << std::endl;		
 		return false;
@@ -419,7 +419,7 @@ bool Vocations::loadFromXml()
 
 Vocation* Vocations::getVocation(uint32_t vocId)
 {
-	VocationsMap::iterator it = vocationsMap.find(vocId);
+	auto it = vocationsMap.find(vocId);
 	if(it != vocationsMap.end())
 		return it->second;
 
@@ -429,9 +429,9 @@ Vocation* Vocations::getVocation(uint32_t vocId)
 
 int32_t Vocations::getVocationId(const std::string& name)
 {
-	for(VocationsMap::iterator it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
+	for(auto it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
 	{
-		if(!(strcasecmp(it->second->getName().c_str(), name.c_str())))
+		if(!std::string(it->second->getName().c_str()).compare(name.c_str()))
 			return it->first;
 	}
 
@@ -440,7 +440,7 @@ int32_t Vocations::getVocationId(const std::string& name)
 
 int32_t Vocations::getPromotedVocation(uint32_t vocationId)
 {
-	for(VocationsMap::iterator it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
+	for(auto it = vocationsMap.begin(); it != vocationsMap.end(); ++it)
 	{
 		if(it->second->getFromVocation() == vocationId && it->first != vocationId)
 			return it->first;

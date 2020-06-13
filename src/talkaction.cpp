@@ -167,7 +167,7 @@ bool TalkActions::onPlayerSay(Creature* creature, uint16_t channelId, const std:
 	for(TalkActionsMap::iterator it = talksMap.begin(); it != talksMap.end(); ++it)
 	{
 		if(it->first == cmd[it->second->getFilter()] || (!it->second->isSensitive() &&
-			!strcasecmp(it->first.c_str(), cmd[it->second->getFilter()].c_str())))
+			!std::string(it->first.c_str()).compare(cmd[it->second->getFilter()].c_str())))
 		{
 			talkAction = it->second;
 			break;

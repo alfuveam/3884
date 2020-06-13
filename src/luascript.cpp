@@ -738,6 +738,8 @@ bool LuaInterface::loadFile(const std::string& file, Npc* npc/* = NULL*/)
 bool LuaInterface::loadDirectory(const std::string& dir, Npc* npc/* = NULL*/, bool recursively/* = false*/)
 {
 	StringVec files;
+
+	namespace fs = boost::filesystem;
 	for(auto& it : fs::directory_iterator(dir))
 	{
 		if(!fs::is_directory(it.status()) && it.path().extension() == ".lua")
@@ -9779,7 +9781,7 @@ int32_t LuaInterface::luaGetHighscoreString(lua_State* L)
 int32_t LuaInterface::luaGetVocationList(lua_State* L)
 {
 	//getVocationList()
-	VocationsMap::iterator it = Vocations::getInstance()->getFirstVocation();
+	auto it = Vocations::getInstance()->getFirstVocation();
 	lua_newtable(L);
 	for(uint32_t i = 1; it != Vocations::getInstance()->getLastVocation(); ++i, ++it)
 	{

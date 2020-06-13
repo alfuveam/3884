@@ -206,7 +206,7 @@ RuneSpell* Spells::getRuneSpellByName(const std::string& name)
 {
 	for(RunesMap::iterator it = runes.begin(); it != runes.end(); ++it)
 	{
-		if(strcasecmp(it->second->getName().c_str(), name.c_str()) == 0)
+		if(std::string(it->second->getName().c_str()).compare(name.c_str()))
 			return it->second;
 	}
 
@@ -219,7 +219,7 @@ InstantSpell* Spells::getInstantSpell(const std::string& words)
 	for(InstantsMap::iterator it = instants.begin(); it != instants.end(); ++it)
 	{
 		InstantSpell* instantSpell = it->second;
-		if(strncasecmp(instantSpell->getWords().c_str(), words.c_str(), instantSpell->getWords().length()) == 0)
+		if(!std::string(instantSpell->getWords().c_str()).compare(0, instantSpell->getWords().length(), words.c_str()))
 		{
 			if(!result || instantSpell->getWords().length() > result->getWords().length())
 				result = instantSpell;
@@ -500,7 +500,7 @@ bool Spell::configureSpell(pugi::xml_node& p)
 
 		for(uint32_t i = 0; i < sizeof(reservedList) / sizeof(const char*); ++i)
 		{
-			if(!strcasecmp(reservedList[i], name.c_str()))
+			if(!std::string(reservedList[i]).compare(name.c_str()))
 			{
 				std::clog << "Error: [Spell::configureSpell] Spell esta usando um nome reservado: " << reservedList[i] << std::endl;
 				return false;

@@ -63,7 +63,7 @@ class Towns
 		{
 			for(TownMap::iterator it = townMap.begin(); it != townMap.end(); ++it)
 			{
-				if(!strcasecmp(it->second->getName().c_str(), townName.c_str()))
+				if(!std::string(it->second->getName().c_str()).compare(townName.c_str()))
 					return it->second;
 			}
 

@@ -244,7 +244,7 @@ bool Chat::parseChannelNode(pugi::xml_node& node)
 	uint16_t id = 0;
 	pugi::xml_attribute attr;
 	
-	if(strcasecmp(node.name(), "channel") == 0)
+	if(std::string(node.name()).compare("channel"))
 		return false;
 
 	if((attr = node.attribute("id")))

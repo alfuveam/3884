@@ -164,7 +164,7 @@ bool Npc::loadFromXml(const std::string& filename)
 		return false;
 	}
 	
-	if(strcasecmp(doc.name(),"npc") != 0)
+	if(!std::string(doc.name()).compare("npc"))
 	{
 		std::clog << "[Error - Npc::loadFromXml] Malformed npc file (" << filename << ")." << std::endl;
 		return false;
@@ -220,7 +220,7 @@ bool Npc::loadFromXml(const std::string& filename)
 
 	for(auto p : doc.children())
 	{
-		if(strcasecmp(p.name(),"health") == 0)
+		if(std::string(p.name()).compare("health"))
 		{
 			if((attr = p.attribute("now")))
 				health = attr.as_int();
@@ -232,7 +232,7 @@ bool Npc::loadFromXml(const std::string& filename)
 			else
 				healthMax = 100;
 		}
-		else if(strcasecmp(p.name(),"look") == 0)
+		else if(std::string(p.name()).compare("look"))
 		{
 			if((attr = p.attribute("type")))
 			{
@@ -257,11 +257,11 @@ bool Npc::loadFromXml(const std::string& filename)
 
 			currentOutfit = defaultOutfit;
 		}
-		else if(strcasecmp(p.name(),"voices") == 0)
+		else if(std::string(p.name()).compare("voices"))
 		{
 			for(auto q : p.children())
 			{
-				if(strcasecmp(q.name(),"voice") == 0)
+				if(std::string(q.name()).compare("voice"))
 				{
 					if(!(attr = q.attribute("text")))
 						continue;
@@ -294,11 +294,11 @@ bool Npc::loadFromXml(const std::string& filename)
 				}
 			}
 		}		
-		else if(strcasecmp(p.name(),"parameters") == 0)
+		else if(std::string(p.name()).compare("parameters"))
 		{
 			for(auto q : p.children())
 			{
-				if(strcasecmp(q.name(),"parameter") == 0)		
+				if(std::string(q.name()).compare("parameter"))
 				{
 					std::string paramKey, paramValue;
 					if(!(attr = q.attribute("key")))
@@ -311,7 +311,7 @@ bool Npc::loadFromXml(const std::string& filename)
 				}
 			}
 		}		
-		else if(strcasecmp(p.name(),"interaction") == 0)
+		else if(std::string(p.name()).compare("interaction"))
 		{
 			if((attr = p.attribute("talkradius")))
 				talkRadius = attr.as_int();
@@ -391,7 +391,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 	ResponseList _responseList;
 	for(auto node : p.children())
 	{
-		if(strcasecmp(node.name(),"include") == 0)
+		if(std::string(node.name()).compare("include"))
 		{
 			if((attr = node.attribute("file")))
 			{
@@ -400,7 +400,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 				pugi::xml_parse_result result = doc.load_file(getFilePath(FILE_TYPE_OTHER, "npc/lib/" + strValue).c_str());
 				if(result)
 				{
-					if(strcasecmp(doc.name(),"interaction") != 0)
+					if(!std::string(doc.name()).compare("interaction"))
 					{
 						ResponseList includedResponses = loadInteraction(node);
 						_responseList.insert(_responseList.end(), includedResponses.begin(), includedResponses.end());
@@ -414,7 +414,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 				}
 			}
 		}		
-		else if(strcasecmp(node.name(),"itemlist") != 0)
+		else if(!std::string(node.name()).compare("itemlist"))
 		{
 			if((attr = node.attribute("listid")))
 			{
@@ -427,7 +427,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 					for(auto tmpNode : node.children())
 					{
-						if(strcasecmp(tmpNode.name(),"item") != 0)
+						if(!std::string(tmpNode.name()).compare("item"))
 						{
 							ListItem li;
 							if(!(attr = tmpNode.attribute("id")))
@@ -478,7 +478,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 					std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Duplicate listId found: " << strValue << std::endl;
 			}
 		}
-		else if(strcasecmp(node.name(),"interact") != 0)
+		else if(!std::string(node.name()).compare("interact"))
 		{
 			NpcResponse::ResponseProperties prop;
 			prop.publicize = defaultPublic;
@@ -526,7 +526,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 			for(auto tmpNode : node.children())
 			{
-				if(strcasecmp(tmpNode.name(),"keywords") != 0)
+				if(!std::string(tmpNode.name()).compare("keywords"))
 				{
 					//alternative input keywords
 					for(auto altKeyNode : tmpNode.children())
@@ -561,7 +561,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 
 			for(auto tmpNode : node.children())
 			{
-				if(strcasecmp(tmpNode.name(),"response") != 0)
+				if(!std::string(tmpNode.name()).compare("response"))
 				{
 					prop.output = prop.knowSpell = "";
 					prop.params = interactParams | loadParams(tmpNode);
@@ -597,7 +597,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 					
 					for(auto subNode : tmpNode.children())
 					{
-						if(strcasecmp(tmpNode.name(),"action") != 0)
+						if(!std::string(tmpNode.name()).compare("action"))
 						{
 							ResponseAction action;
 							if((attr = node.attribute("name")))
@@ -651,7 +651,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									{
 										action.actionType = ACTION_SETSPELL;
 										action.strValue = attr.as_string();
-										if(strcasecmp(attr.as_string(), "|SPELL|") != 0 && !g_spells->getInstantSpellByName(attr.as_string()))
+										if(!std::string(attr.as_string()).compare("|SPELL|") && !g_spells->getInstantSpellByName(attr.as_string()))
 											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << attr.as_string() << std::endl;
 									}
 								}
@@ -677,7 +677,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									{
 										action.actionType = ACTION_TEACHSPELL;
 										action.strValue = attr.as_string();
-										if(strcasecmp(attr.as_string(), "|SPELL|") != 0 && !g_spells->getInstantSpellByName(attr.as_string()))
+										if(!std::string(attr.as_string()).compare("|SPELL|") && !g_spells->getInstantSpellByName(attr.as_string()))
 											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << attr.as_string() << std::endl;
 									}
 								}
@@ -687,7 +687,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 									{
 										action.actionType = ACTION_UNTEACHSPELL;
 										action.strValue = attr.as_string();
-										if(strcasecmp(attr.as_string(), "|SPELL|") != 0 && !g_spells->getInstantSpellByName(attr.as_string()))
+										if(!std::string(attr.as_string()).compare("|SPELL|") && !g_spells->getInstantSpellByName(attr.as_string()))
 											std::clog << "[Warning - Npc::loadInteraction] NPC Name: " << name << " - Could not find an instant spell called: " << attr.as_string() << std::endl;
 									}
 								}
@@ -838,7 +838,7 @@ ResponseList Npc::loadInteraction(pugi::xml_node& p)
 							if(action.actionType != ACTION_NONE)
 								prop.actionList.push_back(action);
 						}						
-						else if(strcasecmp(tmpNode.name(),"interact") != 0)
+						else if(!std::string(tmpNode.name()).compare("interact"))
 						{
 							if(subResponseList.empty())
 							{

@@ -220,25 +220,29 @@ bool Monsters::loadFromXml(bool reloading /*= false*/)
 		return false;
 	}
 
-	if(strcasecmp(doc.name(), "monsters") == 0)
+	if(!std::string(doc.name()).compare("monsters"))
 	{
 		std::clog << "[Error - Monsters::loadFromXml] Malformed monsters file." << std::endl;		
 		return false;
 	}
 
-	for(auto p : doc.children())
+	for(auto p : doc.child("monsters").children())
 	{
-		if(strcasecmp(p.name(), "monster") == 0)
+		if(std::string(p.name()).compare("monster"))
 		{
 			std::clog << "[Warning - Monsters::loadFromXml] Unknown node name (" << p.name() << ")." << std::endl;			
 			continue;
 		}
 
 		std::string file, name;
-		if((attr = doc.attribute("file")) && (attr = doc.attribute("name")))
-		{
-			file = getFilePath(FILE_TYPE_OTHER, "monster/" + file);
-			loadMonster(file, name, reloading);
+		if(attr = p.attribute("file")){
+			file = attr.as_string();
+			if(attr = p.attribute("name"))
+			{
+				name = attr.as_string();
+				file = getFilePath(FILE_TYPE_OTHER, "monster/" + file);
+				loadMonster(file, name, reloading);
+			}
 		}
 	}
 	loaded = true;
@@ -489,7 +493,7 @@ bool Monsters::deserializeSpell(pugi::xml_node& node, spellBlock_t& sb, const st
 			
 			for(auto tmpNode: node.children())
 			{
-				if(strcasecmp(tmpNode.name(),"outfit") == 0)
+				if(std::string(tmpNode.name()).compare("outfit"))
 					continue;
 
 				if((attr = tmpNode.attribute("type")))
@@ -555,7 +559,7 @@ bool Monsters::deserializeSpell(pugi::xml_node& node, spellBlock_t& sb, const st
 
 			for(auto tmpNode : node.children())
 			{
-				if(strcasecmp(tmpNode.name(),"outfit") == 0)
+				if(std::string(tmpNode.name()).compare("outfit"))
 					continue;
 
 				if((attr = tmpNode.attribute("type")))
@@ -835,7 +839,7 @@ bool Monsters::deserializeSpell(pugi::xml_node& node, spellBlock_t& sb, const st
 		
 		for(auto attributeNode : node.children())
 		{
-			if(strcasecmp(attributeNode.name(),"attribute") != 0)
+			if(!std::string(attributeNode.name()).compare("attribute"))
 			{
 				if((attr = attributeNode.attribute("key")))
 				{
@@ -912,8 +916,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 		return false;
 	}
 
-	monsterLoad = true;	
-	if(strcasecmp(doc.name(),"monster") == 0)
+	monsterLoad = true;
+
+	pugi::xml_node monsterNode = doc.child("monster");
+
+	if(!monsterNode)
 	{
 		std::clog << "[Error - Monsters::loadMonster] Malformed monster (" << monsterName << ") file (" << file << ")." << std::endl;		
 		return false;
@@ -921,12 +928,12 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 	int32_t intValue;
 	std::string strValue;
-	if((attr = doc.attribute("name")))
+	if((attr = monsterNode.attribute("name")))
 		mType->name = attr.as_string();
 	else
 		monsterLoad = false;
 
-	if((attr = doc.attribute("nameDescription")))
+	if((attr = monsterNode.attribute("nameDescription")))
 		mType->nameDescription = attr.as_string();
 	else
 	{
@@ -934,7 +941,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 		toLowerCaseString(mType->nameDescription);
 	}
 
-	if((attr = doc.attribute("race")))
+	if((attr = monsterNode.attribute("race")))
 	{
 		std::string tmpStrValue = asLowerCaseString(attr.as_string());
 		if(tmpStrValue == "venom" || atoi(attr.as_string()) == 1)
@@ -951,29 +958,29 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 			SHOW_XML_WARNING("Unknown race type " << attr.as_string());
 	}
 
-	if((attr = doc.attribute("experience")))
+	if((attr = monsterNode.attribute("experience")))
 		mType->experience = attr.as_int();
 
-	if((attr = doc.attribute("speed")))
+	if((attr = monsterNode.attribute("speed")))
 		mType->baseSpeed = attr.as_int();
 
-	if((attr = doc.attribute("manacost")))
+	if((attr = monsterNode.attribute("manacost")))
 		mType->manaCost = attr.as_int();
 
-	if((attr = doc.attribute("skull")))
+	if((attr = monsterNode.attribute("skull")))
 		mType->skull = getSkulls(attr.as_string());
 
-	if((attr = doc.attribute("shield")))
+	if((attr = monsterNode.attribute("shield")))
 		mType->partyShield = getShields(attr.as_string());
 
-	if((attr = doc.attribute("emblem")))
+	if((attr = monsterNode.attribute("emblem")))
 		mType->guildEmblem = getEmblems(attr.as_string());
 
 	if(monsterLoad){
-		for(auto p : doc.children())
+		for(auto p : monsterNode.children())
 		{
 
-			if(strcasecmp(p.name(),"health") != 0)
+			if(!std::string(p.name()).compare("health"))
 			{
 				if((attr = p.attribute("now")))
 					mType->health = attr.as_int();
@@ -991,11 +998,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 					monsterLoad = false;
 				}
 			}
-			else if(strcasecmp(p.name(),"flags") != 0)
+			else if(!std::string(p.name()).compare("flags"))
 			{
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"flag") == 0)
+					if(std::string(tmpNode.name()).compare("flag"))
 					{
 						if((attr = tmpNode.attribute("summonable")))
 							mType->isSummonable = booleanString(attr.as_string());
@@ -1080,7 +1087,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 				if(mType->canPushCreatures && mType->pushable)
 					mType->pushable = false;
 			}
-			else if(strcasecmp(p.name(),"targetchange") != 0)
+			else if(!std::string(p.name()).compare("targetchange"))
 			{
 				if((attr = p.attribute("speed")) || (attr = p.attribute("interval")))
 					mType->changeTargetSpeed = std::max(1, attr.as_int());
@@ -1092,15 +1099,15 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 				else
 					SHOW_XML_WARNING("Missing targetchange.chance");
 			}
-			else if(strcasecmp(p.name(),"strategy") != 0)
+			else if(!std::string(p.name()).compare("strategy"))
 			{
 				if((attr = p.attribute("attack"))) {}
-					//mType->attackStrength = attr.as_int();
+					// mType->attackStrength = attr.as_int();
 
 				if((attr = p.attribute("defense"))) {}
-					//mType->defenseStrength = attr.as_int();
+					// mType->defenseStrength = attr.as_int();
 			}
-			else if(strcasecmp(p.name(),"look") != 0)
+			else if(!std::string(p.name()).compare("look"))
 			{
 				if((attr = p.attribute("type")))
 				{
@@ -1134,11 +1141,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 				if((attr = p.attribute("corpseActionId")) || (attr = p.attribute("corpseAid")))
 					mType->corpseAction = attr.as_int();
 			}
-			else if(strcasecmp(p.name(),"attacks") != 0)
+			else if(!std::string(p.name()).compare("attacks"))
 			{
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"attack") != 0)
+					if(!std::string(tmpNode.name()).compare("attack"))
 					{
 						spellBlock_t sb;
 						if(deserializeSpell(tmpNode, sb, monsterName))
@@ -1149,7 +1156,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 				}
 			}
-			else if(strcasecmp(p.name(),"defenses") != 0)
+			else if(!std::string(p.name()).compare("defenses"))
 			{
 				if((attr = p.attribute("defense")))
 					mType->defense = attr.as_int();
@@ -1160,7 +1167,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 				
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"defense") != 0)
+					if(!std::string(tmpNode.name()).compare("defense"))
 					{
 						spellBlock_t sb;
 						if(deserializeSpell(tmpNode, sb, monsterName))
@@ -1170,11 +1177,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 					}
 				}
 			}
-			else if(strcasecmp(p.name(),"immunities") != 0)
+			else if(!std::string(p.name()).compare("immunities"))
 			{
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"immunity") != 0)
+					if(!std::string(tmpNode.name()).compare("immunity"))
 					{
 						if((attr = tmpNode.attribute("name")))
 						{
@@ -1316,7 +1323,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 				}
 			}
-			else if(strcasecmp(p.name(),"voices") != 0)
+			else if(!std::string(p.name()).compare("voices"))
 			{
 				if((attr = p.attribute("speed")) || (attr = p.attribute("interval")))
 					mType->yellSpeedTicks = attr.as_int();
@@ -1330,7 +1337,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"voice") != 0)
+					if(!std::string(tmpNode.name()).compare("voice"))
 					{
 						voiceBlock_t vb;
 						vb.text = "";
@@ -1348,7 +1355,7 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 					}
 				}
 			}
-			else if(strcasecmp(p.name(),"loot") != 0)
+			else if(!std::string(p.name()).compare("loot"))
 			{
 				
 				for(auto tmpNode : p.children())
@@ -1360,11 +1367,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 						SHOW_XML_WARNING("Cant load loot");
 				}
 			}
-			else if(strcasecmp(p.name(),"elements") != 0)
+			else if(!std::string(p.name()).compare("elements"))
 			{
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"element") != 0)
+					if(!std::string(tmpNode.name()).compare("element"))
 					{
 						if((attr = tmpNode.attribute("firePercent")))
 							mType->elementMap[COMBAT_FIREDAMAGE] = attr.as_int();
@@ -1393,14 +1400,14 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 					}
 				}
 			}
-			else if(strcasecmp(p.name(),"summons") != 0)
+			else if(!std::string(p.name()).compare("summons"))
 			{
 				if((attr = p.attribute("maxSummons")) || (attr = p.attribute("max")))
 					mType->maxSummons = attr.as_int();
 
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"summon") != 0)
+					if(!std::string(tmpNode.name()).compare("summon"))
 					{
 						uint32_t chance = 100, interval = 1000, amount = 1;
 						if((attr = tmpNode.attribute("speed")) || (attr = tmpNode.attribute("interval")))
@@ -1428,11 +1435,11 @@ bool Monsters::loadMonster(const std::string& file, const std::string& monsterNa
 
 				}
 			}
-			else if(strcasecmp(p.name(),"script") != 0)
+			else if(!std::string(p.name()).compare("script"))
 			{
 				for(auto tmpNode : p.children())
 				{
-					if(strcasecmp(tmpNode.name(),"event") != 0)
+					if(!std::string(tmpNode.name()).compare("event"))
 					{
 						if((attr = tmpNode.attribute("name")))
 							mType->scriptList.push_back(attr.as_string());
@@ -1532,7 +1539,7 @@ bool Monsters::loadChildLoot(pugi::xml_node& node, LootBlock& parentBlock)
 
 	for(auto p : node.children())
 	{
-		if(strcasecmp(node.name(),"inside") != 0)
+		if(!std::string(node.name()).compare("inside"))
 		{			
 			for(auto insideNode : node.children())
 			{

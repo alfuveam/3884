@@ -49,17 +49,7 @@
 #include <condition_variable>
 #include <mutex>
 
-#if defined(__APPLE__)
-    #include <boost/filesystem.hpp>
-    namespace fs = boost::filesystem;
-#elif __GNUC__ < 8 && !defined( _MSC_VER)
-    #include <experimental/filesystem>
-    namespace fs = std::experimental::filesystem;
-#else
-    #include <filesystem>
-    namespace fs = std::filesystem;
-#endif
-
+#include <boost/filesystem.hpp>
 //	lib
 #include <boost/tokenizer.hpp>
 #include <boost/asio.hpp>

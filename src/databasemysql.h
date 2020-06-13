@@ -22,11 +22,7 @@
 #error "database.h should be included first."
 #endif
 
-#if defined( _MSC_VER)
-	#include <mysql/mysql.h>
-#else
-	#include <mysql.h>
-#endif
+#include <mysql/mysql.h>
 
 class DatabaseMySQL : public _Database
 {

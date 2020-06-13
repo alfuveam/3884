@@ -58,13 +58,13 @@ bool Spawns::loadFromXml(const std::string& _filename)
 		return false;
 	}
 
-	if(strcasecmp(doc.name(), "spawns") == 0)
+	if(!std::string(doc.name()).compare("spawns"))
 	{
 		std::clog << "[Error - Spawns::loadFromXml] Malformed spawns file." << std::endl;
 		return false;
 	}
 	
-	for(auto spawnNode : doc.children())
+	for(auto spawnNode : doc.child("spawns").children())
 		parseSpawnNode(spawnNode, false);
 
 	loaded = true;
@@ -73,7 +73,7 @@ bool Spawns::loadFromXml(const std::string& _filename)
 
 bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 {	
-	if(strcasecmp(p.name(), "spawn") == 0)
+	if(std::string(p.name()).compare("spawn"))
 		return false;
 
 	std::string strValue;
@@ -130,12 +130,12 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 	
 	for(auto tmpNode : p.children())
 	{
-		if(strcasecmp(tmpNode.name(), "monster") != 0)
+		if(!std::string(tmpNode.name()).compare("monster"))
 		{
 			if(!(attr = tmpNode.attribute("name")))
 				continue;
 
-			std::string name = strValue;
+			std::string name = attr.as_string();
 			int32_t interval = MINSPAWN_INTERVAL / 1000;
 			if((attr = tmpNode.attribute("spawntime")) || (attr = tmpNode.attribute("interval")))
 			{
@@ -166,12 +166,12 @@ bool Spawns::parseSpawnNode(pugi::xml_node& p, bool checkDuplicate)
 
 			spawn->addMonster(name, placePos, direction, interval);
 		}
-		else if(strcasecmp(tmpNode.name(), "npc") != 0)
+		else if(!std::string(tmpNode.name()).compare("npc"))
 		{
 			if(!(attr = tmpNode.attribute("name")))
 				continue;
 
-			std::string name = strValue;
+			std::string name = attr.as_string();
 			Position placePos = centerPos;
 			if((attr = tmpNode.attribute("x")))
 				placePos.x += attr.as_int();

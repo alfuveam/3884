@@ -44,10 +44,6 @@
 	#define	__FUNCTION__ __func__
 #endif
 
-#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
-#define CRYPTOPP_DEFAULT_NO_DLL
-
-#define BOOST_ASIO_ENABLE_CANCELIO 1
 #ifdef _MSC_VER
 	#define __PRETTY_FUNCTION__ __FUNCDNAME__
 	#ifndef NOMINMAX
@@ -58,10 +54,6 @@
 		#define _SECURE_SCL 0
 		#define HAS_ITERATOR_DEBUGGING 0
 	#endif
-
-	#include <cstring>
-	#define strcasecmp _stricmp
-	#define strncasecmp _strnicmp
 
 	#pragma warning(disable:4786) // msvc too long debug names in stl
 	#pragma warning(disable:4018) // 'expression' : signed/unsigned mismatch
@@ -101,8 +93,6 @@
 	//Windows Seven 0x0601
 
 	#define _WIN32_WINNT 0x0501
-#elif defined __GNUC__
-	#define __USE_ZLIB__
 #endif
 
 #ifdef __USE_MINIDUMP__
@@ -111,28 +101,19 @@
 	#endif
 #endif
 
-	#ifdef __DEBUG_EXCEPTION_REPORT__
-		#define DEBUG_REPORT int *a = NULL; *a = 1;
-	#elif defined __EXCEPTION_TRACER__
-		#include "exception.h"
-		#define DEBUG_REPORT ExceptionHandler::dumpStack();
-	#else
-		#define DEBUG_REPORT
-	#endif
-// #endif
+#ifdef __DEBUG_EXCEPTION_REPORT__
+	#define DEBUG_REPORT int *a = NULL; *a = 1;
+#elif defined __EXCEPTION_TRACER__
+	#include "exception.h"
+	#define DEBUG_REPORT ExceptionHandler::dumpStack();
+#else
+	#define DEBUG_REPORT
+#endif
 
 #ifdef _WIN32
 
 	#ifndef access
 	#define access _access
-	#endif
-
-	#ifndef timeb
-	#define timeb _timeb
-	#endif
-
-	#ifndef ftime
-	#define ftime _ftime
 	#endif
 #endif
 
@@ -145,16 +126,5 @@
 #else
 	#include <conio.h>
 #endif
-
-#ifdef __NO_BOOST_EXCEPTIONS__
-	#include <exception>
-
-	inline void boost::throw_exception(std::exception const & e)
-	{
-		std::clog << "Boost exception: " << e.what() << std::endl;
-	}
-#endif
-
-#include <sys/timeb.h>
 
 #endif

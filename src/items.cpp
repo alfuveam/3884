@@ -353,34 +353,15 @@ int32_t Items::loadFromOtb(std::string file)
 
 bool Items::loadFromXml()
 {
+	pugi::xml_document attrItemDoc;
+	pugi::xml_parse_result itemDoc = attrItemDoc.load_file(getFilePath(FILE_TYPE_OTHER, "items/items.xml").c_str());	
+
 	pugi::xml_attribute attr;
 	pugi::xml_attribute _attr;
-	pugi::xml_document itemDoc;
-	pugi::xml_document paletteDoc;
-	pugi::xml_parse_result resultItem = itemDoc.load_file(getFilePath(FILE_TYPE_OTHER, "items/items.xml").c_str());
-	pugi::xml_parse_result resultPalette = paletteDoc.load_file(getFilePath(FILE_TYPE_OTHER, "items/randomization.xml").c_str());
 
-	if(!resultItem)
+	if(!itemDoc)
 	{
 		std::clog << "[Warning - Items::loadFromXml] Cannot load items file." << std::endl;
-		return false;
-	}
-
-	if(!resultPalette)
-	{
-		std::clog << "[Warning - Items::loadFromXml] Cannot load randomization file." << std::endl;
-		return false;
-	}
-
-	if(strcasecmp(itemDoc.name(),"items") == 0)
-	{
-		std::clog << "[Warning - Items::loadFromXml] Malformed items file." << std::endl;
-		return false;
-	}
-
-	if(strcasecmp(paletteDoc.name(),"randomization") == 0)
-	{
-		std::clog << "[Warning - Items::loadFromXml] Malformed randomization file." << std::endl;
 		return false;
 	}
 
@@ -388,9 +369,9 @@ bool Items::loadFromXml()
 	std::string strValue, endValue, lastId;
 	StringVec strVector;	
 	int32_t intValue, id = 0, endId = 0, fromId = 0, toId = 0;
-	for(auto itemNode : itemDoc.child("items").children())
+	for(auto itemNode : attrItemDoc.child("items").children())
 	{
-		if(strcasecmp(itemNode.name(),"item") == 0)
+		if(std::string(itemNode.name()).compare("item"))
 			continue;
 
 		if((attr = itemNode.attribute("id")))
@@ -400,7 +381,6 @@ bool Items::loadFromXml()
 		}
 		else if((attr = itemNode.attribute("fromid")) && (_attr = itemNode.attribute("toid")))
 		{
-			lastId = attr.as_string();
 			strValue = attr.as_string();
 			endValue = _attr.as_string();
 			intVector = vectorAtoi(explodeString(strValue, ";"));
@@ -437,68 +417,6 @@ bool Items::loadFromXml()
 		//check bed items
 		if((it->transformToFree || it->transformUseTo[PLAYERSEX_FEMALE] || it->transformUseTo[PLAYERSEX_MALE]) && it->type != ITEM_TYPE_BED)
 			std::clog << "[Warning - Items::loadFromXml] Item " << it->id << " is not set as a bed-type." << std::endl;
-	}
-
-	
-	for(auto paletteNode : paletteDoc.children())
-	{
-		if(strcasecmp(paletteNode.name(), "config") == 0)
-		{
-			if((attr = paletteNode.attribute("chance")) || (attr = paletteNode.attribute("defaultChance")))
-			{
-				intValue = attr.as_int();
-				if(intValue > 100)
-				{
-					intValue = 100;
-					std::clog << "[Warning - Items::loadFromXml] Randomize chance cannot be higher than 100." << std::endl;
-				}
-
-				m_randomizationChance = intValue;
-			}
-		}
-		else if(strcasecmp(paletteNode.name(), "palette") == 0)
-		{
-			if(!(attr = paletteNode.attribute("randomize")))
-				continue;
-
-			std::vector<int32_t> itemList = vectorAtoi(explodeString(attr.as_string(), ";"));
-			if(itemList.size() > 1)
-			{
-				if(itemList[0] < itemList[1])
-				{
-					fromId = itemList[0];
-					toId = itemList[1];
-				}
-				else
-					std::clog << "[Warning - Items::loadFromXml] Randomize min cannot be higher than max." << std::endl;
-			}
-
-			int32_t chance = getRandomizationChance();
-			if((attr = paletteNode.attribute("chance")))
-			{
-				intValue = attr.as_int();
-				if(intValue > 100)
-				{
-					intValue = 100;
-					std::clog << "[Warning: Items::loadRandomization] Randomize chance cannot be higher than 100." << std::endl;
-				}
-
-				chance = intValue;
-			}
-
-			if((attr = paletteNode.attribute("itemid"))){
-				id = attr.as_int();
-				parseRandomizationBlock(id, fromId, toId, chance);
-			}
-			else if((attr = paletteNode.attribute("fromid")) && (_attr = paletteNode.attribute("toid")))
-			{
-				fromId = attr.as_int();
-				toId = _attr.as_int();
-				parseRandomizationBlock(id, fromId, toId, chance);
-				while(id < endId)
-					parseRandomizationBlock(++id, fromId, toId, chance);
-			}
-		}
 	}
 
 	return true;
@@ -1898,7 +1816,7 @@ int32_t Items::getItemIdByName(const std::string& name)
 		ItemType* iType = NULL;
 		do
 		{
-			if((iType = items.getElement(i)) && !strcasecmp(name.c_str(), iType->name.c_str()))
+			if((iType = items.getElement(i)) && !std::string(name.c_str()).compare(iType->name.c_str()))
 				return i;
 
 			i++;

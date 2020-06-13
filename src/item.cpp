@@ -101,7 +101,7 @@ Item* Item::CreateItem(PropStream& propStream)
 bool Item::loadItem(pugi::xml_node& node, Container* parent)
 {
 	pugi::xml_attribute attr;
-	if(strcasecmp(node.name(), "item") == 0)
+	if(std::string(node.name()).compare("item"))
 		return false;
 
 	std::string strValue;
@@ -157,7 +157,7 @@ bool Item::loadContainer(pugi::xml_node& node, Container* parent)
 {
 	for(auto _node : node.children())
 	{
-		if(!strcasecmp(_node.name(), "item") && !loadItem(_node, parent))
+		if(!std::string(_node.name()).compare("item") && !loadItem(_node, parent))
 			return false;
 	}
 

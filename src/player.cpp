@@ -4467,7 +4467,7 @@ bool Player::hasLearnedInstantSpell(const std::string& name) const
 
 	for(LearnedInstantSpellList::const_iterator it = learnedInstantSpellList.begin(); it != learnedInstantSpellList.end(); ++it)
 	{
-		if(!strcasecmp((*it).c_str(), name.c_str()))
+		if(!std::string((*it).c_str()).compare(name.c_str()))
 			return true;
 	}
 
@@ -4735,7 +4735,7 @@ void Player::manageAccount(const std::string &text)
 					talkState[11] = true;
 
 					bool firstPart = true;
-					for(VocationsMap::iterator it = Vocations::getInstance()->getFirstVocation(); it != Vocations::getInstance()->getLastVocation(); ++it)
+					for(auto it = Vocations::getInstance()->getFirstVocation(); it != Vocations::getInstance()->getLastVocation(); ++it)
 					{
 						if(it->first == it->second->getFromVocation() && it->first != 0 && it->second->isManagerOption() == true)
 						{
@@ -4771,7 +4771,7 @@ void Player::manageAccount(const std::string &text)
 			}
 			else if(talkState[11])
 			{
-				for(VocationsMap::iterator it = Vocations::getInstance()->getFirstVocation(); it != Vocations::getInstance()->getLastVocation(); ++it)
+				for(auto it = Vocations::getInstance()->getFirstVocation(); it != Vocations::getInstance()->getLastVocation(); ++it)
 				{
 					std::string tmp = asLowerCaseString(it->second->getName());
 					if(checkText(text, tmp) && it != Vocations::getInstance()->getLastVocation() && it->first == it->second->getFromVocation() && it->first != 0 && it->second->isManagerOption() == true)

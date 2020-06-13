@@ -681,7 +681,7 @@ bool Houses::loadFromXml(std::string filename)
 		return false;
 	}
 
-	if(strcasecmp(doc.name(), "houses") == 0)
+	if(!std::string(doc.name()).compare("houses"))
 	{
 		printXMLError("[Error - Houses::loadFromXml] Malformed houses file.", filename, result);
 		return false;
@@ -691,7 +691,7 @@ bool Houses::loadFromXml(std::string filename)
 
 	for(auto houseNode : doc.child("houses").children())
 	{
-		if(strcasecmp(houseNode.name(), "house") == 0)
+		if(std::string(houseNode.name()).compare("house"))
 		{
 			continue;
 		}
