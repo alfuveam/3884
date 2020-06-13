@@ -21,6 +21,7 @@ only_commits:
 install:
   - cmd : vcpkg install boost-system:x64-windows
   - cmd : vcpkg install boost-iostreams:x64-windows
+  - cmd : vcpkg install boost-filesystem:x64-windows  
   - cmd : vcpkg install boost-asio:x64-windows
   - cmd : vcpkg install boost-any:x64-windows  
   - cmd : vcpkg install luajit:x64-windows
