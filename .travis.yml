@@ -10,9 +10,6 @@ cache: apt
 addons:
   apt:
     packages:
-      - clang-8
-      - gcc-8
-      - g++-8
       - libboost-dev
       - libboost-system-dev
       - libboost-iostreams-dev
@@ -24,7 +21,7 @@ addons:
       - libpugixml-dev 
       - libsqlite3-dev
       - unixodbc-dev
-      - libpq-dev      
+      - libpq-dev
 before_script:
   - mkdir build && cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ..
