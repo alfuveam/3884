@@ -239,7 +239,7 @@ bool ScriptManager::loadFromXml(const std::string& file, bool& enabled)
 				std::string path, name;
 				if(((attr = p.attribute("file")) || (attr = p.attribute("path"))))
 					path = attr.as_string();
-					if(attr = p.attribute("name"))
+					if((attr = p.attribute("name")))
 						name = attr.as_string();
 						g_monsters.loadMonster(getFilePath(FILE_TYPE_MOD, "monster/" + path), name, true);
 			}

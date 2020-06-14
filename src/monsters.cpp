@@ -235,9 +235,9 @@ bool Monsters::loadFromXml(bool reloading /*= false*/)
 		}
 
 		std::string file, name;
-		if(attr = p.attribute("file")){
+		if((attr = p.attribute("file"))){
 			file = attr.as_string();
-			if(attr = p.attribute("name"))
+			if((attr = p.attribute("name")))
 			{
 				name = attr.as_string();
 				file = getFilePath(FILE_TYPE_OTHER, "monster/" + file);
