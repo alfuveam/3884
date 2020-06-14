@@ -18,58 +18,60 @@
 #ifndef __DATABASE_PGSQL__
 #define __DATABASE_PGSQL__
 
-#ifndef __DATABASE__
-#error "database.h should be included first."
-#endif
+#if defined(__USE_PGSQL__) || defined(__ALLDB__)
+
+#include "database.h"
 #include "libpq-fe.h"
 
-class DatabasePgSQL : public _Database
+class DatabasePgSQL : public Database
 {
 	public:
 		DatabasePgSQL();
-		DATABASE_VIRTUAL ~DatabasePgSQL() {PQfinish(m_handle);}
+		virtual ~DatabasePgSQL() {PQfinish(m_handle);}
 
-		DATABASE_VIRTUAL bool getParam(DBParam_t param);
+		bool getParam(DBParam_t param);
 
-		DATABASE_VIRTUAL bool beginTransaction() {return query("BEGIN");}
-		DATABASE_VIRTUAL bool rollback() {return query("ROLLBACK");}
-		DATABASE_VIRTUAL bool commit() {return query("COMMIT");}
+		bool beginTransaction() {return query("BEGIN");}
+		bool rollback() {return query("ROLLBACK");}
+		bool commit() {return query("COMMIT");}
 
-		DATABASE_VIRTUAL bool query(const std::string& query);
-		DATABASE_VIRTUAL DBResult* storeQuery(const std::string& query);
+		bool query(const std::string& query);
+		DBResult_ptr storeQuery(const std::string& query);
 
-		DATABASE_VIRTUAL std::string escapeString(const std::string& s);
-		DATABASE_VIRTUAL std::string escapeBlob(const char *s, uint32_t length);
+		std::string escapeString(const std::string& s);
+		std::string escapeBlob(const char *s, uint32_t length);
 
-		DATABASE_VIRTUAL uint64_t getLastInsertId();
-		DATABASE_VIRTUAL DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_POSTGRESQL;}
+		uint64_t getLastInsertId();
+		DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_POSTGRESQL;}
 
 	protected:
 		std::string _parse(const std::string& s);
 		PGconn* m_handle;
 };
 
-class PgSQLResult : public _DBResult
+class PgSQLResult : public DBResult
 {
 	friend class DatabasePgSQL;
 
 	public:
-		DATABASE_VIRTUAL int32_t getDataInt(const std::string& s) {return atoi(
+		int32_t getDataInt(const std::string& s) {return atoi(
 			PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str())));}
-		DATABASE_VIRTUAL int64_t getDataLong(const std::string& s) {return atoll(
+		int64_t getDataLong(const std::string& s) {return atoll(
 			PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str())));}
-		DATABASE_VIRTUAL std::string getDataString(const std::string& s) {return std::string(
+		std::string getDataString(const std::string& s) {return std::string(
 			PQgetvalue(m_handle, m_cursor, PQfnumber(m_handle, s.c_str())));}
-		DATABASE_VIRTUAL const char* getDataStream(const std::string& s, uint64_t& size);
+		const char* getDataStream(const std::string& s, uint64_t& size);
 
-		DATABASE_VIRTUAL void free();
-		DATABASE_VIRTUAL bool next();
+		void free();
+		bool next();
 
-	protected:
 		PgSQLResult(PGresult* results);
-		DATABASE_VIRTUAL ~PgSQLResult();
+		~PgSQLResult();
+	protected:
 
 		PGresult* m_handle;
 		int32_t m_rows, m_cursor;
 };
+#endif
+
 #endif

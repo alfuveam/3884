@@ -125,7 +125,7 @@ class IOLoginData
 		typedef std::map<int32_t, std::pair<Item*, int32_t> > ItemMap;
 
 		bool saveItems(const Player* player, const ItemBlockList& itemList, DBInsert& query_insert);
-		void loadItems(ItemMap& itemMap, DBResult* result);
+		void loadItems(ItemMap& itemMap, DBResult_ptr result);
 
 		bool storeNameByGuid(uint32_t guid);
 };

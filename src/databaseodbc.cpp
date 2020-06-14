@@ -238,16 +238,11 @@ std::string DatabaseODBC::_parse(const std::string &s)
   return query;
 }
 
-void DatabaseODBC::freeResult(DBResult* res)
-{
-  delete (ODBCResult*)res;
-}
-
 /** ODBCResult definitions */
 
 int32_t ODBCResult::getDataInt(const std::string &s)
 {
-  listNames_t::iterator it = m_listNames.find(s);
+  auto it = m_listNames.find(s);
   if(it != m_listNames.end() ){
     int32_t value;
     SQLRETURN ret = SQLGetData(m_handle, it->second, SQL_C_SLONG, &value, 0, NULL);
@@ -264,7 +259,7 @@ int32_t ODBCResult::getDataInt(const std::string &s)
 
 uint32_t ODBCResult::getDataUInt(const std::string &s)
 {
-  listNames_t::iterator it = m_listNames.find(s);
+  auto it = m_listNames.find(s);
   if(it != m_listNames.end() ){
     uint32_t value;
     SQLRETURN ret = SQLGetData(m_handle, it->second, SQL_C_ULONG, &value, 0, NULL);
@@ -281,7 +276,7 @@ uint32_t ODBCResult::getDataUInt(const std::string &s)
 
 int64_t ODBCResult::getDataLong(const std::string &s)
 {
-  listNames_t::iterator it = m_listNames.find(s);
+  auto it = m_listNames.find(s);
   if(it != m_listNames.end() )
   {
     int64_t value;
@@ -299,7 +294,7 @@ int64_t ODBCResult::getDataLong(const std::string &s)
 
 std::string ODBCResult::getDataString(const std::string &s)
 {
-  listNames_t::iterator it = m_listNames.find(s);
+  auto it = m_listNames.find(s);
   if(it != m_listNames.end() )
   {
     char* value = new char[1024];
@@ -320,7 +315,7 @@ std::string ODBCResult::getDataString(const std::string &s)
 
 const char* ODBCResult::getDataStream(const std::string &s, uint64_t &size)
 {
-  listNames_t::iterator it = m_listNames.find(s);
+  auto it = m_listNames.find(s);
   if(it != m_listNames.end() )
   {
     char* value = new char[1024];

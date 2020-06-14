@@ -128,8 +128,8 @@ class ScriptEnviroment
 		static void removeTempItem(ScriptEnviroment* env, Item* item);
 		static void removeTempItem(Item* item);
 
-		DBResult* getResultByID(uint32_t id);
-		uint32_t addResult(DBResult* res);
+		DBResult_ptr getResultByID(uint32_t id);
+		uint32_t addResult(DBResult_ptr res);
 		bool removeResult(uint32_t id);
 
 		static void addUniqueThing(Thing* thing);
@@ -164,7 +164,7 @@ class ScriptEnviroment
 		typedef std::map<uint32_t, CombatArea*> AreaMap;
 		typedef std::map<uint32_t, Combat*> CombatMap;
 		typedef std::map<uint32_t, Condition*> ConditionMap;
-		typedef std::map<uint32_t, DBResult*> DBResultMap;
+		typedef std::map<uint32_t, DBResult_ptr> DBResultMap;
 
 		LuaInterface* m_interface;
 		int32_t m_scriptId, m_callbackId;

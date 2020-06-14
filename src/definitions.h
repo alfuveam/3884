@@ -33,13 +33,6 @@
 #define VERSION_BUILD 0
 #define VERSION_DATABASE 27
 
-#undef __MULTI_SQL_DRIVERS__
-#define SQL_DRIVERS __USE_SQLITE__+__USE_MYSQL__+__USE_PGSQL__+__USE_ODBC__
-
-#if SQL_DRIVERS > 1
-	#define __MULTI_SQL_DRIVERS__
-#endif
-
 #ifndef __FUNCTION__
 	#define	__FUNCTION__ __func__
 #endif

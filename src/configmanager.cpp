@@ -86,9 +86,8 @@ bool ConfigManager::load()
 			m_confString[OUTPUT_LOG] = getGlobalString("outputLog", "");
 
 		m_confBool[TRUNCATE_LOG] = getGlobalBool("truncateLogOnStartup", true);
-		#ifdef __MULTI_SQL_DRIVERS__
-		m_confString[SQL_TYPE] = getGlobalString("sqlType", "sqlite");
-		#endif
+		
+		m_confString[SQL_TYPE] = getGlobalString("sqlType", "sqlite");		
 		m_confString[SQL_HOST] = getGlobalString("sqlHost", "localhost");
 		m_confNumber[SQL_PORT] = getGlobalNumber("sqlPort", 3306);
 		m_confString[SQL_DB] = getGlobalString("sqlDatabase", "theforgottenserver");

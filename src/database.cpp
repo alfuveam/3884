@@ -16,63 +16,67 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "otpch.h"
-
 #include "database.h"
-#ifdef __USE_MYSQL__
+
+#if !defined(__ALLDB__)
+	#if !defined(__USE_MYSQL__) && !defined(__USE_PGSQL__) && !defined(__USE_SQLITE__) && !defined(__USE_ODBC__)
+		#error You must define one Database.
+	#endif
+// #else
+// 	#if defined(__USE_MYSQL__) && defined(__USE_PGSQL__) 
+// 		#error To all database use __ALLDB__ in preprocessor.
+// 	#endif	
+#endif
+
+#if defined(__USE_MYSQL__) || defined(__ALLDB__)
 	#include "databasemysql.h"
 #endif
 
-#ifdef __USE_ODBC__
+#if defined(__USE_ODBC__) || defined(__ALLDB__)
 	#include "databaseodbc.h"
 #endif
 
-#ifdef __USE_SQLITE__
+#if defined(__USE_SQLITE__) || defined(__ALLDB__)
 	#include "databasesqlite.h"
 #endif
 
-#ifdef __USE_PGSQL__
+#if defined(__USE_PGSQL__) || defined(__ALLDB__)
 	#include "databasepgsql.h"
 #endif
 
-#if defined __MULTI_SQL_DRIVERS__
-	#include "configmanager.h"
-	extern ConfigManager g_config;
-#endif
+#include "configmanager.h"
+extern ConfigManager g_config;
 
 std::recursive_mutex DBQuery::databaseLock;
-Database* _Database::_instance = NULL;
+Database* Database::_instance = NULL;
 
-Database* _Database::getInstance()
+Database* Database::getInstance()
 {
 	if(!_instance)
 	{
-#if defined __MULTI_SQL_DRIVERS__
-#ifdef __USE_MYSQL__
-		if(g_config.getString(ConfigManager::SQL_TYPE) == "mysql")
-			_instance = new DatabaseMySQL;
-#endif
-#ifdef __USE_ODBC__
-    if(g_config.getString(ConfigManager::SQL_TYPE) == "odbc")
-      _instance = new DatabaseODBC;
-#endif
-#ifdef __USE_SQLITE__
-		if(g_config.getString(ConfigManager::SQL_TYPE) == "sqlite")
-			_instance = new DatabaseSQLite;
-#endif
-#ifdef __USE_PGSQL__
-		if(g_config.getString(ConfigManager::SQL_TYPE) == "pgsql")
-			_instance = new DatabasePgSQL;
-#endif
-#else
-		_instance = new Database;
-#endif
+	#ifdef __USE_MYSQL__
+			if(g_config.getString(ConfigManager::SQL_TYPE) == "mysql")
+				_instance = new DatabaseMySQL;
+	#endif
+	#ifdef __USE_ODBC__
+		if(g_config.getString(ConfigManager::SQL_TYPE) == "odbc")
+		_instance = new DatabaseODBC;
+	#endif
+	#ifdef __USE_SQLITE__
+			if(g_config.getString(ConfigManager::SQL_TYPE) == "sqlite")
+				_instance = new DatabaseSQLite;
+	#endif
+	#ifdef __USE_PGSQL__
+			if(g_config.getString(ConfigManager::SQL_TYPE) == "pgsql")
+				_instance = new DatabasePgSQL;
+	#endif
 	}
 
 	_instance->use();
 	return _instance;
 }
 
-DBResult* _Database::verifyResult(DBResult* result)
+DBResult_ptr Database::verifyResult(DBResult_ptr result)
 {
 	if(result->next())
 		return result;

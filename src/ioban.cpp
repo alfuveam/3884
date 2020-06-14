@@ -33,7 +33,7 @@ bool IOBan::isIpBanished(uint32_t ip, uint32_t mask/* = 0xFFFFFFFF*/) const
 		return false;
 
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `id`, `value`, `param`, `expires` FROM `bans` WHERE `type` = " << BAN_IP << " AND `active` = 1";
@@ -61,7 +61,7 @@ bool IOBan::isIpBanished(uint32_t ip, uint32_t mask/* = 0xFFFFFFFF*/) const
 bool IOBan::isPlayerBanished(uint32_t playerId, PlayerBan_t type) const
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `id` FROM `bans` WHERE `type` = " << BAN_PLAYER << " AND `value` = " << playerId << " AND `param` = " << type << " AND `active` = 1 LIMIT 1";
@@ -82,7 +82,7 @@ bool IOBan::isPlayerBanished(std::string name, PlayerBan_t type) const
 bool IOBan::isAccountBanished(uint32_t account, uint32_t playerId/* = 0*/) const
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `expires` FROM `bans` WHERE `type` = " << BAN_ACCOUNT << " AND `value` = " << account;
@@ -274,7 +274,7 @@ bool IOBan::removeStatements(std::string name, int16_t channelId/* = -1*/) const
 uint32_t IOBan::getNotationsCount(uint32_t account, uint32_t playerId/* = 0*/) const
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT COUNT(`id`) AS `count` FROM `bans` WHERE `value` = " << account;
@@ -293,7 +293,7 @@ uint32_t IOBan::getNotationsCount(uint32_t account, uint32_t playerId/* = 0*/) c
 uint32_t IOBan::getStatementsCount(uint32_t playerId, int16_t channelId/* = -1*/) const
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT COUNT(`id`) AS `count` FROM `bans` WHERE `value` = " << playerId;
@@ -331,7 +331,7 @@ bool IOBan::getData(Ban& ban) const
 		query << " AND `type` = " << ban.type;
 
 	query << " AND `active` = 1 AND (`expires` > " << time(NULL) << " OR `expires` <= 0) LIMIT 1";
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 		return false;
 
@@ -354,7 +354,7 @@ bool IOBan::getData(Ban& ban) const
 BansVec IOBan::getList(Ban_t type, uint32_t value/* = 0*/, uint32_t param/* = 0*/)
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT * FROM `bans` WHERE ";

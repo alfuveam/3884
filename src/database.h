@@ -20,57 +20,15 @@
 
 #include "enums.h"
 
-#ifdef __MULTI_SQL_DRIVERS__
-#define DATABASE_VIRTUAL virtual
-#define DATABASE_CLASS _Database
-#define RESULT_CLASS _DBResult
-class _Database;
-class _DBResult;
-#else
-#define DATABASE_VIRTUAL
-
-#if defined(__USE_MYSQL__)
-#define DATABASE_CLASS DatabaseMySQL
-#define RESULT_CLASS MySQLResult
-class DatabaseMySQL;
-class MySQLResult;
-
-#elif defined(__USE_ODBC__)
-#define DATABASE_CLASS DatabaseODBC
-#define RESULT_CLASS PgSQLResult
-class DatabaseODBC;
-class PgSQLResult;
-
-#elif defined(__USE_SQLITE__)
-#define DATABASE_CLASS DatabaseSQLite
-#define RESULT_CLASS SQLiteResult
-class DatabaseSQLite;
-class SQLiteResult;
-
-#elif defined(__USE_PGSQL__)
-#define DATABASE_CLASS DatabasePgSQL
-#define RESULT_CLASS PgSQLResult
-class DatabasePgSQL;
-class PgSQLResult;
-
-#endif
-#endif
-
-#ifndef DATABASE_CLASS
-	#error "You have to compile with at least one database driver!"
-#define DBResult void
-#define DBInsert void*
-#define Database void
-#else
-typedef DATABASE_CLASS Database;
-typedef RESULT_CLASS DBResult;
+class DBResult;
+using DBResult_ptr = std::shared_ptr<DBResult>;
 
 enum DBParam_t
 {
 	DBPARAM_MULTIINSERT = 1
 };
 
-class _Database
+class Database
 {
 	public:
 		/**
@@ -90,7 +48,7 @@ class _Database
 		* @param DBParam_t parameter to get
 		* @return suitable for given parameter
 		*/
-		DATABASE_VIRTUAL bool getParam(DBParam_t) {return false;}
+		virtual bool getParam(DBParam_t) {return false;}
 
 		/**
 		* Database connected.
@@ -99,12 +57,12 @@ class _Database
 		*
 		* @return whether or not the database is connected.
 		*/
-		DATABASE_VIRTUAL bool isConnected() {return m_connected;}
+		virtual bool isConnected() {return m_connected;}
 
 		/**
 		* Database ...
 		*/
-		DATABASE_VIRTUAL void use() {m_use = OTSYS_TIME();}
+		virtual void use() {m_use = OTSYS_TIME();}
 
 	protected:
 		/**
@@ -118,9 +76,9 @@ class _Database
 		*/
 		friend class DBTransaction;
 
-		DATABASE_VIRTUAL bool beginTransaction() {return 0;}
-		DATABASE_VIRTUAL bool rollback() {return 0;}
-		DATABASE_VIRTUAL bool commit() {return 0;}
+		virtual bool beginTransaction() {return 0;}
+		virtual bool rollback() {return 0;}
+		virtual bool commit() {return 0;}
 
 	public:
 		/**
@@ -131,7 +89,7 @@ class _Database
 		* @param std::string query command
 		* @return true on success, false on error
 		*/
-		DATABASE_VIRTUAL bool query(const std::string&) {return 0;}
+		virtual bool query(const std::string&) {return 0;}
 
 		/**
 		* Queries database.
@@ -141,7 +99,7 @@ class _Database
 		* @param std::string query
 		* @return results object (null on error)
 		*/
-		DATABASE_VIRTUAL DBResult* storeQuery(const std::string&) {return 0;}
+		virtual DBResult_ptr storeQuery(const std::string&) {return 0;}
 
 		/**
 		* Escapes string for query.
@@ -151,7 +109,7 @@ class _Database
 		* @param std::string string to be escaped
 		* @return quoted string
 		*/
-		DATABASE_VIRTUAL std::string escapeString(const std::string&) {return "''";}
+		virtual std::string escapeString(const std::string&) {return "''";}
 
 		/**
 		* Escapes binary stream for query.
@@ -162,35 +120,35 @@ class _Database
 		* @param long stream length
 		* @return quoted string
 		*/
-		DATABASE_VIRTUAL std::string escapeBlob(const char*, uint32_t) {return "''";}
+		virtual std::string escapeBlob(const char*, uint32_t) {return "''";}
 
 		/**
 		 * Retrieve id of last inserted row
 		 *
 		 * @return id on success, 0 if last query did not result on any rows with auto_increment keys
 		 */
-		DATABASE_VIRTUAL uint64_t getLastInsertId() {return 0;}
+		virtual uint64_t getLastInsertId() {return 0;}
 
 		/**
 		* Get case insensitive string comparison operator
 		*
 		* @return the case insensitive operator
 		*/
-		DATABASE_VIRTUAL std::string getStringComparer() {return "= ";}
-		DATABASE_VIRTUAL std::string getUpdateLimiter() {return " LIMIT 1;";}
+		virtual std::string getStringComparer() {return "= ";}
+		virtual std::string getUpdateLimiter() {return " LIMIT 1;";}
 
 		/**
 		* Get database engine
 		*
 		* @return the database engine type
 		*/
-		DATABASE_VIRTUAL DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_NONE;}
+		virtual DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_NONE;}
 
 	protected:
-		_Database() {m_connected = false;}
-		DATABASE_VIRTUAL ~_Database() {}
+		Database() {m_connected = false;}
+		virtual ~Database() {}
 
-		DBResult* verifyResult(DBResult* result);
+		DBResult_ptr verifyResult(DBResult_ptr result);
 
 		bool m_connected;
 		int64_t m_use;
@@ -199,45 +157,45 @@ class _Database
 		static Database* _instance;
 };
 
-class _DBResult
+class DBResult
 {
 	public:
 		/** Get the Integer value of a field in database
 		*\returns The Integer value of the selected field and row
 		*\param s The name of the field
 		*/
-		DATABASE_VIRTUAL int32_t getDataInt(const std::string&) {return 0;}
+		virtual int32_t getDataInt(const std::string&) {return 0;}
 
 		/** Get the Long value of a field in database
 		*\returns The Long value of the selected field and row
 		*\param s The name of the field
 		*/
-		DATABASE_VIRTUAL int64_t getDataLong(const std::string&) {return 0;}
+		virtual int64_t getDataLong(const std::string&) {return 0;}
 
 		/** Get the String of a field in database
 		*\returns The String of the selected field and row
 		*\param s The name of the field
 		*/
-		DATABASE_VIRTUAL std::string getDataString(const std::string&) {return "''";}
+		virtual std::string getDataString(const std::string&) {return "''";}
 
 		/** Get the blob of a field in database
 		*\returns a PropStream that is initiated with the blob data field, if not exist it returns NULL.
 		*\param s The name of the field
 		*/
-		DATABASE_VIRTUAL const char* getDataStream(const std::string&, uint64_t&) {return 0;}
+		virtual const char* getDataStream(const std::string&, uint64_t&) {return 0;}
 
 		/** Result freeing
 		*/
-		DATABASE_VIRTUAL void free() {}
+		virtual void free() {}
 
 		/** Moves to next result in set
 		*\returns true if moved, false if there are no more results.
 		*/
-		DATABASE_VIRTUAL bool next() {return false;}
+		virtual bool next() {return false;}
 
 	protected:
-		_DBResult() {}
-		DATABASE_VIRTUAL ~_DBResult() {}
+		DBResult() {}
+		virtual ~DBResult() {}
 };
 
 /**
@@ -247,7 +205,7 @@ class _DBResult
 */
 class DBQuery : public std::stringstream
 {
-	friend class _Database;
+	friend class Database;
 	public:
 		DBQuery() {databaseLock.lock();}
 		virtual ~DBQuery() {str(""); databaseLock.unlock();}
@@ -305,19 +263,6 @@ class DBInsert
 		std::string m_query, m_buf;
 };
 
-
-#ifndef __MULTI_SQL_DRIVERS__
-#if defined(__USE_MYSQL__)
-#include "databasemysql.h"
-#elif defined(__USE_ODBC__)
-#include "databaseodbc.h"
-#elif defined(__USE_SQLITE__)
-#include "databasesqlite.h"
-#elif defined(__USE_PGSQL__)
-#include "databasepgsql.h"
-#endif
-#endif
-
 class DBTransaction
 {
 	public:
@@ -357,5 +302,4 @@ class DBTransaction
 			STEATE_COMMIT
 		} m_state;
 };
-#endif
 #endif

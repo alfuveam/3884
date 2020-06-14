@@ -18,60 +18,59 @@
 #ifndef __DATABASEMYSQL__
 #define __DATABASEMYSQL__
 
-#ifndef __DATABASE__
-#error "database.h should be included first."
-#endif
+#if defined(__USE_MYSQL__) || defined(__ALLDB__)
 
+#include "database.h"
 #include <mysql/mysql.h>
 
-class DatabaseMySQL : public _Database
+class DatabaseMySQL : public Database
 {
 	public:
 		DatabaseMySQL();
-		DATABASE_VIRTUAL ~DatabaseMySQL();
+		virtual ~DatabaseMySQL();
 
-		DATABASE_VIRTUAL bool getParam(DBParam_t param);
+		bool getParam(DBParam_t param);
 
-		DATABASE_VIRTUAL bool beginTransaction() {return query("BEGIN");}
-		DATABASE_VIRTUAL bool rollback();
-		DATABASE_VIRTUAL bool commit();
+		bool beginTransaction() {return query("BEGIN");}
+		bool rollback();
+		bool commit();
 
-		DATABASE_VIRTUAL bool query(const std::string& query);
-		DATABASE_VIRTUAL DBResult* storeQuery(const std::string& query);
+		bool query(const std::string& query);
+		DBResult_ptr storeQuery(const std::string& query);
 
-		DATABASE_VIRTUAL std::string escapeString(const std::string &s) {return escapeBlob(s.c_str(), s.length());}
-		DATABASE_VIRTUAL std::string escapeBlob(const char* s, uint32_t length);
+		std::string escapeString(const std::string &s) {return escapeBlob(s.c_str(), s.length());}
+		std::string escapeBlob(const char* s, uint32_t length);
 
-		DATABASE_VIRTUAL uint64_t getLastInsertId() {return (uint64_t)mysql_insert_id(&m_handle);}
-		DATABASE_VIRTUAL DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_MYSQL;}
+		uint64_t getLastInsertId() {return (uint64_t)mysql_insert_id(&m_handle);}
+		DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_MYSQL;}
 
 	protected:
-		DATABASE_VIRTUAL void keepAlive();
+		void keepAlive();
 
 		MYSQL m_handle;
 		uint32_t m_timeoutTask;
 };
 
-class MySQLResult : public _DBResult
+class MySQLResult : public DBResult
 {
 	friend class DatabaseMySQL;
 	public:
-		DATABASE_VIRTUAL int32_t getDataInt(const std::string& s);
-		DATABASE_VIRTUAL int64_t getDataLong(const std::string& s);
-		DATABASE_VIRTUAL std::string getDataString(const std::string& s);
-		DATABASE_VIRTUAL const char* getDataStream(const std::string& s, uint64_t& size);
+		int32_t getDataInt(const std::string& s);
+		int64_t getDataLong(const std::string& s);
+		std::string getDataString(const std::string& s);
+		const char* getDataStream(const std::string& s, uint64_t& size);
 
-		DATABASE_VIRTUAL void free();
-		DATABASE_VIRTUAL bool next();
+		void free();
+		bool next();
 
-	protected:
 		MySQLResult(MYSQL_RES* result);
-		DATABASE_VIRTUAL ~MySQLResult();
+		~MySQLResult();
+	protected:
 
-		typedef std::map<const std::string, uint32_t> listNames_t;
-		listNames_t m_listNames;
+		std::map<const std::string, uint32_t> m_listNames;
 
 		MYSQL_RES* m_handle;
 		MYSQL_ROW m_row;
 };
+#endif
 #endif

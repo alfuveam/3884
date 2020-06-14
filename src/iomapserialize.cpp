@@ -67,7 +67,7 @@ bool IOMapSerialize::updateAuctions()
 	time_t now = time(NULL);
 	query << "SELECT `house_id`, `player_id`, `bid` FROM `house_auctions` WHERE `endtime` < " << now;
 
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 		return true;
 
@@ -98,7 +98,7 @@ bool IOMapSerialize::loadHouses()
 	DBQuery query;
 
 	query << "SELECT * FROM `houses` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 		return false;
 
@@ -155,7 +155,7 @@ bool IOMapSerialize::updateHouses()
 
 		query << "SELECT `price` FROM `houses` WHERE `id` = " << house->getId() << " AND `world_id` = "
 			<< g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
-		if(DBResult* result = db->storeQuery(query.str()))
+		if(DBResult_ptr result = db->storeQuery(query.str()))
 		{
 			if((uint32_t)result->getDataInt("price") != house->getPrice())
 				house->setSyncFlag(House::HOUSE_SYNC_UPDATE);
@@ -292,14 +292,14 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 		query.str("");
 		query << "SELECT * FROM `tiles` WHERE `house_id` = " << house->getId() <<
 			" AND `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
-		if(DBResult* result = db->storeQuery(query.str()))
+		if(DBResult_ptr result = db->storeQuery(query.str()))
 		{
 			do
 			{
 				query.str("");
 				query << "SELECT * FROM `tile_items` WHERE `tile_id` = " << result->getDataInt("id") << " AND `world_id` = "
 					<< g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `sid` DESC";
-				if(DBResult* itemsResult = db->storeQuery(query.str()))
+				if(DBResult_ptr itemsResult = db->storeQuery(query.str()))
 				{
 					if(house->hasPendingTransfer())
 					{
@@ -338,12 +338,12 @@ bool IOMapSerialize::loadMapRelational(Map* map)
 				query << "SELECT `id` FROM `tiles` WHERE `x` = " << (*it)->getPosition().x << " AND `y` = "
 					<< (*it)->getPosition().y << " AND `z` = " << (*it)->getPosition().z << " AND `world_id` = "
 					<< g_config.getNumber(ConfigManager::WORLD_ID) << " LIMIT 1";
-				if(DBResult* result = db->storeQuery(query.str()))
+				if(DBResult_ptr result = db->storeQuery(query.str()))
 				{
 					query.str("");
 					query << "SELECT * FROM `tile_items` WHERE `tile_id` = " << result->getDataInt("id") << " AND `world_id` = "
 						<< g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `sid` DESC";
-					if(DBResult* itemsResult = db->storeQuery(query.str()))
+					if(DBResult_ptr itemsResult = db->storeQuery(query.str()))
 					{
 						if(house->hasPendingTransfer())
 						{
@@ -407,7 +407,7 @@ bool IOMapSerialize::saveMapRelational(Map*)
 bool IOMapSerialize::loadMapBinary(Map* map)
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `house_id`, `data` FROM `house_data` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID);
@@ -514,7 +514,7 @@ bool IOMapSerialize::saveMapBinary(Map*)
  	return transaction.commit();
 }
 
-bool IOMapSerialize::loadItems(Database*, DBResult* result, Cylinder* parent, bool depotTransfer/* = false*/)
+bool IOMapSerialize::loadItems(Database*, DBResult_ptr result, Cylinder* parent, bool depotTransfer/* = false*/)
 {
 	ItemMap itemMap;
 	Tile* tile = NULL;

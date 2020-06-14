@@ -5992,7 +5992,7 @@ Highscore Game::getHighscore(uint16_t skill)
 	Highscore hs;
 
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	if(skill >= SKILL__MAGLEVEL)
@@ -6061,7 +6061,7 @@ void Game::loadMotd()
 	DBQuery query;
 	query << "SELECT `id`, `text` FROM `server_motd` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `id` DESC LIMIT 1";
 
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 	{
 		std::clog << "> ERROR: Failed to load motd!" << std::endl;
@@ -6093,7 +6093,7 @@ void Game::loadPlayersRecord()
 	DBQuery query;
 	query << "SELECT `record` FROM `server_record` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << " ORDER BY `timestamp` DESC LIMIT 1";
 
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 	{
 		std::clog << "> ERROR: Failed to load players record!" << std::endl;

@@ -57,7 +57,7 @@ class IOMapSerialize
 		bool loadMapBinary(Map* map);
 		bool saveMapBinary(Map* map);
 
-		bool loadItems(Database* db, DBResult* result, Cylinder* parent, bool depotTransfer);
+		bool loadItems(Database* db, DBResult_ptr result, Cylinder* parent, bool depotTransfer);
 		bool saveItems(Database* db, uint32_t& tileId, uint32_t houseId, const Tile* tile);
 
 		bool loadContainer(PropStream& propStream, Container* container);

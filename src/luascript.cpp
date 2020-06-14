@@ -164,7 +164,7 @@ bool ScriptEnviroment::saveGameState()
 bool ScriptEnviroment::loadGameState()
 {
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `key`, `value` FROM `global_storage` WHERE `world_id` = " << g_config.getNumber(ConfigManager::WORLD_ID) << ";";
@@ -440,7 +440,7 @@ void ScriptEnviroment::removeTempItem(Item* item)
 	}
 }
 
-uint32_t ScriptEnviroment::addResult(DBResult* res)
+uint32_t ScriptEnviroment::addResult(DBResult_ptr res)
 {
 	uint32_t lastId = 0;
 	while(m_tempResults.find(lastId) != m_tempResults.end())
@@ -463,7 +463,7 @@ bool ScriptEnviroment::removeResult(uint32_t id)
 	return true;
 }
 
-DBResult* ScriptEnviroment::getResultByID(uint32_t id)
+DBResult_ptr ScriptEnviroment::getResultByID(uint32_t id)
 {
 	DBResultMap::iterator it = m_tempResults.find(id);
 	if(it != m_tempResults.end())
@@ -11007,7 +11007,7 @@ int32_t LuaInterface::luaDatabaseStoreQuery(lua_State* L)
 	ScriptEnviroment* env = getEnv();
 
 	DBQuery query; //lock mutex
-	if(DBResult* res = Database::getInstance()->storeQuery(popString(L)))
+	if(DBResult_ptr res = Database::getInstance()->storeQuery(popString(L)))
 		lua_pushnumber(L, env->addResult(res));
 	else
 		lua_pushboolean(L, false);
@@ -11068,7 +11068,7 @@ int32_t LuaInterface::luaResultGetDataInt(lua_State* L)
 	const std::string& s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResult_ptr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
 	lua_pushnumber(L, res->getDataInt(s));
@@ -11081,7 +11081,7 @@ int32_t LuaInterface::luaResultGetDataLong(lua_State* L)
 	const std::string& s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResult_ptr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
 	lua_pushnumber(L, res->getDataLong(s));
@@ -11094,7 +11094,7 @@ int32_t LuaInterface::luaResultGetDataString(lua_State* L)
 	const std::string& s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResult_ptr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
 	lua_pushstring(L, res->getDataString(s).c_str());
@@ -11107,7 +11107,7 @@ int32_t LuaInterface::luaResultGetDataStream(lua_State* L)
 	const std::string s = popString(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResult_ptr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
 	uint64_t length = 0;
@@ -11122,7 +11122,7 @@ int32_t LuaInterface::luaResultNext(lua_State* L)
 	//result.next(res)
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(popNumber(L));
+	DBResult_ptr res = env->getResultByID(popNumber(L));
 	CHECK_RESULT()
 
 	lua_pushboolean(L, res->next());
@@ -11135,7 +11135,7 @@ int32_t LuaInterface::luaResultFree(lua_State* L)
 	uint32_t rid = popNumber(L);
 	ScriptEnviroment* env = getEnv();
 
-	DBResult* res = env->getResultByID(rid);
+	DBResult_ptr res = env->getResultByID(rid);
 	CHECK_RESULT()
 
 	lua_pushboolean(L, env->removeResult(rid));

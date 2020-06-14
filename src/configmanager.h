@@ -46,10 +46,8 @@ class ConfigManager
 			SQL_USER,
 			SQL_PASS,
 			SQL_DB,
-			DEFAULT_PRIORITY,
-			#ifdef __MULTI_SQL_DRIVERS__
+			DEFAULT_PRIORITY,			
 			SQL_TYPE,
-			#endif
 			SQL_FILE,
 			ENCRYPTION_TYPE,
 			ENCRYPTION_KEY,

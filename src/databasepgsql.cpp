@@ -68,7 +68,7 @@ bool DatabasePgSQL::query(const std::string& query)
 	return true;
 }
 
-DBResult* DatabasePgSQL::storeQuery(const std::string& query)
+DBResult_ptr DatabasePgSQL::storeQuery(const std::string& query)
 {
 	if(!m_connected)
 		return NULL;
@@ -84,7 +84,7 @@ DBResult* DatabasePgSQL::storeQuery(const std::string& query)
 	}
 
 	// everything went fine
-	DBResult* result = new PgSQLResult(res);
+	DBResult_ptr result = std::make_shared<PgSQLResult>(res);
 	return verifyResult(result);
 }
 
@@ -190,8 +190,7 @@ void PgSQLResult::free()
 	}
 
 	PQclear(m_handle);
-	m_handle = NULL;
-	delete this;
+	m_handle = NULL;	
 }
 
 bool PgSQLResult::next()

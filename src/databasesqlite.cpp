@@ -113,7 +113,7 @@ bool DatabaseSQLite::query(const std::string& query)
 	return true;
 }
 
-DBResult* DatabaseSQLite::storeQuery(const std::string& query)
+DBResult_ptr DatabaseSQLite::storeQuery(const std::string& query)
 {
 	std::lock_guard<std::recursive_mutex> lockClass(sqliteLock);
 	if(!m_connected)
@@ -131,7 +131,7 @@ DBResult* DatabaseSQLite::storeQuery(const std::string& query)
 		return NULL;
 	}
 
-	DBResult* result = new SQLiteResult(stmt);
+	DBResult_ptr result = std::make_shared<SQLiteResult>(stmt);
 	return verifyResult(result);
 }
 
@@ -163,7 +163,7 @@ std::string DatabaseSQLite::escapeBlob(const char* s, uint32_t length)
 
 int32_t SQLiteResult::getDataInt(const std::string& s)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end())
 		return sqlite3_column_int(m_handle, it->second);
 
@@ -173,7 +173,7 @@ int32_t SQLiteResult::getDataInt(const std::string& s)
 
 int64_t SQLiteResult::getDataLong(const std::string& s)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end())
 		return sqlite3_column_int64(m_handle, it->second);
 
@@ -183,7 +183,7 @@ int64_t SQLiteResult::getDataLong(const std::string& s)
 
 std::string SQLiteResult::getDataString(const std::string& s)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end() )
 	{
 		std::string value = (const char*)sqlite3_column_text(m_handle, it->second);
@@ -196,7 +196,7 @@ std::string SQLiteResult::getDataString(const std::string& s)
 
 const char* SQLiteResult::getDataStream(const std::string& s, uint64_t& size)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end())
 	{
 		const char* value = (const char*)sqlite3_column_blob(m_handle, it->second);
@@ -218,8 +218,7 @@ void SQLiteResult::free()
 
 	sqlite3_finalize(m_handle);
 	m_handle = NULL;
-	m_listNames.clear();
-	delete this;
+	m_listNames.clear();	
 }
 
 SQLiteResult::~SQLiteResult()

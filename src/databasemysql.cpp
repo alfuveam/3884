@@ -74,7 +74,7 @@ DatabaseMySQL::DatabaseMySQL() :
 		return;
 
 	//we cannot lock mutex here :)
-	DBResult* result = storeQuery("SHOW variables LIKE 'max_allowed_packet';");
+	DBResult_ptr result = storeQuery("SHOW variables LIKE 'max_allowed_packet';");
 	if(!result)
 		return;
 
@@ -160,7 +160,7 @@ bool DatabaseMySQL::query(const std::string &query)
 	return true;
 }
 
-DBResult* DatabaseMySQL::storeQuery(const std::string &query)
+DBResult_ptr DatabaseMySQL::storeQuery(const std::string &query)
 {
 	if(!m_connected)
 		return NULL;
@@ -181,7 +181,7 @@ DBResult* DatabaseMySQL::storeQuery(const std::string &query)
 
 	if(MYSQL_RES* presult = mysql_store_result(&m_handle))
 	{
-		DBResult* result = (DBResult*)new MySQLResult(presult);
+		DBResult_ptr result = std::make_shared<MySQLResult>(presult);
 		return verifyResult(result);
 	}
 
@@ -227,7 +227,7 @@ void DatabaseMySQL::keepAlive()
 
 int32_t MySQLResult::getDataInt(const std::string& s)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end())
 		return m_row[it->second] ? atoi(m_row[it->second]) : 0;
 
@@ -237,7 +237,7 @@ int32_t MySQLResult::getDataInt(const std::string& s)
 
 int64_t MySQLResult::getDataLong(const std::string& s)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end())
 		return m_row[it->second] ? atoll(m_row[it->second]) : 0;
 
@@ -247,7 +247,7 @@ int64_t MySQLResult::getDataLong(const std::string& s)
 
 std::string MySQLResult::getDataString(const std::string& s)
 {
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it != m_listNames.end())
 		return m_row[it->second] ? std::string(m_row[it->second]) : std::string();
 
@@ -258,7 +258,7 @@ std::string MySQLResult::getDataString(const std::string& s)
 const char* MySQLResult::getDataStream(const std::string& s, uint64_t& size)
 {
 	size = 0;
-	listNames_t::iterator it = m_listNames.find(s);
+	auto it = m_listNames.find(s);
 	if(it == m_listNames.end())
 	{
 		std::clog << "Error during getDataStream(" << s << ")." << std::endl;
@@ -282,8 +282,7 @@ void MySQLResult::free()
 
 	mysql_free_result(m_handle);
 	m_handle = NULL;
-	m_listNames.clear();
-	delete this;
+	m_listNames.clear();	
 }
 
 bool MySQLResult::next()
@@ -294,11 +293,7 @@ bool MySQLResult::next()
 
 MySQLResult::~MySQLResult()
 {
-	if(!m_handle)
-		return;
-
 	mysql_free_result(m_handle);
-	m_listNames.clear();
 }
 
 MySQLResult::MySQLResult(MYSQL_RES* result)

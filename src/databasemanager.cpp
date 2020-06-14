@@ -34,7 +34,7 @@ bool DatabaseManager::optimizeTables()
 		case DATABASE_ENGINE_MYSQL:
 		{
 			query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << db->escapeString(g_config.getString(ConfigManager::SQL_DB)) << " AND `DATA_FREE` > 0;";
-			DBResult* result;
+			DBResult_ptr result;
 			if(!(result = db->storeQuery(query.str())))
 				break;
 
@@ -103,7 +103,7 @@ bool DatabaseManager::triggerExists(std::string trigger)
 			return false;
 	}
 
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 		return false;
 
@@ -133,7 +133,7 @@ bool DatabaseManager::tableExists(std::string table)
 			return false;
 	}
 
-	DBResult* result;
+	DBResult_ptr result;
 	if(!(result = db->storeQuery(query.str())))
 		return false;
 
@@ -151,7 +151,7 @@ bool DatabaseManager::isDatabaseSetup()
 			DBQuery query;
 			query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << db->escapeString(g_config.getString(ConfigManager::SQL_DB)) << ";";
 
-			DBResult* result;
+			DBResult_ptr result;
 			if(!(result = db->storeQuery(query.str())))
 				return false;
 
@@ -221,7 +221,7 @@ uint32_t DatabaseManager::updateDatabase()
 				//update bans table
 				if(db->query("CREATE TABLE IF NOT EXISTS `bans2` (`id` INT UNSIGNED NOT NULL auto_increment, `type` TINYINT(1) NOT NULL COMMENT 'this field defines if its ip, account, player, or any else ban', `value` INT UNSIGNED NOT NULL COMMENT 'ip, player guid, account number', `param` INT UNSIGNED NOT NULL DEFAULT 4294967295 COMMENT 'mask', `active` TINYINT(1) NOT NULL DEFAULT TRUE, `expires` INT UNSIGNED NOT NULL, `added` INT UNSIGNED NOT NULL, `admin_id` INT UNSIGNED NOT NULL DEFAULT 0, `comment` TEXT NOT NULL, `reason` INT UNSIGNED NOT NULL DEFAULT 0, `action` INT UNSIGNED NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `type` (`type`, `value`)) ENGINE = InnoDB;"))
 				{
-					if(DBResult* result = db->storeQuery("SELECT * FROM `bans`;"))
+					if(DBResult_ptr result = db->storeQuery("SELECT * FROM `bans`;"))
 					{
 						do
 						{
@@ -309,7 +309,7 @@ uint32_t DatabaseManager::updateDatabase()
 			else
 				db->query("ALTER TABLE `players` ADD `promotion` INT NOT NULL DEFAULT 0;");
 
-			DBResult* result;
+			DBResult_ptr result;
 			if((result = db->storeQuery("SELECT `player_id`, `value` FROM `player_storage` WHERE `key` = 30018 AND `value` > 0")))
 			{
 				do
@@ -353,7 +353,7 @@ uint32_t DatabaseManager::updateDatabase()
 			std::clog << "> Updating database to version: 3..." << std::endl;
 			db->query("UPDATE `players` SET `vocation` = `vocation` - 4 WHERE `vocation` >= 5 AND `vocation` <= 8;");
 
-			DBResult* result;
+			DBResult_ptr result;
 			if((result = db->storeQuery("SELECT COUNT(`id`) AS `count` FROM `players` WHERE `vocation` > 4;"))
 				&& result->getDataInt("count"))
 			{
@@ -453,7 +453,7 @@ uint32_t DatabaseManager::updateDatabase()
 			std::clog << "> Updating database to version: 7..." << std::endl;
 			if(g_config.getBool(ConfigManager::INGAME_GUILD_MANAGEMENT))
 			{
-				if(DBResult* result = db->storeQuery("SELECT `r`.`id`, `r`.`guild_id` FROM `guild_ranks` r LEFT JOIN `guilds` g ON `r`.`guild_id` = `g`.`id` WHERE `g`.`ownerid` = `g`.`id` AND `r`.`level` = 3;"))
+				if(DBResult_ptr result = db->storeQuery("SELECT `r`.`id`, `r`.`guild_id` FROM `guild_ranks` r LEFT JOIN `guilds` g ON `r`.`guild_id` = `g`.`id` WHERE `g`.`ownerid` = `g`.`id` AND `r`.`level` = 3;"))
 				{
 					do
 					{
@@ -1032,7 +1032,7 @@ uint32_t DatabaseManager::updateDatabase()
 					query << "!=";
 
 				query << " '0';";
-				if(DBResult* result = db->storeQuery(query.str()))
+				if(DBResult_ptr result = db->storeQuery(query.str()))
 				{
 					query.str("");
 					do
@@ -1153,7 +1153,7 @@ bool DatabaseManager::getDatabaseConfig(std::string config, int32_t &value)
 	value = 0;
 
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `value` FROM `server_config` WHERE `config` = " << db->escapeString(config) << ";";
@@ -1170,7 +1170,7 @@ bool DatabaseManager::getDatabaseConfig(std::string config, std::string &value)
 	value = "";
 
 	Database* db = Database::getInstance();
-	DBResult* result;
+	DBResult_ptr result;
 
 	DBQuery query;
 	query << "SELECT `value` FROM `server_config` WHERE `config` = " << db->escapeString(config) << ";";
@@ -1241,7 +1241,7 @@ void DatabaseManager::checkEncryption()
 					DBQuery query;
 					if(db->getDatabaseEngine() != DATABASE_ENGINE_MYSQL && db->getDatabaseEngine() != DATABASE_ENGINE_POSTGRESQL)
 					{
-						if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
+						if(DBResult_ptr result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 						{
 							do
 							{
@@ -1272,7 +1272,7 @@ void DatabaseManager::checkEncryption()
 					DBQuery query;
 					if(db->getDatabaseEngine() != DATABASE_ENGINE_MYSQL && db->getDatabaseEngine() != DATABASE_ENGINE_POSTGRESQL)
 					{
-						if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
+						if(DBResult_ptr result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 						{
 							do
 							{
@@ -1301,7 +1301,7 @@ void DatabaseManager::checkEncryption()
 
 					Database* db = Database::getInstance();
 					DBQuery query;
-					if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
+					if(DBResult_ptr result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 					{
 						do
 						{
@@ -1327,7 +1327,7 @@ void DatabaseManager::checkEncryption()
 
 					Database* db = Database::getInstance();
 					DBQuery query;
-					if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
+					if(DBResult_ptr result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 					{
 						do
 						{
@@ -1353,7 +1353,7 @@ void DatabaseManager::checkEncryption()
 
 					Database* db = Database::getInstance();
 					DBQuery query;
-					if(DBResult* result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
+					if(DBResult_ptr result = db->storeQuery("SELECT `id`, `password`, `key` FROM `accounts`;"))
 					{
 						do
 						{

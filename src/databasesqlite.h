@@ -15,38 +15,37 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef __DATABASE_SQLITE__
-#define __DATABASE_SQLITE__
+#ifndef DATABASESQLITE_H
+#define DATABASESQLITE_H
 
-#ifndef __DATABASE__
-#error "database.h should be included first."
-#endif
+#if defined(__USE_SQLITE__) || defined(__ALLDB__)
 
+#include "database.h"
 #include <sqlite3.h>
 
-class DatabaseSQLite : public _Database
+class DatabaseSQLite : public Database
 {
 	public:
 		DatabaseSQLite();
-		DATABASE_VIRTUAL ~DatabaseSQLite() {sqlite3_close(m_handle);}
+		virtual ~DatabaseSQLite() {sqlite3_close(m_handle);}
 
-		DATABASE_VIRTUAL bool getParam(DBParam_t param);
+		bool getParam(DBParam_t param);
 
-		DATABASE_VIRTUAL bool beginTransaction() {return query("BEGIN");}
-		DATABASE_VIRTUAL bool rollback() {return query("ROLLBACK");}
-		DATABASE_VIRTUAL bool commit() {return query("COMMIT");}
+		bool beginTransaction() {return query("BEGIN");}
+		bool rollback() {return query("ROLLBACK");}
+		bool commit() {return query("COMMIT");}
 
-		DATABASE_VIRTUAL bool query(const std::string& query);
-		DATABASE_VIRTUAL DBResult* storeQuery(const std::string& query);
+		bool query(const std::string& query);
+		DBResult_ptr storeQuery(const std::string& query);
 
-		DATABASE_VIRTUAL std::string escapeString(const std::string& s);
-		DATABASE_VIRTUAL std::string escapeBlob(const char* s, uint32_t length);
+		std::string escapeString(const std::string& s);
+		std::string escapeBlob(const char* s, uint32_t length);
 
-		DATABASE_VIRTUAL uint64_t getLastInsertId() {return (uint64_t)sqlite3_last_insert_rowid(m_handle);}
+		uint64_t getLastInsertId() {return (uint64_t)sqlite3_last_insert_rowid(m_handle);}
 
-		DATABASE_VIRTUAL std::string getStringComparer() {return "LIKE ";}
-		DATABASE_VIRTUAL std::string getUpdateLimiter() {return ";";}
-		DATABASE_VIRTUAL DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_SQLITE;}
+		std::string getStringComparer() {return "LIKE ";}
+		std::string getUpdateLimiter() {return ";";}
+		DatabaseEngine_t getDatabaseEngine() {return DATABASE_ENGINE_SQLITE;}
 
 	protected:
 		std::string _parse(const std::string& s);
@@ -55,26 +54,27 @@ class DatabaseSQLite : public _Database
 		sqlite3* m_handle;
 };
 
-class SQLiteResult : public _DBResult
+class SQLiteResult : public DBResult
 {
 	friend class DatabaseSQLite;
 
 	public:
-		DATABASE_VIRTUAL int32_t getDataInt(const std::string& s);
-		DATABASE_VIRTUAL int64_t getDataLong(const std::string& s);
-		DATABASE_VIRTUAL std::string getDataString(const std::string& s);
-		DATABASE_VIRTUAL const char* getDataStream(const std::string& s, uint64_t& size);
+		int32_t getDataInt(const std::string& s);
+		int64_t getDataLong(const std::string& s);
+		std::string getDataString(const std::string& s);
+		const char* getDataStream(const std::string& s, uint64_t& size);
 
-		DATABASE_VIRTUAL void free();
-		DATABASE_VIRTUAL bool next() {return sqlite3_step(m_handle) == SQLITE_ROW;}
+		void free();
+		bool next() {return sqlite3_step(m_handle) == SQLITE_ROW;}
 
-	protected:
 		SQLiteResult(sqlite3_stmt* stmt);
-		DATABASE_VIRTUAL ~SQLiteResult();
+		~SQLiteResult();
+	protected:
 
-		typedef std::map<const std::string, uint32_t> listNames_t;
-		listNames_t m_listNames;
+		std::map<const std::string, uint32_t> m_listNames;
 
 		sqlite3_stmt* m_handle;
 };
+#endif
+
 #endif

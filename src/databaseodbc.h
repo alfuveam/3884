@@ -18,37 +18,43 @@
 // Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //////////////////////////////////////////////////////////////////////
 
-#ifdef __USE_ODBC__
 
 #ifndef __OTSERV_DATABASEODBC_H__
 #define __OTSERV_DATABASEODBC_H__
 
+#if defined(__USE_ODBC__) || defined(__ALLDB__)
+
+#include "database.h"
+#ifdef WIN32
+	#include <windows.h>
+#else
+	#include <sqltypes.h>
+#endif
+
 #include <sql.h>
 #include <sqlext.h>
-#include <sqltypes.h>
 
-class DatabaseODBC : public _Database
+class DatabaseODBC : public Database
 {
 public:
   DatabaseODBC();
-  DATABASE_VIRTUAL ~DatabaseODBC();
+  virtual ~DatabaseODBC();
 
-  DATABASE_VIRTUAL bool getParam(DBParam_t param);
+  bool getParam(DBParam_t param);
 
-  DATABASE_VIRTUAL bool beginTransaction();
-  DATABASE_VIRTUAL bool rollback();
-  DATABASE_VIRTUAL bool commit();
+  bool beginTransaction();
+  bool rollback();
+  bool commit();
 
-  DATABASE_VIRTUAL bool executeQuery(const std::string &query) { return false; }; // todo
+  bool executeQuery(const std::string &query) { return false; }; // todo
   
-  DATABASE_VIRTUAL uint64_t getLastInsertedRowID(){ return 0; }; // todo
+  uint64_t getLastInsertedRowID(){ return 0; }; // todo
 
-  DATABASE_VIRTUAL std::string escapeString(const std::string &s);
-  DATABASE_VIRTUAL std::string escapeBlob(const char* s, uint32_t length);
+  std::string escapeString(const std::string &s);
+  std::string escapeBlob(const char* s, uint32_t length);
 
 protected:
-  DATABASE_VIRTUAL bool internalQuery(const std::string &query);
-  DATABASE_VIRTUAL void freeResult(DBResult *res);
+  bool internalQuery(const std::string &query);
 
   std::string _parse(const std::string &s);
 
@@ -56,25 +62,25 @@ protected:
   SQLHENV m_env;
 };
 
-class ODBCResult : public _DBResult
+class ODBCResult : public DBResult
 {
   friend class DatabaseODBC;
 
 public:
-  DATABASE_VIRTUAL int32_t getDataInt(const std::string &s);
-  DATABASE_VIRTUAL uint32_t getDataUInt(const std::string &s);
-  DATABASE_VIRTUAL int64_t getDataLong(const std::string &s);
-  DATABASE_VIRTUAL std::string getDataString(const std::string &s);
-  DATABASE_VIRTUAL const char* getDataStream(const std::string &s, uint64_t &size);
+  int32_t getDataInt(const std::string &s);
+  uint32_t getDataUInt(const std::string &s);
+  int64_t getDataLong(const std::string &s);
+  std::string getDataString(const std::string &s);
+  const char* getDataStream(const std::string &s, uint64_t &size);
 
-  DATABASE_VIRTUAL bool empty();
+  bool empty();
 
-protected:
   ODBCResult(SQLHSTMT stmt);
-  DATABASE_VIRTUAL ~ODBCResult();
+  ~ODBCResult();
+protected:
 
-  typedef std::map<const std::string, uint32_t> listNames_t;
-  listNames_t m_listNames;
+  std::map<const std::string, uint32_t> m_listNames;
+
   bool m_rowAvailable;
 
   SQLHSTMT m_handle;
