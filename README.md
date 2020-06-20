@@ -24,7 +24,7 @@ The Forgotten Server is a free and open-source MMORPG server emulator written in
             Docker
         </th>   
         <th>
-            Azure DevOps
+            gitWorkflow
         </th>        
     </tr>
     <tr>
@@ -52,8 +52,8 @@ The Forgotten Server is a free and open-source MMORPG server emulator written in
         <td></td>
         <td></td>
         <td>
-            <a href="https://dev.azure.com/rev3884/3884">
-                <img src="https://dev.azure.com/rev3884/3884/_apis/build/status/aspiraboo.3884?branchName=master">
+            <a href="https://github.com/aspiraboo/3884/actions?query=workflow%3A%22Build+on+MacOS%22">
+                <img src="https://github.com/aspiraboo/3884/workflows/Build%20on%20MacOS/badge.svg">
             </a>
         </td>    
     </tr>
