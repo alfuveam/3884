@@ -276,10 +276,16 @@ bool Monsters::deserializeSpell(pugi::xml_node& node, spellBlock_t& sb, const st
 	bool isScripted = false;
 	pugi::xml_attribute attr;
 	
-	if((attr = node.attribute("script")))
+	if((attr = node.attribute("script"))){
+		scriptName = attr.as_string();
 		isScripted = true;
-	else if(!(attr = node.attribute("name")))
+	}
+	else if((attr = node.attribute("name"))){
+		name = attr.as_string();
+	}
+	else {
 		return false;
+	}
 
 	int32_t intValue;
 	std::string strValue;

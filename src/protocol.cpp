@@ -27,6 +27,24 @@
 
 extern RSA g_RSA;
 
+Protocol::Protocol(Connection_ptr connection) : m_connection(connection)
+{
+	m_refCount = 0;
+
+	m_rawMessages = m_encryptionEnabled = m_checksumEnabled = false;
+	for(int8_t i = 0; i < 4; ++i)
+		m_key[i] = 0;
+
+	if (deflateInit2(&zstream, 6, Z_DEFLATED, -15, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
+		std::cerr << "ZLIB initialization error: " << (zstream.msg ? zstream.msg : "unknown") << std::endl;
+	}
+}
+
+Protocol::~Protocol()
+{
+	deflateEnd(&zstream);
+}
+
 void Protocol::onSendMessage(OutputMessage_ptr msg)
 {
 	#ifdef __DEBUG_NET_DETAIL__
@@ -34,6 +52,10 @@ void Protocol::onSendMessage(OutputMessage_ptr msg)
 	#endif
 	if(!m_rawMessages)
 	{
+		if (compression) {
+			compress(*msg);
+		}
+		
 		msg->writeMessageLength();
 		if(m_encryptionEnabled)
 		{
@@ -74,16 +96,12 @@ void Protocol::onRecvMessage(NetworkMessage& msg)
 
 OutputMessage_ptr Protocol::getOutputBuffer()
 {
-	if(m_outputBuffer)
-		return m_outputBuffer;
-
-	if(m_connection)
+	if(!m_outputBuffer && m_connection)
 	{
-		m_outputBuffer = OutputMessagePool::getInstance()->getOutputMessage(this);
-		return m_outputBuffer;
+		m_outputBuffer = OutputMessagePool::getInstance()->getOutputMessage(this);		
 	}
 
-	return OutputMessage_ptr();
+	return m_outputBuffer;
 }
 
 void Protocol::releaseProtocol()
@@ -207,4 +225,25 @@ uint32_t Protocol::getIP() const
 		return connection->getIP();
 
 	return 0;
+}
+
+void Protocol::compress(OutputMessage& msg) const
+{
+	static thread_local std::vector<uint8_t> buffer(NETWORK_MAX_SIZE);
+	zstream.next_in = (Bytef*)msg.getOutputBuffer();
+	zstream.avail_in = msg.size();
+	zstream.next_out = buffer.data();
+	zstream.avail_out = buffer.size();
+	if (deflate(&zstream, Z_SYNC_FLUSH) != Z_OK) {
+		std::cout << "ZLIB deflate error: " << (zstream.msg ? zstream.msg : "unknown") << std::endl;
+		return;
+	}
+	int finalSize = buffer.size() - zstream.avail_out - 4;
+	if (finalSize < 0) {
+		std::cout << "Packet compression error: " << (zstream.msg ? zstream.msg : "unknown") << std::endl;
+		return;
+	}
+
+	msg.reset();
+	msg.putBytes((const char*)buffer.data(), finalSize);
 }

@@ -721,13 +721,12 @@ Event(copy)
 
 bool Action::configureEvent(pugi::xml_node& node)
 {
-	pugi::xml_attribute allowFarUseAttr = node.attribute("allowfaruse");
-	if (allowFarUseAttr) {
-		allowFarUse = allowFarUseAttr.as_bool();
+	pugi::xml_attribute attr;
+	if ((attr = node.attribute("allowfaruse")) || (attr = node.attribute("allowFarUse"))) {
+		allowFarUse = booleanString(attr.as_string());
 	}
-	pugi::xml_attribute blockWallsAttr = node.attribute("blockwalls");
-	if (blockWallsAttr) {
-		checkLineOfSight = blockWallsAttr.as_bool();
+	if ((attr = node.attribute("blockwalls")) || (attr = node.attribute("blockWalls"))) {
+		checkLineOfSight = booleanString(attr.as_string());
 	}
 
 	return true;

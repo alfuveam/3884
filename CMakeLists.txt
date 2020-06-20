@@ -34,10 +34,6 @@ set(CMAKE_CXX_FLAGS_PERFORMANCE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     add_compile_options(-fno-strict-aliasing)
-
-    find_package(ZLIB)
-    include_directories(${ZLIB_INCLUDE_DIR})
-    target_link_libraries(tfs PRIVATE ${ZLIB_LIBRARY})
 endif ()
 
 # Find packages.
@@ -51,6 +47,7 @@ endif ()
 # Find packages.
 find_package(PugiXML REQUIRED)
 find_package(Threads REQUIRED)
+find_package(ZLIB REQUIRED)
 
 option(USE_LUAJIT "Use LuaJIT" OFF)
 
@@ -83,7 +80,6 @@ option(__USE_PGSQL__ "__USE_PGSQL__" ON)
 option(__USE_SQLITE__ "__USE_SQLITE__" ON)
 option(__USE_ODBC__ "__USE_ODBC__" ON)
 #option(__MULTI_SQL_DRIVERS__ "__MULTI_SQL_DRIVERS__" OFF)
-# option(__USE_ZLIB__ "__USE_ZLIB__" OFF)
 option(__EXCEPTION_TRACER__ "__EXCEPTION_TRACER__" OFF)
 option(__TRACK_NETWORK__ "__TRACK_NETWORK__" OFF)
 option(__WAR_SYSTEM__ "__WAR_SYSTEM__" OFF)
@@ -129,7 +125,7 @@ endif()
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS system iostreams filesystem)
 
-include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PUGIXML_INCLUDE_DIR} ${Crypto++_INCLUDE_DIR})
+include_directories(${LUA_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PUGIXML_INCLUDE_DIR} ${Crypto++_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR})
 target_link_libraries(tfs PRIVATE
         Boost::system
         Boost::filesystem
@@ -138,6 +134,7 @@ target_link_libraries(tfs PRIVATE
         ${PUGIXML_LIBRARIES} 
         ${Crypto++_LIBRARIES} 
         ${CMAKE_THREAD_LIBS_INIT}
+        ${ZLIB_LIBRARY}
         )
 
 ### INTERPROCEDURAL_OPTIMIZATION ###

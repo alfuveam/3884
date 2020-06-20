@@ -111,4 +111,5 @@ uint32_t adlerChecksum(uint8_t *data, size_t length);
 
 std::string getFilePath(FileType_t type, std::string name = "");
 
+int64_t OTSYS_TIME();
 #endif

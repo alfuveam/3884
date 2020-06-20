@@ -170,7 +170,7 @@ Item::Item(const uint16_t type, uint16_t amount/* = 0*/):
 	raid = NULL;
 	loadedFromMap = false;
 
-	setItemCount(1);
+	count = 1;
 	setDefaultDuration();
 
 	const ItemType& it = items[id];
@@ -226,7 +226,7 @@ void Item::onRemoved()
 
 void Item::setDefaultSubtype()
 {
-	setItemCount(1);
+	count = 1;
 	const ItemType& it = items[id];
 	if(it.charges)
 		setCharges(it.charges);

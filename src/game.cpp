@@ -1473,21 +1473,7 @@ bool Game::playerMoveItem(uint32_t playerId, const Position& fromPos,
 		player->sendCancelMessage(RET_CANNOTTHROW);
 		return false;
 	}
-	
-/*	bool success = true;
-    CreatureEventList moveitemEvents = player->getCreatureEvents(CREATURE_EVENT_MOVEITEM);
-    for(CreatureEventList::iterator it = moveitemEvents.begin(); it != moveitemEvents.end(); ++it)
-{
-    Item* toContainer = toCylinder->getItem();
-    Item* fromContainer = fromCylinder->getItem();
-    if(!(*it)->executeMoveItem(player, item, count, fromPos, toPos, (toContainer ? toContainer : 0), (fromContainer ? fromContainer : 0), fromStackpos) && success)
-        success = false;
-}
 
-if(!success)
-    return false;*/
-    
-	/* Corrigido ElfBot Anti-Push (Anti-Crash) */
 	uint16_t items[] = {2148, 2152, 2160, 2599, 3976, 7634, 7635, 7636};
 	uint16_t n = 0;
 	for (n = 0; n < sizeof(items) / sizeof(uint16_t); n++){
@@ -1499,10 +1485,21 @@ if(!success)
 
 	if(Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_EXHAUST, 500, 0, false, 1))
 	player->addCondition(condition);
-	/* end */
-   
-    if(!g_creatureEvents->executeMoveItems(player, item, mapFromPos, mapToPos))
+
+	bool success = true;
+    CreatureEventList moveitemEvents = player->getCreatureEvents(CREATURE_EVENT_MOVEITEM);
+    for(CreatureEventList::iterator it = moveitemEvents.begin(); it != moveitemEvents.end(); ++it)
+	{
+		Item* toContainer = toCylinder->getItem();
+		Item* fromContainer = fromCylinder->getItem();
+		if(!(*it)->executeOnMoveItem(player, item, count, fromPos, toPos, (toContainer ? toContainer : 0), (fromContainer ? fromContainer : 0), fromStackpos) && success)
+			success = false;
+	}
+
+	if(!success)
 		return false;
+    
+	/* Corrigido ElfBot Anti-Push (Anti-Crash) ??????? */	
 	
 	ReturnValue ret = internalMoveItem(player, fromCylinder, toCylinder, toIndex, item, count, NULL); //Caso ative o outro moveitem, apague este
 	if(ret == RET_NOERROR)
@@ -2476,14 +2473,22 @@ bool Game::playerCloseNpcChannel(uint32_t playerId)
 	return true;
 }
 
-bool Game::playerReceivePing(uint32_t playerId)
+void Game::playerReceivePing(uint32_t playerId)
 {
 	Player* player = getPlayerByID(playerId);
 	if(!player || player->isRemoved())
-		return false;
+		return;
 
 	player->receivePing();
-	return true;
+}
+
+void Game::playerReceivePingBack(uint32_t playerId)
+{
+	Player* player = getPlayerByID(playerId);
+	if(!player || player->isRemoved())
+		return;
+
+	player->sendPingBack();
 }
 
 bool Game::playerAutoWalk(uint32_t playerId, std::list<Direction>& listDir)

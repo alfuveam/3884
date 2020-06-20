@@ -2122,15 +2122,6 @@ void LuaInterface::registerFunctions()
 
 	//doSetMonsterOutfit(cid, name[, time = -1])
 	lua_register(m_luaState, "doSetMonsterOutfit", LuaInterface::luaSetMonsterOutfit);
-
-    //doPlayerSendPing(cid)
-    lua_register(m_luaState, "doPlayerSendPing", LuaInterface::luaDoPlayerSendPing);
-    //getPlayerLastPing(cid)
-    lua_register(m_luaState, "getPlayerLastPing", LuaInterface::luaGetPlayerLastPing);
-    //getPlayerLastPong(cid)
-    lua_register(m_luaState, "getPlayerLastPong", LuaInterface::luaGetPlayerLastPong);
-    //getOtsysTime(cid)
-    lua_register(m_luaState, "getOtsysTime", LuaInterface::luaGetOtsysTime);
     
 	//doSetItemOutfit(cid, item[, time = -1])
 	lua_register(m_luaState, "doSetItemOutfit", LuaInterface::luaSetItemOutfit);
@@ -11198,74 +11189,15 @@ SHIFT_OPERATOR(uint32_t, URightShift, >>)
 
 int32_t LuaInterface::luaDoSendPlayerExtendedOpcode(lua_State* L)
 {
-//doSendPlayerExtendedOpcode(cid, opcode, buffer)
-std::string buffer = popString(L);
-int opcode = popNumber(L);
+	//doSendPlayerExtendedOpcode(cid, opcode, buffer)
+	std::string buffer = popString(L);
+	int opcode = popNumber(L);
 
-ScriptEnviroment* env = getEnv();
-if(Player* player = env->getPlayerByUID(popNumber(L))) {
-player->sendExtendedOpcode(opcode, buffer);
-lua_pushboolean(L, true);
-}
-lua_pushboolean(L, false);
-return 1;
-}
-
-int32_t LuaInterface::luaDoPlayerSendPing(lua_State* L)
-{
-    //doPlayerSendPing(cid)
-    ScriptEnviroment* env = getEnv();
-    Player* player = env->getPlayerByUID(popNumber(L));
-    if(!player)
-    {
-        lua_pushboolean(L, false);
-        return 1;
-    }
-    int64_t timeNow = OTSYS_TIME();
-    player->lastPing = timeNow;
-    if(player->client)
-    {
-            void sendPing();
-            lua_pushboolean(L, true);
-    }else{
-          lua_pushboolean(L, false);        
-          }
-    lua_pushboolean(L, true);
- 
-    return 1;
-}
-int32_t LuaInterface::luaGetOtsysTime(lua_State* L)
-{
-    //getOtsysTime()
-    lua_pushnumber(L, OTSYS_TIME());
-    return 1;
-}
-int32_t LuaInterface::luaGetPlayerLastPing(lua_State* L)
-{
-    //getPlayerLastPing(cid)
-    ScriptEnviroment* env = getEnv();
-    Player* player = env->getPlayerByUID(popNumber(L));
-    if(!player)
-    {
-        errorEx(getError(LUA_ERROR_PLAYER_NOT_FOUND));
-         lua_pushboolean(L, false);
-        return 1;
-    }
-    // int64_t timeNow = OTSYS_TIME();
-    lua_pushnumber(L, player->lastPing);
-    return 1;
-}
-int32_t LuaInterface::luaGetPlayerLastPong(lua_State* L)
-{
-    //getPlayerLastPong(cid)
-    ScriptEnviroment* env = getEnv();
-    Player* player = env->getPlayerByUID(popNumber(L));
-    if(!player)
-    {
-        errorEx(getError(LUA_ERROR_PLAYER_NOT_FOUND));
-         lua_pushboolean(L, false);
-        return 1;
-    }
-    lua_pushnumber(L, player->lastPong);
-    return 1;
+	ScriptEnviroment* env = getEnv();
+	if(Player* player = env->getPlayerByUID(popNumber(L))) {
+	player->sendExtendedOpcode(opcode, buffer);
+	lua_pushboolean(L, true);
+	}
+	lua_pushboolean(L, false);
+	return 1;
 }

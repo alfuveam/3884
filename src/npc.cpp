@@ -100,7 +100,6 @@ bool Npc::load()
 	{
 		m_interface = new NpcScript();
 		m_interface->loadFile(getFilePath(FILE_TYPE_OTHER, "npc/lib/npc.lua"));
-		m_interface->loadFile(getFilePath(FILE_TYPE_OTHER, "npc/lib/npcsystem/main.lua"));
 	}
 
 	loaded = loadFromXml(m_filename);

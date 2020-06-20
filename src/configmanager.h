@@ -296,6 +296,7 @@ class ConfigManager
 			UNIFIED_SPELLS,
 			LOG_PLAYER,
 			ENABLE_CAST, //CAST
+			COMPRESS_PACKET,
 			LAST_BOOL_CONFIG /* this must be the last one */
 		};
 

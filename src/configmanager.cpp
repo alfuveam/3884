@@ -321,7 +321,8 @@ bool ConfigManager::load()
 	m_confNumber[FIST_BASE_ATTACK] = getGlobalNumber("fistBaseAttack", 7);
 	m_confBool[LOG_PLAYER] = getGlobalBool("logsPlayers", false);
 	m_confBool[ENABLE_CAST] = getGlobalBool("enableCast", false);
-	m_confNumber[MAX_PACKETS_PER_SECOND] = getGlobalNumber("max_packets_per_second", 50);
+	m_confBool[COMPRESS_PACKET] = getGlobalBool("enableCompressPacket", false);
+	m_confNumber[MAX_PACKETS_PER_SECOND] = getGlobalNumber("maxPacketsPerSecond", 50);
 	m_confNumber[EXHAUST_ONBUY] = getGlobalNumber("onBuy", 500);
 	m_confNumber[EXHAUST_ONSELL] = getGlobalNumber("onSell", 500);
 	m_confNumber[EXHAUST_CHANGEOUFIT] = getGlobalNumber("changeOutfit", 500);

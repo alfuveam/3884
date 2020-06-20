@@ -331,13 +331,7 @@ class LuaInterface
 
 		static int32_t luaDoSendPlayerExtendedOpcode(lua_State* L);
   
-        //lua functions
-        //Ping
-        static int32_t luaDoPlayerSendPing(lua_State* L);
-        static int32_t luaGetPlayerLastPing(lua_State* L);
-        static int32_t luaGetPlayerLastPong(lua_State* L);
-        static int32_t luaGetOtsysTime(lua_State* L);
-        
+        //lua functions        
         //CAST
 		static int32_t luaGetCastsOnline(lua_State* L);
 		static int32_t luaDoPlayerSetCastPassword(lua_State* L);

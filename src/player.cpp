@@ -1776,25 +1776,22 @@ uint32_t Player::getNextActionTime() const
 	return (uint32_t)std::max((int64_t)SCHEDULER_MINTICKS, ((int64_t)nextAction - OTSYS_TIME()));
 }
 
-void Player::onThink(uint32_t interval)
+void Player::sendPing()
 {
-	Creature::onThink(interval);
 	int64_t timeNow = OTSYS_TIME();
-	if(timeNow - lastPing >= 5000)
-	{
-		lastPing = timeNow;
-		if(client) { //CAST
-			for(AutoList<ProtocolGame>::iterator it = Player::cSpectators.begin(); it != Player::cSpectators.end(); ++it)
-				if(it->second->getPlayer() == this)
-					it->second->sendPing();
 
+	bool hasLostConnection = false;
+	if ((timeNow - lastPing) >= 5000) {
+		lastPing = timeNow;
+		if (client) {
 			client->sendPing();
-        }
-		else if(g_config.getBool(ConfigManager::STOP_ATTACK_AT_EXIT))
-			setAttackedCreature(NULL);
+		} else {
+			hasLostConnection = true;
+		}
 	}
 
-	if((timeNow - lastPong) >= 60000 && !getTile()->hasFlag(TILESTATE_NOLOGOUT)
+	int64_t noPongTime = timeNow - lastPong;
+	if(noPongTime >= 60000 && !getTile()->hasFlag(TILESTATE_NOLOGOUT)
 		&& !isConnecting && !pzLocked && !hasCondition(CONDITION_INFIGHT))
 	{
 		if(client)
@@ -1802,6 +1799,20 @@ void Player::onThink(uint32_t interval)
 		else if(g_creatureEvents->playerLogout(this, false))
 			g_game.removeCreature(this, true);
 	}
+}
+
+void Player::onThink(uint32_t interval)
+{
+	Creature::onThink(interval);
+	sendPing();
+
+	if(client) { //CAST
+		for(AutoList<ProtocolGame>::iterator it = Player::cSpectators.begin(); it != Player::cSpectators.end(); ++it)
+			if(it->second->getPlayer() == this)
+				it->second->sendPing();
+	}
+	else if(g_config.getBool(ConfigManager::STOP_ATTACK_AT_EXIT))
+		setAttackedCreature(nullptr);
 
 	messageTicks += interval;
 	if(messageTicks >= 1500)
@@ -3685,7 +3696,7 @@ void Player::onAddCombatCondition(ConditionType_t type, bool)
 		case CONDITION_PARALYZE:
 			tmp = "paralyzed";
 			break;
-		/*case CONDITION_MANASHIELD:
+		case CONDITION_MANASHIELD:
 			tmp = "protected by a magic shield";
 			break;
 		case CONDITION_HASTE:
@@ -3693,7 +3704,7 @@ void Player::onAddCombatCondition(ConditionType_t type, bool)
 			break;
 		case CONDITION_ATTRIBUTES:
 			tmp = "strengthened";
-			break;*/
+			break;
 		default:
 			break;
 	}

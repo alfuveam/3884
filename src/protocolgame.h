@@ -114,7 +114,9 @@ class ProtocolGame : public Protocol
 		void parseLogout(NetworkMessage& msg);
 		void parseCancelMove(NetworkMessage& msg);
 
-		void parseReceivePing(NetworkMessage& msg);
+		void sendPing();
+		void sendPingBack();
+
 		void parseAutoWalk(NetworkMessage& msg);
 		void parseMove(NetworkMessage& msg, Direction dir);
 		void parseTurn(NetworkMessage& msg, Direction dir);
@@ -205,7 +207,6 @@ class ProtocolGame : public Protocol
 		void sendAnimatedText(const Position& pos, uint8_t color, std::string text);
 		void sendCreatureHealth(const Creature* creature);
 		void sendSkills();
-		void sendPing();
 		void sendCreatureTurn(const Creature* creature, int16_t stackpos);
 		void sendCreatureSay(const Creature* creature, SpeakClasses type, const std::string& text, Position* pos = NULL);
 

@@ -1021,7 +1021,15 @@ class Player : public Creature, public Cylinder
 		void sendCritical() const;
 		void sendPlayerIcons(Player* player);
 
-		void receivePing() {lastPong = OTSYS_TIME();}
+		void receivePing() {
+			lastPong = OTSYS_TIME();
+		}
+		void sendPing();
+		void sendPingBack() const {
+			if (client) {
+				client->sendPingBack();
+			}
+		}		
 		virtual void onThink(uint32_t interval);
 		uint32_t getAttackSpeed() const;
 

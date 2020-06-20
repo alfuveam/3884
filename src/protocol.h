@@ -18,6 +18,8 @@
 #ifndef __PROTOCOL__
 #define __PROTOCOL__
 
+#include <zlib.h>
+
 #include "tools.h"
 #include "rsa.h"
 
@@ -32,20 +34,13 @@ class NetworkMessage;
 class Protocol
 {
 	public:
+		explicit Protocol(Connection_ptr connection);
+		virtual ~Protocol();
+
 		// non-copyable
 		Protocol(const Protocol&) = delete;
 		Protocol& operator=(const Protocol&) = delete;
 			
-		Protocol(Connection_ptr connection)
-		{
-			m_connection = connection;
-			m_refCount = 0;
-
-			m_rawMessages = m_encryptionEnabled = m_checksumEnabled = false;
-			for(int8_t i = 0; i < 4; ++i)
-				m_key[i] = 0;
-		}
-		virtual ~Protocol() {}
 
 		virtual void onConnect() {}
 		virtual void onRecvFirstMessage(NetworkMessage& msg) = 0;
@@ -75,10 +70,16 @@ class Protocol
 		void disableXTEAEncryption() {m_encryptionEnabled = false;}
 		void setXTEAKey(const uint32_t* key) {memcpy(&m_key, key, sizeof(uint32_t) * 4);}
 
+		void enableCompression()
+		{
+			compression = true;
+		}
+
 		void XTEA_encrypt(OutputMessage& msg);
 		bool XTEA_decrypt(NetworkMessage& msg);
 		bool RSA_decrypt(NetworkMessage& msg);
 		bool RSA_decrypt(RSA* rsa, NetworkMessage& msg);
+		void compress(OutputMessage& msg) const;
 
 		virtual void releaseProtocol();
 		virtual void deleteProtocolTask();
@@ -92,5 +93,7 @@ class Protocol
 
 		bool m_rawMessages, m_encryptionEnabled, m_checksumEnabled;
 		uint32_t m_key[4];
+		bool compression = false;
+		mutable z_stream zstream = {};		
 };
 #endif

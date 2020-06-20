@@ -147,6 +147,10 @@ void Monster::onCreatureAppear(const Creature* creature)
 		if(isSummon())
 			isMasterInRange = canSee(master->getPosition());
 
+		CreatureEventList spawn = getCreatureEvents(CREATURE_EVENT_SPAWN);
+        for(CreatureEventList::iterator it = spawn.begin(); it != spawn.end(); ++it)
+            (*it)->executeOnSpawn(this);
+
 		updateTargetList();
 		updateIdleStatus();
 	}

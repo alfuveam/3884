@@ -206,7 +206,7 @@ RuneSpell* Spells::getRuneSpellByName(const std::string& name)
 {
 	for(RunesMap::iterator it = runes.begin(); it != runes.end(); ++it)
 	{
-		if(std::string(it->second->getName().c_str()).compare(name.c_str()))
+		if(!std::string(it->second->getName().c_str()).compare(name.c_str()))
 			return it->second;
 	}
 

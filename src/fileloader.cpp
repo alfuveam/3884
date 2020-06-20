@@ -37,11 +37,7 @@ FileLoader::~FileLoader()
 {
 	if(m_file)
 	{
-#ifdef __USE_ZLIB__
-		gzclose(m_file);
-#else
 		fclose(m_file);
-#endif
 		m_file = NULL;
 	}
 
@@ -59,19 +55,13 @@ bool FileLoader::openFile(std::string name, bool write, bool caching/* = false*/
 	uint32_t version = 0;
 	if(write)
 	{
-#ifdef __USE_ZLIB__
-		m_file = gzopen(name.c_str(), "wb");
-#else
 		m_file = fopen(name.c_str(), "wb");
-#endif
+
 		if(!m_file)
 			name += ".gz";
 
-#ifdef __USE_ZLIB__
-				m_file = gzopen(name.c_str(), "wb");
-#else
 				m_file = fopen(name.c_str(), "wb");
-#endif
+
 		if(m_file)
 		{
 			writeData(&version, sizeof(version), false);
@@ -84,34 +74,20 @@ bool FileLoader::openFile(std::string name, bool write, bool caching/* = false*/
 		}
 	}
 
-#ifdef __USE_ZLIB__
-	m_file = gzopen(name.c_str(), "rb");
-#else
 	m_file = fopen(name.c_str(), "rb");
-#endif
+
 	if(!m_file)
 		name += ".gz";
 
-#ifdef __USE_ZLIB__
-        m_file = gzopen(name.c_str(), "rb");
-#else
-        m_file = fopen(name.c_str(), "rb");
-#endif
+	m_file = fopen(name.c_str(), "rb");
 	if(m_file)
 	{
-#ifdef __USE_ZLIB__
-		if(gzread(m_file, &version, sizeof(version)))
-#else
+
 		if(fread(&version, sizeof(version), 1, m_file))
-#endif
 		{
 			if(version > 0)
 			{
-#ifdef __USE_ZLIB__
-				gzclose(m_file);
-#else
 				fclose(m_file);
-#endif
 				m_file = NULL;
 				m_lastError = ERROR_INVALID_FILE_VERSION;
 				return false;
@@ -120,14 +96,8 @@ bool FileLoader::openFile(std::string name, bool write, bool caching/* = false*/
 			if(caching)
 			{
 				m_use_cache = true;
-#ifdef __USE_ZLIB__
-				gzseek(m_file, 0, SEEK_END);
-				int32_t fileSize = gztell(m_file);
-#else
 				fseek(m_file, 0, SEEK_END);
 				int32_t fileSize = ftell(m_file);
-#endif
-				m_use_cache = true;
 				m_cache_size = std::min(32768, std::max(fileSize / 20, 8192)) & ~0x1FFF;
 			}
 
@@ -259,39 +229,44 @@ bool FileLoader::parseNode(NODE node)
 
 const uint8_t* FileLoader::getProps(const NODE node, uint32_t &size)
 {
-	if(!node)
-		return NULL;
-
-	if(node->propsSize >= m_buffer_size)
+	if(node)
 	{
-		delete[] m_buffer;
-		m_buffer = new uint8_t[m_buffer_size + 1024];
-		m_buffer_size = m_buffer_size + 1024;
-	}
-
-	//get buffer
-	if(!readBytes(m_buffer, node->propsSize, node->start + 2))
-		return NULL;
-
-	//unscape buffer
-	uint32_t j = 0;
-	bool escaped = false;
-	for(uint32_t i = 0; i < node->propsSize; ++i, ++j)
-	{
-		if(m_buffer[i] == ESCAPE_CHAR)
+		if(node->propsSize >= m_buffer_size)
 		{
-			//escape char found, skip it and write next
-			++i;
-			m_buffer[j] = m_buffer[i];
-			//is neede a displacement for next bytes
-			escaped = true;
+			delete[] m_buffer;
+			m_buffer = new uint8_t[m_buffer_size + 1024];
+			m_buffer_size = m_buffer_size + 1024;
 		}
-		else if(escaped) //perform that displacement
-			m_buffer[j] = m_buffer[i];
+
+		//get buffer
+		if(readBytes(m_buffer, node->propsSize, node->start + 2))
+		{
+			//unscape buffer
+			uint32_t j = 0;
+			bool escaped = false;
+			for(uint32_t i = 0; i < node->propsSize; ++i, ++j)
+			{
+				if(m_buffer[i] == ESCAPE_CHAR)
+				{
+					//escape char found, skip it and write next
+					++i;
+					m_buffer[j] = m_buffer[i];
+					//is neede a displacement for next bytes
+					escaped = true;
+				}
+				else if(escaped)
+				{
+					//perform that displacement
+					m_buffer[j] = m_buffer[i];
+				}
+			}
+
+			size = j;
+			return m_buffer;
+		}
 	}
 
-	size = j;
-	return m_buffer;
+	return NULL;
 }
 
 bool FileLoader::getProps(const NODE node, PropStream &props)
@@ -383,11 +358,8 @@ inline bool FileLoader::readByte(int32_t &value)
 		return true;
 	}
 
-#ifdef __USE_ZLIB__
-	value = gzgetc(m_file);
-#else
 	value = fgetc(m_file);
-#endif
+
 	if(value != EOF)
 		return true;
 
@@ -427,21 +399,13 @@ inline bool FileLoader::readBytes(uint8_t* buffer, int32_t size, int32_t pos)
 		return true;
 	}
 
-#ifdef __USE_ZLIB__
-	if(gzseek(m_file, pos, SEEK_SET) < 0)
-#else
 	if(fseek(m_file, pos, SEEK_SET))
-#endif
 	{
 		m_lastError = ERROR_SEEK_ERROR;
 		return false;
 	}
 
-#ifdef __USE_ZLIB__
-	if(gzread(m_file, buffer, size) == size)
-#else
 	if(fread(buffer, 1, size, m_file) == (uint32_t)size)
-#endif
 		return true;
 
 	m_lastError = ERROR_EOF;
@@ -476,11 +440,7 @@ inline bool FileLoader::safeSeek(uint32_t pos)
 		m_cache_index = i;
 		m_cache_offset = pos - m_cached_data[i].base;
 	}
-#ifdef __USE_ZLIB__
-	else if(gzseek(m_file, pos, SEEK_SET) < 0)
-#else
 	else if(fseek(m_file, pos, SEEK_SET))
-#endif
 	{
 		m_lastError = ERROR_SEEK_ERROR;
 		return false;
@@ -503,11 +463,7 @@ inline bool FileLoader::safeTell(int32_t &pos)
 		return true;
 	}
 
-#ifdef __USE_ZLIB__
-	pos = gztell(m_file);
-#else
 	pos = ftell(m_file);
-#endif
 	if(pos == -1)
 	{
 		m_lastError = ERROR_TELL_ERROR;
@@ -568,21 +524,15 @@ int32_t FileLoader::loadCacheBlock(uint32_t pos)
 		m_cached_data[loading_cache].data = new uint8_t[m_cache_size];
 
 	m_cached_data[loading_cache].base = base_pos;
-#ifdef __USE_ZLIB__
-	if(gzseek(m_file, m_cached_data[loading_cache].base, SEEK_SET) < 0)
-#else
+
 	if(fseek(m_file, m_cached_data[loading_cache].base, SEEK_SET))
-#endif
 	{
 		m_lastError = ERROR_SEEK_ERROR;
 		return -1;
 	}
 
-#ifdef __USE_ZLIB__
-	uint32_t size = gzread(m_file, m_cached_data[loading_cache].data, m_cache_size);
-#else
 	uint32_t size = fread(m_cached_data[loading_cache].data, 1, m_cache_size, m_file);
-#endif
+
 	m_cached_data[loading_cache].size = size;
 	if(size < (pos - m_cached_data[loading_cache].base))
 	{

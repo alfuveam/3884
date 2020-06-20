@@ -19,6 +19,7 @@
 #define __DATABASE__
 
 #include "enums.h"
+#include "tools.h"
 
 class DBResult;
 using DBResult_ptr = std::shared_ptr<DBResult>;

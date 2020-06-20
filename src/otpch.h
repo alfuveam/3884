@@ -57,6 +57,3 @@
 #include <boost/any.hpp>
 
 #include <pugixml.hpp>
-
-//	def
-#define OTSYS_TIME() std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()

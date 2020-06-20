@@ -72,6 +72,7 @@ class NetworkMessage
 		void putString(const std::string& value, bool addSize = true) {putString(value.c_str(), addSize);}
 		void putString(const char* value, bool addSize = true);
 
+		void putBytes(const char* bytes, size_t size);
 		void putPadding(uint32_t amount);
 
 		// write for complex types

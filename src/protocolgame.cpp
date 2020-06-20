@@ -477,6 +477,9 @@ bool ProtocolGame::parseFirstPacket(NetworkMessage& msg)
 		return false;
 	}
 
+	if(g_config.getBool(ConfigManager::COMPRESS_PACKET))
+		enableCompression();
+
 	uint32_t key[4] = {msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>()};
 	enableXTEAEncryption();
 	setXTEAKey(key);
@@ -630,9 +633,8 @@ void ProtocolGame::parsePacket(NetworkMessage &msg)
 				parseSay(msg);
 				break;
 
-			case 0x1E:
-				parseReceivePing(msg);
-				break;
+			case 0x1D: addGameTask(&Game::playerReceivePingBack, player->getID()); break;
+			case 0x1E: addGameTask(&Game::playerReceivePing, player->getID()); break;
 
 			case 0x32: // otclient extended opcode
 				parseExtendedOpcode(msg);
@@ -676,9 +678,9 @@ void ProtocolGame::parsePacket(NetworkMessage &msg)
 				parseLogout(msg);
 				break;
 
-			case 0x1E: // keep alive / ping response
-				parseReceivePing(msg);
-				break;
+			case 0x1D: addGameTask(&Game::playerReceivePingBack, player->getID()); break;
+
+			case 0x1E: addGameTask(&Game::playerReceivePing, player->getID()); break; // keep alive / ping response
 
 			case 0x64: // move with steps
 				parseAutoWalk(msg);
@@ -1226,11 +1228,6 @@ void ProtocolGame::parseCloseNpc(NetworkMessage&)
 void ProtocolGame::parseCancelMove(NetworkMessage&)
 {
 	addGameTask(&Game::playerCancelAttackAndFollow, player->getID());
-}
-
-void ProtocolGame::parseReceivePing(NetworkMessage&)
-{
-	addGameTask(&Game::playerReceivePing, player->getID());
 }
 
 void ProtocolGame::parseAutoWalk(NetworkMessage& msg)
@@ -2216,6 +2213,16 @@ void ProtocolGame::sendSkills()
 }
 
 void ProtocolGame::sendPing()
+{
+	NetworkMessage_ptr msg = getOutputBuffer();
+	if(msg)
+	{
+		TRACK_MESSAGE(msg);
+		msg->put<char>(0x1D);
+	}
+}
+
+void ProtocolGame::sendPingBack()
 {
 	NetworkMessage_ptr msg = getOutputBuffer();
 	if(msg)

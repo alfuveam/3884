@@ -108,67 +108,7 @@ bool CreatureEvents::playerLogin(Player* player)
 	return result;
 }
 
-uint32_t CreatureEvent::executeMoveItem(Creature* actor, Item* item, const Position& frompos, const Position& pos)
-{
-	//onMoveItem(moveItem, frompos, position, cid)
-	if(m_interface->reserveEnv())
-	{
-		ScriptEnviroment* env = m_interface->getEnv();
-		if(m_scripted == EVENT_SCRIPT_BUFFER)
-		{
-			env->setRealPos(pos);
-			std::stringstream scriptstream;
-
-			env->streamThing(scriptstream, "moveItem", item, env->addThing(item));
-			env->streamPosition(scriptstream, "position", frompos, 0);
-
-			env->streamPosition(scriptstream, "position", pos, 0);
-			scriptstream << "local cid = " << env->addThing(actor) << std::endl;
-
-			scriptstream << m_scriptData;
-			bool result = true;
-			if(m_interface->loadBuffer(scriptstream.str()))
-			{
-				lua_State* L = m_interface->getState();
-				result = m_interface->getGlobalBool(L, "_result", true);
-			}
-
-			m_interface->releaseEnv();
-			return result;
-		}
-		else
-		{
-			#ifdef __DEBUG_LUASCRIPTS__
-			char desc[35];
-			sprintf(desc, "%s", player->getName().c_str());
-			env->setEventDesc(desc);
-			#endif
-
-			env->setScriptId(m_scriptId, m_interface);
-			env->setRealPos(pos);
-
-			lua_State* L = m_interface->getState();
-			m_interface->pushFunction(m_scriptId);
-
-			LuaInterface::pushThing(L, item, env->addThing(item));
-			LuaInterface::pushPosition(L, frompos, 0);
-			LuaInterface::pushPosition(L, pos, 0);
-
-			lua_pushnumber(L, env->addThing(actor));
-			bool result = m_interface->callFunction(4);
-			m_interface->releaseEnv();
-			return result;
-		}
-	}
-	else
-	{
-		std::clog << "[Error - CreatureEvent::executeMoveItem] Call stack overflow." << std::endl;
-		return 0;
-	}
-}
-
-/*
-uint32_t CreatureEvent::executeMoveItem(Player* player, Item* item, uint8_t count, const Position& fromPos, const Position& toPos, Item* toContainer, Item* fromContainer, int16_t fstack)
+uint32_t CreatureEvent::executeOnMoveItem(Player* player, Item* item, uint8_t count, const Position& fromPos, const Position& toPos, Item* toContainer, Item* fromContainer, int16_t fstack)
 {
     //onMoveItem(cid, item, count, toContainer, fromContainer, fromPos, toPos)
     if(m_interface->reserveEnv())
@@ -179,61 +119,53 @@ uint32_t CreatureEvent::executeMoveItem(Player* player, Item* item, uint8_t coun
             env->setRealPos(player->getPosition());
             std::stringstream scriptstream;
             scriptstream << "local cid = " << env->addThing(player) << std::endl;
-
             env->streamThing(scriptstream, "item", item, env->addThing(item));
             scriptstream << "local count = " << count << std::endl;
             env->streamThing(scriptstream, "toContainer", toContainer, env->addThing(toContainer));
             env->streamThing(scriptstream, "fromContainer", fromContainer, env->addThing(fromContainer));
             env->streamPosition(scriptstream, "fromPos", fromPos, fstack);
             env->streamPosition(scriptstream, "toPos", toPos, 0);
-
-
             scriptstream << m_scriptData;
             bool result = true;
+
             if(m_interface->loadBuffer(scriptstream.str()))
             {
                 lua_State* L = m_interface->getState();
                 result = m_interface->getGlobalBool(L, "_result", true);
             }
-
             m_interface->releaseEnv();
             return result;
         }
         else
         {
             #ifdef __DEBUG_LUASCRIPTS__
-            char desc[30];
-            sprintf(desc, "%s", player->getName().c_str());
-            env->setEvent(desc);
+				char desc[30];
+				sprintf(desc, "%s", player->getName().c_str());
+				env->setEvent(desc);
             #endif
-
-            env->setScriptId(m_scriptId, m_interface);
-            env->setRealPos(player->getPosition());
-
-            lua_State* L = m_interface->getState();
-            m_interface->pushFunction(m_scriptId);
-
-            lua_pushnumber(L, env->addThing(player));
-
-            LuaInterface::pushThing(L, item, env->addThing(item));
-            lua_pushnumber(L, count);
-            LuaInterface::pushThing(L, toContainer, env->addThing(toContainer));
-            LuaInterface::pushThing(L, fromContainer, env->addThing(fromContainer));
-            LuaInterface::pushPosition(L, fromPos, fstack);
-                        LuaInterface::pushPosition(L, toPos, 0);
-
-            bool result = m_interface->callFunction(7);
-            m_interface->releaseEnv();
+				env->setScriptId(m_scriptId, m_interface);
+				env->setRealPos(player->getPosition());
+				lua_State* L = m_interface->getState();
+				m_interface->pushFunction(m_scriptId);
+				lua_pushnumber(L, env->addThing(player));
+				LuaInterface::pushThing(L, item, env->addThing(item));
+				lua_pushnumber(L, count);
+				LuaInterface::pushThing(L, toContainer, env->addThing(toContainer));
+				LuaInterface::pushThing(L, fromContainer, env->addThing(fromContainer));
+				LuaInterface::pushPosition(L, fromPos, fstack);
+				LuaInterface::pushPosition(L, toPos, 0);
+				bool result = m_interface->callFunction(7);
+				m_interface->releaseEnv();
             return result;
         }
     }
     else
     {
-        std::clog << "[Error - CreatureEvent::executeMoveItem] Call stack overflow." << std::endl;
+        std::clog << "[Error - CreatureEvent::executeOnMoveItem] Call stack overflow." << std::endl;
         return 0;
     }
 }
-*/
+
 bool CreatureEvents::playerLogout(Player* player, bool forceLogout)
 {
 	//fire global event if is registered
@@ -246,20 +178,6 @@ bool CreatureEvents::playerLogout(Player* player, bool forceLogout)
 	}
 
 	return result;
-}
-
-uint32_t CreatureEvents::executeMoveItems(Creature* actor, Item* item, const Position& frompos, const Position& pos)
-{
-	// fire global event if is registered
-	for(CreatureEventList::iterator it = m_creatureEvents.begin(); it != m_creatureEvents.end(); ++it)
-	{
-		if((*it)->getEventType() == CREATURE_EVENT_MOVEITEM)
-        {
-			if(!(*it)->executeMoveItem(actor, item, frompos, pos))
-				return 0;
-		}
-	}
-	return 1;
 }
 
 /////////////////////////////////////
@@ -347,8 +265,10 @@ bool CreatureEvent::configureEvent(pugi::xml_node& node)
         m_type = CREATURE_EVENT_EXTENDED_OPCODE;	
 	else if(tmpStr == "preparedeath")
 		m_type = CREATURE_EVENT_PREPAREDEATH;
-	else if(tmpStr == "moveitem")
+	else if(tmpStr == "moveitem" || tmpStr == "move")
         m_type = CREATURE_EVENT_MOVEITEM;	
+    else if(tmpStr == "spawn")
+        m_type = CREATURE_EVENT_SPAWN;		
 	else
 	{
 		std::clog << "[Error - CreatureEvent::configureEvent] No valid type for creature event." << str << std::endl;
@@ -418,7 +338,9 @@ std::string CreatureEvent::getScriptEventName() const
 		case CREATURE_EVENT_PREPAREDEATH:
 			return "onPrepareDeath";
 		case CREATURE_EVENT_MOVEITEM:
-            return "onMoveItem";	
+            return "onMoveItem";
+        case CREATURE_EVENT_SPAWN:
+            return "onSpawn";			
 		case CREATURE_EVENT_NONE:
 		default:
 			break;
@@ -482,8 +404,9 @@ std::string CreatureEvent::getScriptEventParams() const
 		case CREATURE_EVENT_PREPAREDEATH:
 			return "cid, deathList";
 		case CREATURE_EVENT_MOVEITEM:
-	        return "moveItem, frompos, topos, cid";
-			//return "cid, item, count, toContainer, fromContainer, fromPos, toPos";
+	        return "cid, item, formPosition, toPosition, fromItem, toItem, fromGround, toGround";
+		case CREATURE_EVENT_SPAWN:
+            return "cid";			
 		case CREATURE_EVENT_NONE:
 		default:
 			break;
@@ -2053,54 +1976,112 @@ uint32_t CreatureEvent::executeFollow(Creature* creature, Creature* target)
 
 uint32_t CreatureEvent::executeExtendedOpcode(Creature* creature, uint8_t opcode, const std::string& buffer)
 {
-//onExtendedOpcode(cid, opcode, buffer)
-if(m_interface->reserveEnv())
-{
-ScriptEnviroment* env = m_interface->getEnv();
-if(m_scripted == EVENT_SCRIPT_BUFFER)
-{
-env->setRealPos(creature->getPosition());
-std::stringstream scriptstream;
-scriptstream << "local cid = " << env->addThing(creature) << std::endl;
-scriptstream << "local opcode = " << (int)opcode << std::endl;
-scriptstream << "local buffer = " << buffer.c_str() << std::endl;
+    //onExtendedOpcode(cid, opcode, buffer)
+    if(m_interface->reserveEnv()) {
+        ScriptEnviroment* env = m_interface->getEnv();
+        if(m_scripted == EVENT_SCRIPT_BUFFER) {
+            env->setRealPos(creature->getPosition());
+            std::stringstream scriptstream;
+            scriptstream << "local cid = " << env->addThing(creature) << std::endl;
+            scriptstream << "local opcode = " << (int)opcode << std::endl;
+            scriptstream << "local buffer = " << buffer.c_str() << std::endl;
 
-scriptstream << m_scriptData;
-bool result = true;
-if(m_interface->loadBuffer(scriptstream.str()))
-{
-lua_State* L = m_interface->getState();
-result = m_interface->getGlobalBool(L, "_result", true);
+            scriptstream << m_scriptData;
+            bool result = true;
+            if(m_interface->loadBuffer(scriptstream.str())) {
+                lua_State* L = m_interface->getState();
+                result = m_interface->getGlobalBool(L, "_result", true);
+            }
+
+            m_interface->releaseEnv();
+            return result;
+        } else {
+            #ifdef __DEBUG_LUASCRIPTS__
+            char desc[35];
+            sprintf(desc, "%s", player->getName().c_str());
+            env->setEvent(desc);
+            #endif
+
+            env->setScriptId(m_scriptId, m_interface);
+            env->setRealPos(creature->getPosition());
+    
+            lua_State* L = m_interface->getState();
+            m_interface->pushFunction(m_scriptId);
+            lua_pushnumber(L, env->addThing(creature));
+            lua_pushnumber(L, opcode);
+            lua_pushlstring(L, buffer.c_str(), buffer.length());
+
+            bool result = m_interface->callFunction(3);
+            m_interface->releaseEnv();
+            return result;
+        }
+    } else {
+        std::cout << "[Error - CreatureEvent::executeRemoved] Call stack overflow." << std::endl;
+        return 0;
+    }
 }
 
-m_interface->releaseEnv();
-return result;
-}
-else
+uint32_t CreatureEvent::executeOnSpawn(Creature* creature)
 {
-#ifdef __DEBUG_LUASCRIPTS__
-char desc[35];
-sprintf(desc, "%s", player->getName().c_str());
-env->setEvent(desc);
-#endif
-
-env->setScriptId(m_scriptId, m_interface);
-env->setRealPos(creature->getPosition());
-
-lua_State* L = m_interface->getState();
-m_interface->pushFunction(m_scriptId);
-lua_pushnumber(L, env->addThing(creature));
-lua_pushnumber(L, opcode);
-lua_pushlstring(L, buffer.c_str(), buffer.length());
-
-bool result = m_interface->callFunction(3);
-m_interface->releaseEnv();
-return result;
-}
-}
-else
-{
-std::cout << "[Error - CreatureEvent::executeRemoved] Call stack overflow." << std::endl;
-return 0;
-}
+    
+    //onSpawn(cid)
+    if(m_interface->reserveEnv())
+    {
+        ScriptEnviroment* env = m_interface->getEnv();
+        if(m_scripted == EVENT_SCRIPT_BUFFER)
+        {
+            env->setRealPos(creature->getPosition());
+            std::stringstream scriptstream;
+            
+            
+            scriptstream << "local cid = " << env->addThing(creature) << std::endl;
+            
+            
+            
+            //if (m_scriptData)
+            //    scriptstream << *m_scriptData;
+            scriptstream << m_scriptData;
+            
+            
+            bool result = true;
+            if(m_interface->loadBuffer(scriptstream.str()))
+            {
+                lua_State* L = m_interface->getState();
+                result = m_interface->getGlobalBool(L, "_result", true);
+            }
+            
+            
+            m_interface->releaseEnv();
+            return result;
+        }
+        else
+        {
+            #ifdef __DEBUG_LUASCRIPTS__
+            std::stringstream desc;
+            desc << creature->getName();
+            env->setEvent(desc.str());
+            #endif
+            
+            
+            env->setScriptId(m_scriptId, m_interface);
+            env->setRealPos(creature->getPosition());
+            
+            
+            lua_State* L = m_interface->getState();
+            m_interface->pushFunction(m_scriptId);
+            
+            
+            lua_pushnumber(L, env->addThing(creature));
+            
+            
+            bool result = m_interface->callFunction(1);
+            m_interface->releaseEnv();
+            return result;
+        }
+    }
+    else
+    {
+        std::clog << "[Error - CreatureEvent::executeCast] Call stack overflow." << std::endl;
+        return 0;
+    }
 }

@@ -165,23 +165,23 @@ int32_t Items::loadFromOtb(std::string file)
 		}
 	}
 
-	/*if(Items::dwMajorVersion == 0xFFFFFFFF)
-		std::clog << "[Warning - Items::loadFromOtb] items.otb using generic client version." << std::endl;
-	else if(Items::dwMajorVersion < 3)
-	{
-		std::clog << "[Error - Items::loadFromOtb] Old version detected, a newer version of items.otb is required." << std::endl;
-		return ERROR_INVALID_FORMAT;
-	}
-	else if(Items::dwMajorVersion > 3)
-	{
-		std::clog << "[Error - Items::loadFromOtb] New version detected, an older version of items.otb is required." << std::endl;
-		return ERROR_INVALID_FORMAT;
-	}
-	else if(Items::dwMinorVersion != CLIENT_VERSION_861)
-	{
-		std::clog << "[Error - Items::loadFromOtb] Another (client) version of items.otb is required." << std::endl;
-		return ERROR_INVALID_FORMAT;
-	}*/
+	// if(Items::dwMajorVersion == 0xFFFFFFFF)
+	// 	std::clog << "[Warning - Items::loadFromOtb] items.otb using generic client version." << std::endl;
+	// else if(Items::dwMajorVersion < 3)
+	// {
+	// 	std::clog << "[Error - Items::loadFromOtb] Old version detected, a newer version of items.otb is required." << std::endl;
+	// 	return ERROR_INVALID_FORMAT;
+	// }
+	// else if(Items::dwMajorVersion > 3)
+	// {
+	// 	std::clog << "[Error - Items::loadFromOtb] New version detected, an older version of items.otb is required." << std::endl;
+	// 	return ERROR_INVALID_FORMAT;
+	// }
+	// else if(Items::dwMinorVersion != CLIENT_VERSION_861)
+	// {
+	// 	std::clog << "[Error - Items::loadFromOtb] Another (client) version of items.otb is required." << std::endl;
+	// 	return ERROR_INVALID_FORMAT;
+	// }
 
 	uint16_t lastId = 99;
 	for(node = f.getChildNode(node, type); node != NO_NODE; node = f.getNextNode(node, type))
@@ -266,8 +266,8 @@ int32_t Items::loadFromOtb(std::string file)
 					if(!props.getShort(serverId))
 						return ERROR_INVALID_FORMAT;
 
-					if(serverId > 20000 && serverId < 20100)
-						serverId = serverId - 20000;
+					if(serverId > 30000 && serverId < 30100)
+						serverId = serverId - 30000;
 					else if(lastId > 99 && lastId != serverId - 1)
 					{
 						static ItemType dummyItemType;
@@ -355,6 +355,8 @@ bool Items::loadFromXml()
 {
 	pugi::xml_document attrItemDoc;
 	pugi::xml_parse_result itemDoc = attrItemDoc.load_file(getFilePath(FILE_TYPE_OTHER, "items/items.xml").c_str());	
+ 	pugi::xml_document paletteDoc;
+	pugi::xml_parse_result resultPalette = paletteDoc.load_file(getFilePath(FILE_TYPE_OTHER, "items/randomization.xml").c_str());
 
 	pugi::xml_attribute attr;
 	pugi::xml_attribute _attr;
@@ -364,6 +366,12 @@ bool Items::loadFromXml()
 		std::clog << "[Warning - Items::loadFromXml] Cannot load items file." << std::endl;
 		return false;
 	}
+
+	if(!resultPalette)
+	{
+		std::clog << "[Warning - Items::loadFromXml] Cannot load randomization file." << std::endl;
+		return false;
+	}	
 
 	IntegerVec intVector, endVector;
 	std::string strValue, endValue, lastId;
@@ -419,6 +427,68 @@ bool Items::loadFromXml()
 			std::clog << "[Warning - Items::loadFromXml] Item " << it->id << " is not set as a bed-type." << std::endl;
 	}
 
+
+	for(auto paletteNode : paletteDoc.child("randomization").children())
+	{
+		if(!std::string(paletteNode.name()).compare("config"))
+		{
+			if((attr = paletteNode.attribute("chance")) || (attr = paletteNode.attribute("defaultChance")))
+			{
+				intValue = attr.as_int();
+				if(intValue > 100)
+				{
+					intValue = 100;
+					std::clog << "[Warning - Items::loadFromXml] Randomize chance cannot be higher than 100." << std::endl;
+				}
+
+				m_randomizationChance = intValue;
+			}
+		}
+		else if(!std::string(paletteNode.name()).compare("palette"))
+		{
+			if(!(attr = paletteNode.attribute("randomize")))
+				continue;
+
+			std::vector<int32_t> itemList = vectorAtoi(explodeString(attr.as_string(), ";"));
+			if(itemList.size() >= 2)
+			{
+				if(itemList[0] < itemList[1])
+				{
+					fromId = itemList[0];
+					toId = itemList[1];
+				}
+				else
+					std::clog << "[Warning - Items::loadFromXml] Randomize min cannot be higher than max." << std::endl;
+			}
+
+			int32_t chance = getRandomizationChance();
+			if((attr = paletteNode.attribute("chance")))
+			{
+				intValue = attr.as_int();
+				if(intValue > 100)
+				{
+					intValue = 100;
+					std::clog << "[Warning: Items::loadRandomization] Randomize chance cannot be higher than 100." << std::endl;
+				}
+
+				chance = intValue;
+			}
+
+			if((attr = paletteNode.attribute("itemid"))){
+				id = attr.as_int();
+				parseRandomizationBlock(id, fromId, toId, chance);
+			}
+			else if((attr = paletteNode.attribute("fromid")) && (_attr = paletteNode.attribute("toid")))
+			{
+				id = attr.as_int();
+				endId = _attr.as_int();
+				parseRandomizationBlock(id, fromId, toId, chance);
+				while(id < endId)
+					parseRandomizationBlock(++id, fromId, toId, chance);
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -427,9 +497,9 @@ void Items::parseItemNode(pugi::xml_node& itemNode, uint32_t id)
 	std::string strValue;
 	pugi::xml_attribute attr;
 
-	if(id > 20000 && id < 20100)
+	if(id > 30000 && id < 30100)
 	{
-		id = id - 20000;
+		id = id - 30000;
 
 		ItemType* iType = new ItemType();
 		iType->id = id;
