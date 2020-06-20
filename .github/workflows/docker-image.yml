@@ -10,9 +10,6 @@ on:
     tags:
       - v*
 
-env:
-  IMAGE_NAME: forgottenserver
-
 jobs:
   # Push image to GitHub Package Registry.
   # See also https://docs.docker.com/docker-hub/builds/
@@ -31,7 +28,7 @@ jobs:
 
       - name: Push image
         run: |
-          IMAGE_ID=$(echo "docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME" | awk '{print tolower($0)}')
+          IMAGE_ID=$(echo "docker.pkg.github.com/${{ github.repository }}" | awk '{print tolower($0)}')
 
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')

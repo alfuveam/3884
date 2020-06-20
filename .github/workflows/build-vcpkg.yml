@@ -46,7 +46,7 @@ jobs:
             cc: gcc
             triplet: x64-linux
             packages: >
-              boost-asio boost-iostreams boost-system boost-filesystem boost-variant boost-lockfree
+              bison boost-asio boost-iostreams boost-system boost-filesystem boost-variant boost-lockfree
               sqlite3 libpq lua libmariadb pugixml cryptopp
           - name: ubuntu-clang
             os: ubuntu
@@ -54,7 +54,7 @@ jobs:
             cc: clang
             triplet: x64-linux
             packages: >
-              boost-asio boost-iostreams boost-system boost-filesystem boost-variant boost-lockfree
+              bison boost-asio boost-iostreams boost-system boost-filesystem boost-variant boost-lockfree
               sqlite3 libpq lua libmariadb pugixml cryptopp
           - name: macos-clang
             os: macos
