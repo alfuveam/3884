@@ -11,7 +11,7 @@ on:
       - v*
 
 env:
-  IMAGE_NAME: forgottenserver
+  IMAGE_NAME: 3884
 
 jobs:
   # Push image to GitHub Package Registry.
