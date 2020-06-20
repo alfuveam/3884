@@ -38,9 +38,14 @@ The Forgotten Server is a free and open-source MMORPG server emulator written in
         </td>
         <td></td>
         <td>
+            &nbsp;
+			<a href="https://github.com/aspiraboo/3884/actions?query=workflow%3ADocker">
+                <img src="https://github.com/aspiraboo/3884/workflows/Docker/badge.svg">
+			</a>
+			</br>
             <a href="https://microbadger.com/images/aspiraboo/3884">
                 <img src="https://images.microbadger.com/badges/image/aspiraboo/3884.svg">
-            </a>        
+            </a>		
         </td>
         <td></td>
     <tr>
