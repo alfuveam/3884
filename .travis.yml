@@ -5,7 +5,7 @@ compiler:
   - clang
   - gcc
 env:
-  - LUAJIT=OFF  
+  - LUAJIT=OFF
 cache: apt
 addons:
   apt:
