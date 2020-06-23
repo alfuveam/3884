@@ -6,13 +6,13 @@ on:
     - cron: '0 0 * * 5' # Weekly at 00:00 UTC
 
 env:
-  COVERITY_PROJECT: otland/forgottenserver
-  COVERITY_EMAIL: coverity@otland.net
+  COVERITY_PROJECT: aspiraboo/3884
+  COVERITY_EMAIL: aspiraboo@users.noreply.github.com
 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    if: github.repository == 'otland/forgottenserver'
+    if: github.repository == 'aspiraboo/3884'
     steps:
       - uses: actions/checkout@v2
 
