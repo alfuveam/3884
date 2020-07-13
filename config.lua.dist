@@ -92,6 +92,7 @@
 	gamePort = 7172
 	maxPacketsPerSecond = 50
 	enableCompressPacket = false
+	clientPing = false -- To OTC, need enable feature GameClientPing
 
 	loginTries = 10
 	retryTimeout = 5 * 1000

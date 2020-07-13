@@ -2214,11 +2214,17 @@ void ProtocolGame::sendSkills()
 
 void ProtocolGame::sendPing()
 {
-	NetworkMessage_ptr msg = getOutputBuffer();
-	if(msg)
-	{
-		TRACK_MESSAGE(msg);
-		msg->put<char>(0x1D);
+	//	Ping is enable in 9.53 tibia client. to support a old version, is necessary this.
+	//	Now is possible enable ping to Open Tibia Client(OTC)
+	if(!g_config.getBool(ConfigManager::CLIENT_PING)){
+		sendPingBack();
+	} else {
+		NetworkMessage_ptr msg = getOutputBuffer();
+		if(msg)
+		{
+			TRACK_MESSAGE(msg);
+			msg->put<char>(0x1D);
+		}
 	}
 }
 

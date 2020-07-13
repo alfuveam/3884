@@ -297,6 +297,7 @@ class ConfigManager
 			LOG_PLAYER,
 			ENABLE_CAST, //CAST
 			COMPRESS_PACKET,
+			CLIENT_PING,
 			LAST_BOOL_CONFIG /* this must be the last one */
 		};
 

@@ -326,6 +326,7 @@ bool ConfigManager::load()
 	m_confNumber[EXHAUST_ONBUY] = getGlobalNumber("onBuy", 500);
 	m_confNumber[EXHAUST_ONSELL] = getGlobalNumber("onSell", 500);
 	m_confNumber[EXHAUST_CHANGEOUFIT] = getGlobalNumber("changeOutfit", 500);
+	m_confBool[CLIENT_PING] = getGlobalBool("clientPing", false);	
 
 	m_loaded = true;
 	return true;
